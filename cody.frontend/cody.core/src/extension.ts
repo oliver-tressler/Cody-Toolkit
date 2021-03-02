@@ -1,4 +1,3 @@
-import { exec } from "child_process";
 import * as vscode from "vscode";
 import * as api from "./Api/connectionApi";
 import { OrganizationConfiguration } from "./Api/connectionApi";
@@ -10,7 +9,6 @@ import {
 	ManualInstanceConfiguration,
 } from "./Configuration/MementoProxy";
 import { install } from "./install";
-import { FileInfo } from "./Utils/FileInfo";
 import { ServerConnector } from "./Utils/ServerConnector";
 
 type SwitchInstanceQuickPickItem =
@@ -479,6 +477,8 @@ const registerSwitchInstanceCommand = (
 					return;
 				} catch {
 					connectionState.activeInstance = undefined;
+					connectionState.activeOrganization = undefined;
+					connectionState.availableOrganizations = [];
 					password = undefined;
 					connectionState.connecting = true;
 					refreshButtonText(connectionState);
@@ -577,9 +577,20 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 				"cody.toolkit.core.activateModules",
 				() => {}
 			);
+			// Make connection state available to other modules.
+			const getConnectionStateCommand = vscode.commands.registerCommand(
+				"cody.toolkit.core.getConnectionState",
+				() => connectionState
+			);
 			// Set initial button text.
 			refreshButtonText(connectionState);
-			subscriptions.push(statusBarItem, switchInstanceCommand, removeInstanceCommand, activateModulesCommand);
+			subscriptions.push(
+				statusBarItem,
+				switchInstanceCommand,
+				removeInstanceCommand,
+				activateModulesCommand,
+				getConnectionStateCommand
+			);
 		})
 		.catch((e) => {
 			if (e instanceof Error) {

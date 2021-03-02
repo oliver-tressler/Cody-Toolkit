@@ -30,6 +30,8 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 -   Credential Files still need to be created manually. A wizard will be provided in future versions.
 -   The backend server is not yet included in the extension to reduce bundle size.
 -   Organization Service expiration is currently not communicated to the user.
+-   Since there always is just one backend instance, the output logs will be forwarded to the VS Code instance that
+    started the process
 
 ## Release Notes
 

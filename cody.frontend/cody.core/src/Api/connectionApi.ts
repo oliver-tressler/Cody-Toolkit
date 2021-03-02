@@ -133,6 +133,6 @@ export async function connectionAlive(port: number, organizationUniqueName: stri
 		const response = await axios.get<boolean>(url);
 		return response.status == 200 && response.data === true;
 	} catch (e) {
-		throw e;
+		return false;
 	}
 }

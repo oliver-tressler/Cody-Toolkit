@@ -15,16 +15,7 @@ namespace cody.backend.api.Controllers
         [Route("api/connections/{organization}")]
         public IHttpActionResult OrganizationHasAuthorizedOrganizationService(string organization)
         {
-            try
-            {
-                return Ok(ConnectionCache.Instance.Value.GetOrganizationService(organization)?.IsAuthenticated());
-            }
-            catch (HttpResponseException e)
-            {
-                if (e.Response.StatusCode == HttpStatusCode.Unauthorized)
-                    return Ok(false);
-                throw;
-            }
+            return Ok(ConnectionCache.Instance.Value.GetOrganizationService(organization)?.IsAuthenticated());
         }
 
         [HttpPost]

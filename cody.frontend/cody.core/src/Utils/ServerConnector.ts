@@ -23,7 +23,7 @@ export class ServerConnector {
 	public async isServerRunning(): Promise<boolean> {
 		try {
 			// Early exit if the backend process is still connected.
-			if (this.server?.connected !== true) return false;
+			if (this.server?.connected === false) return false;
 			// Returns Ok 200 if the Web API is available. (Theoretically redundant)
 			await axios.get("http://localhost:" + Configuration.backendServerPort + "/api/alive/alive");
 			return true;

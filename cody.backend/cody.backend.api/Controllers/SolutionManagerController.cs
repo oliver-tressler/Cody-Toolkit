@@ -82,7 +82,7 @@ namespace cody.backend.api.Controllers
         }
 
         [HttpGet]
-        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/showSteps/{solutionId}")]
+        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/{solutionId}/showSteps")]
         public IHttpActionResult GetAssemblySteps([FromUri] string organization, [FromUri] string assemblyId, [FromUri] string solutionId)
         {
             var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
