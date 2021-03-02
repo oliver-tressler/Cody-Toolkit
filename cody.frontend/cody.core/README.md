@@ -22,7 +22,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Extension Settings
 
--   `cody.toolkit.core.backendServerLocation`: Location to the executable of the backend server
+-   `cody.toolkit.core.backendServerLocation`: Location to the executable of the backend server (forward slash notation)
 -   `cody.toolkit.core.backendServerPort`: Port to use when communicating with backend server
 
 ## Known Issues
@@ -32,8 +32,6 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 -   Organization Service expiration is currently not communicated to the user.
 
 ## Release Notes
-
-Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 
