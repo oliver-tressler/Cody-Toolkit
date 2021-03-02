@@ -43,7 +43,7 @@
 				"cody.toolkit.core.backendServerLocation": {
 					"description": "Path to the backend server executable.",
 					"type": "string",
-					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*cody.toolkit.api.exe)?$",
+					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*cody.backend.api.exe)?$",
 					"scope": "machine"
 				},
 				"cody.toolkit.core.backendServerPort": {
