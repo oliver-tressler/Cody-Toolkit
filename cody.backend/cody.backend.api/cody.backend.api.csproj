@@ -79,7 +79,6 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Cache\AssemblyWatcherCache.cs" />
-    <Compile Include="Cache\ConnectionCache.cs" />
     <Compile Include="Controllers\AliveController.cs" />
     <Compile Include="Controllers\CrmConnectionController.cs" />
     <Compile Include="Controllers\PluginBrowserController.cs" />

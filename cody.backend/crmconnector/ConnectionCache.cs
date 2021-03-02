@@ -2,11 +2,9 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http;
-using System.Web.Http;
-using crmconnector;
 using Microsoft.Xrm.Sdk.Client;
 
-namespace cody.backend.api.Cache
+namespace crmconnector
 {
     public class AuthorizedOrganizationCreatedResponse
     {
@@ -54,12 +52,10 @@ namespace cody.backend.api.Cache
         public OrganizationServiceProxy GetOrganizationService(string organizationName)
         {
             if (!_cache.TryGetValue(organizationName, out var organizationService))
-                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Unauthorized)
-                    {ReasonPhrase = "Please establish a connection first."});
+                throw new Exception("Please establish a connection first.");
             if (organizationService.IsAuthenticated()) return organizationService;
             _cache.TryRemove(organizationName, out _);
-            throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.Unauthorized)
-                {ReasonPhrase = "The OrganizationServiceProxy expired. Please login again."});
+            throw new Exception("The OrganizationServiceProxy expired. Please login again.");
         }
 
         public AuthorizedOrganizationCreatedResponse AddAuthorizedOrganization(string organizationName, ICrmConnectionAuthenticationDetailsProvider authenticationDetailsProvider)
