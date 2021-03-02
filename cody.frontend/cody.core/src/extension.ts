@@ -440,6 +440,117 @@ async function switchToNewInstance(
 	return { password, connectionState };
 }
 
+const registerRemoveInstanceCommand = (
+	connectionState: ConnectionState,
+	config: InstanceConfigurationProxy,
+	refreshButtonText: (connectionState: ConnectionState) => void
+) => {
+	return vscode.commands.registerCommand("cody.toolkit.core.connect.removeInstance", async () => {
+		const chosenInstance = await vscode.window.showQuickPick(
+			config.instances.map((i) => instanceToQuickPick(i, connectionState)),
+			{
+				ignoreFocusOut: true,
+				canPickMany: false,
+			}
+		);
+		if (chosenInstance == null) return;
+		({ connectionState } = await removeInstance(connectionState, config, chosenInstance.instance));
+		refreshButtonText(connectionState);
+	});
+};
+
+const registerSwitchInstanceCommand = (
+	connector: ServerConnector,
+	connectionState: ConnectionState,
+	config: InstanceConfigurationProxy,
+	refreshButtonText: (connectionState: ConnectionState) => void
+) => {
+	return vscode.commands.registerCommand("cody.toolkit.core.connect.switchInstance", async () => {
+		try {
+			connectionState.connecting = true;
+			refreshButtonText(connectionState);
+			let password: string | undefined = undefined;
+			// If a preselected instance exists it isn't authenticated.
+			// Offer connecting to it. If aborted clear initial connection state and offer regular
+			// connection options.
+			if (connectionState.activeInstance?.authenticated === false) {
+				try {
+					({ password, connectionState } = await switchToInstance(
+						connector.port,
+						connectionState,
+						config,
+						connectionState.activeInstance
+					));
+					return;
+				} catch {
+					connectionState.activeInstance = undefined;
+					password = undefined;
+					connectionState.connecting = true;
+					refreshButtonText(connectionState);
+				}
+			}
+			const chosen = await showQuickPickForInstanceSwitching({
+				connectionState,
+				organizations: connectionState.availableOrganizations,
+				instances: config.instances,
+				includeCreateNewOptions: true,
+			});
+			if (chosen == null) {
+				return; // Nothing was chosen
+			}
+			// A new instance should be created.
+			if (chosen?.type == "newInstance") {
+				({ password, connectionState } = await switchToNewInstance(
+					connector.port,
+					connectionState,
+					config,
+					chosen.useCredentialsFile,
+					password
+				));
+			}
+			// Switch to another instance.
+			else if (
+				chosen?.type == "instance" &&
+				chosen.instance.instanceId !== connectionState.activeInstance?.instanceId
+			) {
+				({ password, connectionState } = await switchToInstance(
+					connector.port,
+					connectionState,
+					config,
+					chosen.instance,
+					password
+				));
+			}
+			// Switch to another organization within the same instance.
+			else if (
+				chosen?.type == "organization" &&
+				chosen.organization.UniqueName !== connectionState.activeOrganization?.UniqueName
+			) {
+				({ password, connectionState } = await switchToOrganization(
+					connector.port,
+					connectionState,
+					chosen.organization,
+					password
+				));
+			} else {
+				return;
+			}
+			// If this line is reached, an authenticated organization service exists for the current configuration.
+			// This will be the trigger to load modules that use this connection.
+			vscode.commands.executeCommand("cody.toolkit.core.activateModules");
+		} catch (e) {
+			if (e instanceof Error) {
+				vscode.window.showErrorMessage(e.message);
+				return;
+			}
+			throw e;
+		} finally {
+			connectionState.connecting = false;
+			refreshButtonText(connectionState);
+		}
+	});
+};
+
 export function activate({ subscriptions, workspaceState }: vscode.ExtensionContext) {
 	new ServerConnector()
 		.launchServer()
@@ -459,105 +570,12 @@ export function activate({ subscriptions, workspaceState }: vscode.ExtensionCont
 				connecting: false,
 			};
 			const [statusBarItem, refreshButtonText] = createStatusBarItem();
-			const removeInstanceCommand = vscode.commands.registerCommand(
-				"cody.toolkit.core.connect.removeInstance",
-				async () => {
-					const chosenInstance = await vscode.window.showQuickPick(
-						config.instances.map((i) => instanceToQuickPick(i, connectionState)),
-						{
-							ignoreFocusOut: true,
-							canPickMany: false,
-						}
-					);
-					if (chosenInstance == null) return;
-					({ connectionState } = await removeInstance(connectionState, config, chosenInstance.instance));
-					refreshButtonText(connectionState);
-				}
-			);
-			const switchInstanceCommand = vscode.commands.registerCommand(
-				"cody.toolkit.core.connect.switchInstance",
-				async () => {
-					try {
-						connectionState.connecting = true;
-						refreshButtonText(connectionState);
-						let password: string | undefined = undefined;
-						// If a preselected instance exists it isn't authenticated.
-						// Offer connecting to it. If aborted clear initial connection state and offer regular
-						// connection options.
-						if (connectionState.activeInstance?.authenticated === false) {
-							try {
-								({ password, connectionState } = await switchToInstance(
-									connector.port,
-									connectionState,
-									config,
-									connectionState.activeInstance
-								));
-								return;
-							} catch {
-								connectionState.activeInstance = undefined;
-								password = undefined;
-								connectionState.connecting = true;
-								refreshButtonText(connectionState);
-							}
-						}
-						const chosen = await showQuickPickForInstanceSwitching({
-							connectionState,
-							organizations: connectionState.availableOrganizations,
-							instances: config.instances,
-							includeCreateNewOptions: true,
-						});
-						if (chosen == null) {
-							return; // Nothing was chosen
-						}
-						// A new instance should be created.
-						if (chosen?.type == "newInstance") {
-							({ password, connectionState } = await switchToNewInstance(
-								connector.port,
-								connectionState,
-								config,
-								chosen.useCredentialsFile,
-								password
-							));
-						}
-						// Switch to another instance.
-						else if (
-							chosen?.type == "instance" &&
-							chosen.instance.instanceId !== connectionState.activeInstance?.instanceId
-						) {
-							({ password, connectionState } = await switchToInstance(
-								connector.port,
-								connectionState,
-								config,
-								chosen.instance,
-								password
-							));
-						}
-						// Switch to another organization within the same instance.
-						else if (
-							chosen?.type == "organization" &&
-							chosen.organization.UniqueName !== connectionState.activeOrganization?.UniqueName
-						) {
-							({ password, connectionState } = await switchToOrganization(
-								connector.port,
-								connectionState,
-								chosen.organization,
-								password
-							));
-						}
-						// If this line is reached, an authenticated organization service exists for the current
-						// configuration. This will be the trigger to load modules that use this connection.
-						vscode.commands.executeCommand("cody.toolkit.core.activateModules");
-					} catch (e) {
-						if (e instanceof Error) {
-							vscode.window.showErrorMessage(e.message);
-							return;
-						}
-						throw e;
-					} finally {
-						connectionState.connecting = false;
-						refreshButtonText(connectionState);
-					}
-				}
+			const removeInstanceCommand = registerRemoveInstanceCommand(connectionState, config, refreshButtonText);
+			const switchInstanceCommand = registerSwitchInstanceCommand(
+				connector,
+				connectionState,
+				config,
+				refreshButtonText
 			);
 			// Empty command. Just an activation trigger for other modules.
 			const activateModulesCommand = vscode.commands.registerCommand(
