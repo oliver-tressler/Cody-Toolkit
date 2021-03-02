@@ -9,6 +9,7 @@ import {
 	InstanceConfigurationProxy,
 	ManualInstanceConfiguration,
 } from "./Configuration/MementoProxy";
+import { install } from "./install";
 import { FileInfo } from "./Utils/FileInfo";
 import { ServerConnector } from "./Utils/ServerConnector";
 
@@ -597,63 +598,9 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 		});
 }
 
-/**
- * Run if configuration is not complete
- * @param context
- */
-async function install(context: vscode.ExtensionContext) {
-	// Ask the user if he wants do install cody
-	const shouldInstall =
-		(await vscode.window.showInformationMessage(
-			"Cody Toolkit requires that you specify the path to the backend server.",
-			"Configure"
-		)) === "Configure";
-	if (!shouldInstall) return;
-	// Get the exe file for the backend server
-	const backendServerLocation = await vscode.window.showOpenDialog({
-		canSelectFiles: true,
-		canSelectFolders: false,
-		canSelectMany: false,
-		openLabel: "Choose",
-		filters: { Executable: ["exe", "EXE"] },
-		title: "Select Cody Toolkit Backend Executable",
-	});
-	if (backendServerLocation == null || backendServerLocation.length == 0) return;
-	Configuration.backendServerLocation = new FileInfo(
-		backendServerLocation[0].fsPath,
-		Configuration.projectRootPath
-	).asForwardSlash().file;
-	// Ask for the port
-	const portOkResponse = await vscode.window.showInformationMessage(
-		"The port that will be used is " + Configuration.backendServerPort + ". Is that okay with you?",
-		"Yes, Let's Go",
-		"Configure"
-	);
-	// Close icon clicked
-	if (portOkResponse == null) return;
-	// Port specified in config is fine
-	if (portOkResponse == "Let's Go") {
-		launch(context);
-		return;
-	}
-	// Configure port
-	const port = await vscode.window.showInputBox({
-		value: Configuration.backendServerPort.toString(),
-		ignoreFocusOut: true,
-		prompt: "Please enter the port that should be used to communicate with the Cody Toolkit Backend",
-	});
-	if (port == null) return;
-	if (isNaN(parseInt(port))) {
-		vscode.window.showErrorMessage("Not a valid port");
-		return;
-	}
-	Configuration.backendServerPort = parseInt(port);
-	launch(context);
-}
-
 export function activate(context: vscode.ExtensionContext) {
-	if (Configuration.backendServerLocation == null) {
-		install(context);
+	if (!!!Configuration.backendServerLocation) {
+		install(context, launch);
 	} else {
 		launch(context);
 	}
