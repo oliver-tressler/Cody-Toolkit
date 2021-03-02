@@ -1,3 +1,4 @@
+import { exec } from "child_process";
 import * as vscode from "vscode";
 import * as api from "./Api/connectionApi";
 import { OrganizationConfiguration } from "./Api/connectionApi";
@@ -596,14 +597,19 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 		});
 }
 
+/**
+ * Run if configuration is not complete
+ * @param context
+ */
 async function install(context: vscode.ExtensionContext) {
+	// Ask the user if he wants do install cody
 	const shouldInstall =
 		(await vscode.window.showInformationMessage(
-			"Cody Toolkit requires that you set the backend server.",
-			"Ignore",
+			"Cody Toolkit requires that you specify the path to the backend server.",
 			"Configure"
 		)) === "Configure";
 	if (!shouldInstall) return;
+	// Get the exe file for the backend server
 	const backendServerLocation = await vscode.window.showOpenDialog({
 		canSelectFiles: true,
 		canSelectFolders: false,
@@ -617,16 +623,20 @@ async function install(context: vscode.ExtensionContext) {
 		backendServerLocation[0].fsPath,
 		Configuration.projectRootPath
 	).asForwardSlash().file;
+	// Ask for the port
 	const portOkResponse = await vscode.window.showInformationMessage(
 		"The port that will be used is " + Configuration.backendServerPort + ". Is that okay with you?",
-		"Let's Go",
+		"Yes, Let's Go",
 		"Configure"
 	);
+	// Close icon clicked
 	if (portOkResponse == null) return;
+	// Port specified in config is fine
 	if (portOkResponse == "Let's Go") {
 		launch(context);
 		return;
 	}
+	// Configure port
 	const port = await vscode.window.showInputBox({
 		value: Configuration.backendServerPort.toString(),
 		ignoreFocusOut: true,
