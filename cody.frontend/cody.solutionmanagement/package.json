@@ -1,0 +1,56 @@
+{
+	"name": "cody-toolkit.solutionmanagement",
+	"author": {
+		"name": "Oliver Tressler",
+		"email": "oliver.tressler@protonmail.com"
+	},
+	"repository": {
+		"url": "https://github.com/otressler/cody-toolkit.git",
+		"type": "github"
+	},
+	"publisher": "otressler",
+	"icon": "assets/d365-icon.png",
+	"license": "GPLv3",
+	"displayName": "Cody Toolkit (Solution Management)",
+	"description": "Create new solutions directly from VS Code or add WebResources, Assemblies and Steps to existing solutions.",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.53.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:extension.helloWorld"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.helloWorld",
+				"title": "Hello World"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile",
+		"test": "node ./out/test/runTest.js"
+	},
+	"extensionDependencies": [
+		"otressler.cody-toolkit-core"
+	],
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.17.54",
+		"@types/vscode": "^1.53.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode-test": "^1.2.0"
+	}
+}
