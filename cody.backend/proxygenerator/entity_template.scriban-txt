@@ -1,0 +1,186 @@
+{{name = metadata.display_name.user_localized_label.label | string.capitalize | string.remove " "-}}
+{{-func getAttributeDisplayName
+	displayName = ""
+	if $0.name
+		displayName = $0.name | string.replace " " "" | regex.replace "[^A-Za-z0-9]+" "_" | regex.replace "_$" ""
+	else
+		displayName = $0.name
+	end
+	ret displayName
+end-}}
+
+{{-func getMtoAttributeDisplayName
+	displayName = ""
+	displayName = $0.name | string.replace " " "" | regex.replace "[^A-Za-z0-9]+" "_" | regex.replace "_$" ""
+	ret displayName
+end-}}
+
+{{-func getOptionSetName
+	ret name+".e"+($0.display_name.user_localized_label.label | regex.replace "[\\W]" " " | string.capitalizewords | string.replace " " "")
+end-}}
+
+{{-func generateGetter
+	returnType = $0 | getAttributeReturnType
+	displayName = $0 | getAttributeDisplayName
+	logicalName = $0.logical_name
+	attributeType = $0.attribute_type
+	if attributeType == 1 || attributeType == 6 || attributeType == 9 || attributeType == 10
+		ret ""
+	end
+	getter = "get "+displayName+"():"+returnType+"{ return this.getAttributeValue<"+returnType+">("+name+".Attributes."+$0.logical_name+"); }\n\t"
+	if attributeType != 7 || attributeType != 14 
+		getter = getter + "get "+displayName+"_Formatted():string { return this.getAttributeValue<string>("+name+".Attributes."+$0.logical_name+", true); }\n\t"
+	end
+	ret getter
+end-}}
+
+{{-func generateMtoGetter
+	if $0.referencing_attribute.attribute_type == 15 || $0.referencing_attribute.attribute_type == 1 && $0.referenced_entity.logical_name == "contact"
+		ret ""
+	end
+	returnType = "EntityReference"
+	displayName = $0 | getMtoAttributeDisplayName
+	getter = "get "+displayName+"():"+returnType+"{ return this.getAttributeValue<"+returnType+">("+name+".Attributes."+$0.referencing_attribute.logical_name+"); }\n\t"
+	getter = getter + "get "+displayName+"_Formatted():string { return this.getAttributeValue<string>("+name+".Attributes."+$0.referencing_attribute.logical_name+", true); }\n\t"
+	ret getter
+end-}}
+
+{{-func generateSetter
+	valueType = $0 | getAttributeReturnType
+	setterDisplayName = $0 | getAttributeDisplayName
+	logicalName = $0.logical_name
+	if attributeType == 1 || attributeType == 6 || attributeType == 9 || attributeType == 10
+		ret ""
+	end
+	ret "set "+setterDisplayName+"(value:"+valueType+"){ this.setAttributeValue("+name+".Attributes."+$0.logical_name+", value) }\n\n\t"
+end-}}
+
+{{-func generateMtoSetter
+	if $0.referencing_attribute.attribute_type == 15 || $0.referencing_attribute.attribute_type == 1 && $0.referenced_entity.logical_name == "contact"
+		ret ""
+	end
+	valueType = "EntityReference"
+	setterDisplayName = $0 | getMtoAttributeDisplayName
+	ret "set "+setterDisplayName+"(value:"+valueType+"){ this.setAttributeValue("+name+".Attributes."+$0.referencing_attribute.logical_name+", value) }\n\n\t"
+end-}}
+
+{{-func getAttributeReturnType
+	$type = ""
+	case $0.attribute_type
+		when 0 
+			$type = "boolean"
+		when 1,6,9,10
+			$type = "EntityReference"
+		when 2
+			$type = "Date"
+		when 3,4,5,8,18
+			$type = "number"
+		when 7,14
+			$type = "string"
+		when 15
+			$type = "Guid"
+		when 11,12,13
+			$type = $0 | getOptionSetName
+		end
+	ret $type
+end-}}
+
+{{-func generateNormalAttribute
+logicalName = $0.logical_name
+attributeType = $0.attribute_type
+if attributeType == 1 || attributeType == 6 || attributeType == 9 || attributeType == 10
+	ret ""
+else if attributeType == 2
+	ret $0 | generateDateTimeAttribute
+end
+schemaName = $0.schema_name
+displayName = ", \""+$0.display_name.user_localized_label.label+"\""
+definition = logicalName +": new Attribute(\""+logicalName+"\", Attribute.AttributeType."+attributeType+", \""+schemaName+"\", \""+logicalName+"\""+displayName+"),"
+ret definition +"\n\t\t"
+end-}}
+
+{{-func generateDateTimeAttribute
+behaviour = $0.date_time_behavior.value
+
+logicalName = $0.logical_name
+attributeType = $0.attribute_type
+schemaName = $0.schema_name
+displayName = ", \""+$0.display_name.user_localized_label.label+"\""
+definition = logicalName +": new DateTimeAttribute(DateTimeBehaviour."+behaviour+", \""+logicalName+"\", Attribute.AttributeType."+attributeType+", \""+schemaName+"\", \""+logicalName+"\""+displayName+"),"
+ret definition
+end-}}
+{{-func generateLookupAttribute
+logicalName = $0.referencing_attribute.logical_name
+attributeType = $0.referencing_attribute.attribute_type
+refLogicalName = $0.referenced_entity.logical_name
+refAttribute = $0.relationship.referencing_attribute
+if (attributeType != 1 || refLogicalName == "contact") && attributeType != 6 && attributeType != 9 && attributeType != 10
+	ret ""
+end
+definition = $0.relationship.referencing_attribute +": new LookupAttribute(\""+$0.relationship.schema_name+"\", \""+refLogicalName+"\", \""+$0.referenced_entity.entity_set_name+"\", \""+$0.relationship.referenced_attribute+"\", \""+$0.referencing_attribute.display_name.user_localized_label.label+"\", \""+$0.referencing_attribute.logical_name+"\", Attribute.AttributeType."+attributeType+", \""+$0.referencing_attribute.schema_name+"\", \"_"+logicalName+"_value\"),\n\t\t"
+ret definition
+end-}}
+import { Guid } from 'guid-typescript/dist/guid';
+import { ODataEntityResult, OData } from '../OData';
+import { BaseProxyClass, Attribute, DateTimeAttribute, DateTimeBehaviour, LookupAttribute, EntityReference } from './BaseProxyClass';
+{{if metadata.is_private}}/**
+ * This entity is private. Code generation will not be available for private entities.
+ */
+{{else}}/**
+ * {{metadata.description.user_localized_label.label}}
+ {{if metadata.is_managed}}* ATTENTION: THIS ENTITY IS PART OF A MANAGED SOLUTION
+ {{end}}*/
+export class {{name}} extends BaseProxyClass {
+	/**
+     * Attributes
+     */
+    static Attributes = { 
+		{{for attr in attributes}}{{attr | generateNormalAttribute}}{{end}}
+		{{for mto in manytoonerelationships}}{{mto | generateLookupAttribute}}{{end}}
+    }
+	static AllAttributes = Object.keys({{name}}.Attributes).map(attr => {{name}}.Attributes[attr].oDataRequestName);
+    static ObjectTypeCode: number = {{metadata.object_type_code}};
+    static LogicalName: string = "{{metadata.logical_name}}";
+	static EntitySetName: string = "{{metadata.entity_set_name}}";
+    static SchemaName: string = "{{metadata.schema_name}}";
+    static DisplayName: string = "{{metadata.display_name.user_localized_label.label}}";
+    static PluralDisplayName: string = "{{metadata.display_collection_name.user_localized_label.label}}"
+    static PrimaryIdAttribute: Attribute = {{name}}.Attributes["{{metadata.primary_id_attribute}}"];
+	static PrimaryNameAttribute: Attribute = {{name}}.Attributes["{{metadata.primary_name_attribute}}"]
+    static MetadataId: Guid = Guid.parse("{{metadata.metadata_id | regex.replace "[{}]" ""}}");
+
+	{{for attr in attributes}}{{attr | generateGetter}}{{attr | generateSetter}}{{end}}
+	{{for mto in manytoonerelationships}}{{mto | generateMtoGetter}}{{mto | generateMtoSetter}}{{end}}
+	constructor(context: ODataEntityResult|Xrm.Page){
+		super({logicalName : {{name}}.LogicalName, 
+            entitySetName : {{name}}.EntitySetName, 
+            objectTypeCode : {{name}}.ObjectTypeCode, 
+            schemaName : {{name}}.SchemaName, 
+            displayName: {{name}}.DisplayName, 
+            pluralDisplayName: {{name}}.PluralDisplayName, 
+            primaryIdAttribute: {{name}}.PrimaryIdAttribute, 
+            primaryNameAttribute: {{name}}.PrimaryNameAttribute, 
+            metadataId: {{name}}.MetadataId}, context);
+    }
+
+    /**
+     * One-To-Many Relationships
+     */
+    {{-for otm in onetomanyrelationships}}
+    async Get{{otm.related_entity.display_collection_name.user_localized_label.label | regex.replace "[^A-za-z]" ""}}_{{otm.related_attribute.display_name.user_localized_label.label | regex.replace "[^A-za-z0-9]" ""}}{{if otm.duplicate_counter}}{{otm.duplicate_counter}}{{end}}(...attributes: string[]): Promise<ODataEntityResult[]>{
+		const retrieveMultipleResult = await OData.retrieveMultiple("{{otm.related_entity.entity_set_name}}", attributes, `_{{otm.related_attribute.logical_name}}_value eq ${this.id}`)
+        return retrieveMultipleResult;
+    }
+    {{-end}}
+}{{end}}
+
+/**
+ * Option Sets 
+ */
+export namespace {{name}}{
+	{{-for opt in optionsets}}
+	export enum e{{if opt.display_name.user_localized_label.label == false}}{{opt.schema_name | string.replace "_" " " | string.capitalizewords}}{{else}}{{opt.display_name.user_localized_label.label | regex.replace "[\\W]" " " | string.capitalizewords | string.replace " " ""}}{{end}}{ {{for optVal in opt.option_set.options}}
+		{{if optVal.label.user_localized_label.label | regex.match "^[0-9]" | array.size == 1}}_{{end}}{{optVal.label.user_localized_label.label | string.capitalizewords | string.replace " " "_" | regex.replace "[^A-Za-z0-9_]+" ""}} = {{optVal.value}},{{end}}
+	}
+	{{-end}}
+}

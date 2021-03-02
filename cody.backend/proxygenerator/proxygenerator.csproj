@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{828D3FDD-4B02-4F6B-94D2-F6DD69E9D35D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>proxygenerator</RootNamespace>
+    <AssemblyName>proxygenerator</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xrm.Sdk, Version=8.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <HintPath>..\packages\Microsoft.CrmSdk.CoreAssemblies.8.2.0.2\lib\net452\Microsoft.Xrm.Sdk.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel.Web" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Data\Builder\CS\Attributes\AttributeBuilder.cs" />
+    <Compile Include="Data\Builder\CS\Attributes\PropertyBuilder.cs" />
+    <Compile Include="Data\Builder\CS\Collections\CollectionFetcherBuilder.cs" />
+    <Compile Include="Data\Builder\CS\Collections\IntersectFetcherBuilder.cs" />
+    <Compile Include="Data\Builder\CS\EntityBuilder.cs" />
+    <Compile Include="Data\Builder\CS\OptionSets\OptionBuilder.cs" />
+    <Compile Include="Data\Builder\CS\OptionSets\OptionSetBuilder.cs" />
+    <Compile Include="Data\Builder\IAttributeBuilder.cs" />
+    <Compile Include="Data\Builder\TS\Attributes\AttributeBuilder.cs" />
+    <Compile Include="Data\Builder\TS\Attributes\PropertyBuilder.cs" />
+    <Compile Include="Data\Builder\TS\Collections\CollectionFetcherBuilder.cs" />
+    <Compile Include="Data\Builder\TS\Collections\IntersectFetcherBuilder.cs" />
+    <Compile Include="Data\Builder\TS\EntityBuilder.cs" />
+    <Compile Include="Data\Builder\IEntityBuilder.cs" />
+    <Compile Include="Data\Builder\TS\OptionSets\OptionBuilder.cs" />
+    <Compile Include="Data\Builder\TS\OptionSets\OptionSetBuilder.cs" />
+    <Compile Include="Data\Model\Attributes\AttributeData.cs" />
+    <Compile Include="Data\Model\Attributes\LookupRelationData.cs" />
+    <Compile Include="Data\Model\Attributes\OptionSetAttributeData.cs" />
+    <Compile Include="Data\Model\Collections\CollectionFetcherData.cs" />
+    <Compile Include="Data\Model\Attributes\DateTimeAttributeData.cs" />
+    <Compile Include="Data\Model\Collections\IntersectFetcherData.cs" />
+    <Compile Include="Data\Model\DateTimeType.cs" />
+    <Compile Include="Data\Model\EntityData.cs" />
+    <Compile Include="Data\Model\Attributes\LookupAttributeData.cs" />
+    <Compile Include="Data\Model\OptionSets\OptionData.cs" />
+    <Compile Include="Data\Model\OptionSets\OptionSetData.cs" />
+    <Compile Include="Data\Model\PropertyData.cs" />
+    <Compile Include="Data\EntityMetadataCache.cs" />
+    <Compile Include="Data\Model\RelatedEntityData.cs" />
+    <Compile Include="eLanguage.cs" />
+    <Compile Include="Generators\CS\AttributeGenerators\AttributeGeneratorFactory.cs" />
+    <Compile Include="Generators\CS\AttributeGenerators\Concrete\DefaultAttributeGenerator.cs" />
+    <Compile Include="Generators\CS\AttributeGenerators\Contract\BaseAttributeGenerator.cs" />
+    <Compile Include="Generators\CS\AttributeGenerators\Contract\IAttributeGenerator.cs" />
+    <Compile Include="Generators\CS\CollectionFetcherGenerators\Concrete\DefaultCollectionFetcherGenerator.cs" />
+    <Compile Include="Generators\CS\CollectionFetcherGenerators\Concrete\IntersectCollectionFetcherGenerator.cs" />
+    <Compile Include="Generators\CS\EntityGenerator\EntityGenerator.cs" />
+    <Compile Include="Generators\Contract\IEntityGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\DecimalPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\DefaultPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\DoublePropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\IntegerPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\LongPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\MoneyPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\OptionSetPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Concrete\StringPropertyGenerator.cs" />
+    <Compile Include="Generators\CS\PropertyGenerators\Contract\BasePropertyGenerator.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\AttributeGeneratorFactory.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\Concrete\DateTimeAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\Concrete\DefaultAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\Concrete\LookupAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\Contract\BaseAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\AttributeGenerators\Contract\IAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\CollectionFetcherGenerators\Concrete\DefaultCollectionFetcherGenerator.cs" />
+    <Compile Include="Generators\TS\CollectionFetcherGenerators\Concrete\IntersectCollectionFetcherGenerator.cs" />
+    <Compile Include="Generators\Comment.cs" />
+    <Compile Include="Generators\TS\EntityGenerator\EntityGenerator.cs" />
+    <Compile Include="Generators\CommentParameter.cs" />
+    <Compile Include="Generators\TS\PropertyGenerators\Concrete\DefaultPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\PropertyGenerators\Concrete\OptionSetPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\PropertyGenerators\Contract\BasePropertyGenerator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="ProxyGenerationOptions.cs" />
+    <Compile Include="Utils\MetadataUtils.cs" />
+    <Compile Include="Utils\TextUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="entity_template.scriban-txt" />
+    <None Include="app.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Generators\CS\EnumGenerators\Contract\" />
+    <Folder Include="Generators\TS\EnumGenerators\Contract\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.IdentityModel" Version="7.0.0" />
+    <PackageReference Include="Scriban" Version="2.1.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\Utils\Utils.projitems" Label="Shared" />
+</Project>

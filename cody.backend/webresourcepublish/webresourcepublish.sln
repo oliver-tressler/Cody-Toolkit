@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webresourcepublish", "webresourcepublish\webresourcepublish.csproj", "{BD637D07-868F-4122-BF04-929F31166B2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webresourcepublish.cli", "webresourcepublish.cli\webresourcepublish.cli.csproj", "{AB119312-EAAF-47A9-8FDC-A87A2DD30816}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD637D07-868F-4122-BF04-929F31166B2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD637D07-868F-4122-BF04-929F31166B2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD637D07-868F-4122-BF04-929F31166B2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD637D07-868F-4122-BF04-929F31166B2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB119312-EAAF-47A9-8FDC-A87A2DD30816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB119312-EAAF-47A9-8FDC-A87A2DD30816}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB119312-EAAF-47A9-8FDC-A87A2DD30816}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB119312-EAAF-47A9-8FDC-A87A2DD30816}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6C7BE9E-D011-4792-B190-07AF9023385F}
+	EndGlobalSection
+EndGlobal
