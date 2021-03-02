@@ -432,15 +432,6 @@ async function switchToNewInstance(
 	if (connectionSuccessfullyEstablished === true) {
 		connectionState.activeOrganization = chosenOrg.organization;
 	} else throw new Error("Connection not established");
-	if (Expires)
-		setTimeout(async () => {
-			if (
-				connectionState.activeInstance?.instanceId === instance.instanceId &&
-				connectionState.activeOrganization?.UniqueName === chosenOrg.organization.UniqueName
-			) {
-				await vscode.window.showInformationMessage("Your CRM Connection is about to expire", "Reconnect");
-			}
-		}, new Date().getTime() - Expires.getTime() - 28800000);
 	return { password, connectionState };
 }
 
