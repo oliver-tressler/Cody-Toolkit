@@ -1,12 +1,14 @@
 import * as vscode from "vscode";
 import * as api from "./Api/connectionApi";
 import { OrganizationConfiguration } from "./Api/connectionApi";
+import { Configuration } from "./Configuration/ConfigurationProxy";
 import {
 	CredentialsFileInstanceConfiguration,
 	InstanceConfiguration,
 	InstanceConfigurationProxy,
 	ManualInstanceConfiguration,
 } from "./Configuration/MementoProxy";
+import { FileInfo } from "./Utils/FileInfo";
 import { ServerConnector } from "./Utils/ServerConnector";
 
 type SwitchInstanceQuickPickItem =
@@ -551,7 +553,7 @@ const registerSwitchInstanceCommand = (
 	});
 };
 
-export function activate({ subscriptions, workspaceState }: vscode.ExtensionContext) {
+export function launch({ subscriptions, workspaceState }: vscode.ExtensionContext) {
 	new ServerConnector()
 		.launchServer()
 		.then((connector) => {
@@ -592,6 +594,59 @@ export function activate({ subscriptions, workspaceState }: vscode.ExtensionCont
 			}
 			throw e;
 		});
+}
+
+async function install(context: vscode.ExtensionContext) {
+	const shouldInstall =
+		(await vscode.window.showInformationMessage(
+			"Cody Toolkit requires that you set the backend server.",
+			"Ignore",
+			"Configure"
+		)) === "Configure";
+	if (!shouldInstall) return;
+	const backendServerLocation = await vscode.window.showOpenDialog({
+		canSelectFiles: true,
+		canSelectFolders: false,
+		canSelectMany: false,
+		openLabel: "Choose",
+		filters: { Executable: ["exe", "EXE"] },
+		title: "Select Cody Toolkit Backend Executable",
+	});
+	if (backendServerLocation == null || backendServerLocation.length == 0) return;
+	Configuration.backendServerLocation = new FileInfo(
+		backendServerLocation[0].fsPath,
+		Configuration.projectRootPath
+	).asForwardSlash().file;
+	const portOkResponse = await vscode.window.showInformationMessage(
+		"The port that will be used is " + Configuration.backendServerPort + ". Is that okay with you?",
+		"Let's Go",
+		"Configure"
+	);
+	if (portOkResponse == null) return;
+	if (portOkResponse == "Let's Go") {
+		launch(context);
+		return;
+	}
+	const port = await vscode.window.showInputBox({
+		value: Configuration.backendServerPort.toString(),
+		ignoreFocusOut: true,
+		prompt: "Please enter the port that should be used to communicate with the Cody Toolkit Backend",
+	});
+	if (port == null) return;
+	if (isNaN(parseInt(port))) {
+		vscode.window.showErrorMessage("Not a valid port");
+		return;
+	}
+	Configuration.backendServerPort = parseInt(port);
+	launch(context);
+}
+
+export function activate(context: vscode.ExtensionContext) {
+	if (Configuration.backendServerLocation == null) {
+		install(context);
+	} else {
+		launch(context);
+	}
 }
 
 export function deactivate() {}
