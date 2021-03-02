@@ -52,7 +52,7 @@ function config(
 }
 
 export class Configuration {
-	@config("cody", vsc.ConfigurationTarget.Global)
+	@config("cody.toolkit.core", vsc.ConfigurationTarget.Global)
 	/**
 	 * Absolute filepath to the backend server.
 	 */
@@ -60,12 +60,12 @@ export class Configuration {
 	static get backendServerLocationInfo(): FileInfo {
 		return new FileInfo(Configuration.backendServerLocation, Configuration.projectRootPath);
 	}
-	@config("cody", vsc.ConfigurationTarget.Global)
+	@config("cody.toolkit.core", vsc.ConfigurationTarget.Global)
 	/**
 	 * Port used by the backend service.
 	 */
 	static backendServerPort: number;
-	@config("cody", vsc.ConfigurationTarget.Workspace)
+	@config("cody.toolkit.core", vsc.ConfigurationTarget.Workspace)
 	/**
 	 * CWD to enable relative paths.
 	 */
