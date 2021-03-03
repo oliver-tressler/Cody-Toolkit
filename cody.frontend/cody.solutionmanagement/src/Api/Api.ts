@@ -18,6 +18,7 @@ export type SolutionInfo = {
 };
 
 export type AssemblyInfo = {
+	Id: string;
 	Name: string;
 };
 
@@ -61,7 +62,7 @@ export function retrieveWebResources(organization: string) {
 }
 
 export function retrieveAssemblies(organization: string) {
-	return axios.get<any[]>(`${baseUrl()}${organization}/assemblies`);
+	return axios.get<AssemblyInfo[]>(`${baseUrl()}${organization}/assemblies`);
 }
 
 export function retrieveAssemblySteps(organization: string, assemblyId: string, solutionUniqueName: string) {
@@ -82,4 +83,20 @@ export function addWebResourceToSolution(organization: string, solutionUniqueNam
 	return axios.post<void>(
 		`${baseUrl()}${organization}/webresource/${webResourceId}/addToSolution/${solutionUniqueName}`
 	);
+}
+
+export function createSolution(
+	organization: string,
+	solutionName: string,
+	version: string,
+	publisher: PublisherInfo,
+	description?: string
+) {
+	return axios.post<SolutionInfo>(`${baseUrl()}${organization}/solutions/new`, {
+		UniqueName: solutionName,
+		Name: solutionName,
+		Version: version,
+		Description: description,
+		Publisher: publisher,
+	});
 }

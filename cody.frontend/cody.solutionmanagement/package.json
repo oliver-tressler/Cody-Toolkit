@@ -23,7 +23,7 @@
 	"activationEvents": [
 		"onCommand:cody.toolkit.solutionmanager.addassemblytosolution",
 		"onCommand:cody.toolkit.solutionmanager.addwebresourcetosolution",
-		"onCommand:cody.toolkit.solutionmanager.createsolution"
+		"onCommand:cody.toolkit.solutionmanager.createnewsolution"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -39,7 +39,7 @@
 				"category": "Cody Solution Management"
 			},
 			{
-				"command": "cody.toolkit.solutionmanager.createsolution",
+				"command": "cody.toolkit.solutionmanager.createnewsolution",
 				"title": "Create Solution",
 				"category": "Cody Solution Management"
 			}

@@ -6,6 +6,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
+using solutionmanagement.Model;
 using utils;
 using utils.proxies;
 using PluginType = utils.proxies.PluginType;
@@ -30,11 +31,6 @@ namespace solutionmanagement
             return info;
         }
 
-        //public void DeleteSolution(IOrganizationService service, Guid solutionId)
-        //{
-        //    service.Delete(Solution.EntityLogicalName, solutionId);
-        //}
-
         public void AddWebResourceToSolution(IOrganizationService service, string solutionUniqueName, Guid webResourceId)
         {
             var req = new AddSolutionComponentRequest
@@ -47,17 +43,6 @@ namespace solutionmanagement
             service.Execute(req);
         }
 
-        //public void RemoveWebResourceFromSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
-        //{
-        //    var req = new RemoveSolutionComponentRequest
-        //    {
-        //        SolutionUniqueName = solutionUniqueName,
-        //        ComponentType = (int)ComponentType.PluginAssembly,
-        //        ComponentId = assemblyId
-        //    };
-        //    service.Execute(req);
-        //}
-
         public void AddAssemblyToSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
         {
             var req = new AddSolutionComponentRequest
@@ -69,17 +54,6 @@ namespace solutionmanagement
             };
             service.Execute(req);
         }
-
-        //public void RemoveAssemblyFromSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
-        //{
-        //    var req = new RemoveSolutionComponentRequest
-        //    {
-        //        SolutionUniqueName = solutionUniqueName,
-        //        ComponentType = (int)ComponentType.PluginAssembly,
-        //        ComponentId = assemblyId
-        //    };
-        //    service.Execute(req);
-        //}
 
         public void AddStepToSolution(IOrganizationService service, string solutionUniqueName, Guid stepId)
         {
@@ -234,6 +208,16 @@ namespace solutionmanagement
                 DisplayName = wr.DisplayName,
                 Type = wr.WebResourceType != null ? Enum.GetName(typeof(WebResource_WebResourceType), wr.WebResourceType) : null
             });
+        }
+        
+        public IEnumerable<PluginAssemblyInfo> GetAssemblies(OrganizationServiceContext serviceContext)
+        {
+            var assemblies = (from assembly in serviceContext.CreateQuery<PluginAssembly>()
+                    where assembly.IsHidden.Value == false
+                    select new {assembly.Name, assembly.PluginAssemblyId}).ToList()
+                .Select(temp => new PluginAssemblyInfo(){Id = temp.PluginAssemblyId, Name = temp.Name})
+                .Where(assemblyInfo => !assemblyInfo.Name.StartsWith("Microsoft"));
+            return assemblies;
         }
     }
 

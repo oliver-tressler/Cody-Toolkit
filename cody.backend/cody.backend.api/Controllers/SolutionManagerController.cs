@@ -34,9 +34,26 @@ namespace cody.backend.api.Controllers
             return Ok(new SolutionManager().GetWebResources(new OrganizationServiceContext(conn)).ToList());
         }
 
+        [HttpGet]
+        [Route("api/SolutionManager/{organization}/assemblies")]
+        public IHttpActionResult Assemblies([FromUri] string organization)
+        {
+            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
+            return Ok(new SolutionManager().GetAssemblies(new OrganizationServiceContext(conn)).ToList());
+        }
+
+        [HttpGet]
+        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/{solutionId}/showSteps")]
+        public IHttpActionResult GetAssemblyStepsNotInSolution([FromUri] string organization,
+            [FromUri] string assemblyId, [FromUri] string solutionId)
+        {
+            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
+            return Ok(new SolutionManager().GetAssemblySteps(conn, Guid.Parse(assemblyId), Guid.Parse(solutionId)));
+        }
+
         [HttpPost]
         [Route("api/SolutionManager/{organization}/solutions/new")]
-        public IHttpActionResult CreateSolution([FromUri] string organization, [FromBody]SolutionInfo solution)
+        public IHttpActionResult CreateSolution([FromUri] string organization, [FromBody] SolutionInfo solution)
         {
             var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
             return Ok(new SolutionManager().CreateSolution(conn, solution));
@@ -51,7 +68,7 @@ namespace cody.backend.api.Controllers
             new SolutionManager().AddAssemblyToSolution(conn, solutionName, Guid.Parse(assemblyId));
             return Ok();
         }
-        
+
         [HttpPost]
         [Route("api/SolutionManager/{organization}/step/{stepId}/addToSolution/{solutionName}")]
         public IHttpActionResult AddStepToSolution([FromUri] string organization, [FromUri] string stepId,
@@ -70,23 +87,6 @@ namespace cody.backend.api.Controllers
             var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
             new SolutionManager().AddWebResourceToSolution(conn, solutionName, Guid.Parse(webresourceId));
             return Ok();
-        }
-
-        [HttpGet]
-        [Route("api/SolutionManager/{organization}/webresource/{webresourceId}/addToSolution/showWebResources")]
-        public IHttpActionResult GetWebResources([FromUri] string organization,
-            [FromUri] string solutionName)
-        {
-            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
-            return Ok(new SolutionManager().GetWebResources(new OrganizationServiceContext(conn)));
-        }
-
-        [HttpGet]
-        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/{solutionId}/showSteps")]
-        public IHttpActionResult GetAssemblySteps([FromUri] string organization, [FromUri] string assemblyId, [FromUri] string solutionId)
-        {
-            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
-            return Ok(new SolutionManager().GetAssemblySteps(conn, Guid.Parse(assemblyId), Guid.Parse(solutionId)));
         }
     }
 }

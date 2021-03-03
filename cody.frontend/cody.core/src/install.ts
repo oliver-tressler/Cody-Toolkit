@@ -47,12 +47,11 @@ export async function install(context: vscode.ExtensionContext, then: (context: 
 		value: Configuration.backendServerPort.toString(),
 		ignoreFocusOut: true,
 		prompt: "Please enter the port that should be used to communicate with the Cody Toolkit Backend",
+		validateInput: (p) => {
+			return p != null && isNaN(parseInt(p)) ? "Not a valid port" : null;
+		},
 	});
 	if (port == null) return;
-	if (isNaN(parseInt(port))) {
-		vscode.window.showErrorMessage("Not a valid port");
-		return;
-	}
 	Configuration.backendServerPort = parseInt(port);
 	then(context);
 }
