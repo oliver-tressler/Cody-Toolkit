@@ -57,12 +57,12 @@ namespace crmconnector
     {
         public static bool IsAuthenticated(this OrganizationServiceProxy proxy)
         {
-            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires < DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
+            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires > DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
         }
 
         public static bool IsAuthenticated(this DiscoveryServiceProxy proxy)
         {
-            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires < DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
+            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires > DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
         }
     }
 
