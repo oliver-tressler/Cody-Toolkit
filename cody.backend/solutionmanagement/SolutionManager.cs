@@ -140,7 +140,7 @@ namespace solutionmanagement
                     wr.Name,
                     wr.Description,
                     wr.DisplayName,
-                    wr.WebResourceType
+                    wr.WebResourceType,
                 }).ToList();
             return webResources.Select(wr => new WebResourceInfo
             {

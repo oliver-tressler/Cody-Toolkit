@@ -26,7 +26,7 @@ function publisherToQuickPick(publisher: PublisherInfo): vscode.QuickPickItem & 
 function solutionToQuickPick(solution: SolutionInfo): vscode.QuickPickItem & { info: SolutionInfo } {
 	return {
 		info: solution,
-		label: solution.Name + `(${solution.Publisher.Name})`,
+		label: `${solution.Name} (${solution.Publisher.Name})`,
 		detail: solution.Description,
 		description: solution.Version,
 	};
@@ -36,7 +36,7 @@ function webResourceToQuickPick(webResource: WebResourceInfo): vscode.QuickPickI
 	return {
 		info: webResource,
 		label: webResource.DisplayName ?? webResource.Name,
-		detail: webResource.Description,
+		detail: [webResource.Name, webResource.Description].filter(Boolean).join(" - "),
 		description: webResource.Type,
 	};
 }
