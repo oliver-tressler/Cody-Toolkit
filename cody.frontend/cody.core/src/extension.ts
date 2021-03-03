@@ -9,20 +9,12 @@ import {
 	ManualInstanceConfiguration,
 } from "./Configuration/MementoProxy";
 import { install } from "./install";
-import { ServerConnector } from "./Utils/ServerConnector";
+import { ConnectionState, ServerConnector } from "./Utils/ServerConnector";
 
 type SwitchInstanceQuickPickItem =
 	| { instance: InstanceConfiguration; type: "instance" }
 	| { organization: OrganizationConfiguration; type: "organization" }
 	| { type: "newInstance"; useCredentialsFile: boolean };
-
-type ConnectionState = {
-	activeInstance?: InstanceConfiguration & { authenticated: boolean };
-	activeOrganization?: api.OrganizationConfiguration;
-	availableOrganizations: api.OrganizationConfiguration[];
-
-	connecting: boolean;
-};
 
 // Utility methods that ask the user for mandatory info.
 // If no value is provided, they just fail.
@@ -434,59 +426,62 @@ async function switchToNewInstance(
 }
 
 const registerRemoveInstanceCommand = (
-	connectionState: ConnectionState,
+	connector: ServerConnector,
 	config: InstanceConfigurationProxy,
 	refreshButtonText: (connectionState: ConnectionState) => void
 ) => {
 	return vscode.commands.registerCommand("cody.toolkit.core.connect.removeInstance", async () => {
 		const chosenInstance = await vscode.window.showQuickPick(
-			config.instances.map((i) => instanceToQuickPick(i, connectionState)),
+			config.instances.map((i) => instanceToQuickPick(i, connector.connectionState)),
 			{
 				ignoreFocusOut: true,
 				canPickMany: false,
 			}
 		);
 		if (chosenInstance == null) return;
-		({ connectionState } = await removeInstance(connectionState, config, chosenInstance.instance));
-		refreshButtonText(connectionState);
+		({ connectionState: connector.connectionState } = await removeInstance(
+			connector.connectionState,
+			config,
+			chosenInstance.instance
+		));
+		refreshButtonText(connector.connectionState);
 	});
 };
 
 const registerSwitchInstanceCommand = (
 	connector: ServerConnector,
-	connectionState: ConnectionState,
 	config: InstanceConfigurationProxy,
 	refreshButtonText: (connectionState: ConnectionState) => void
 ) => {
 	return vscode.commands.registerCommand("cody.toolkit.core.connect.switchInstance", async () => {
 		try {
-			connectionState.connecting = true;
-			refreshButtonText(connectionState);
+			connector.connectionState.connecting = true;
+			refreshButtonText(connector.connectionState);
 			let password: string | undefined = undefined;
 			// If a preselected instance exists it isn't authenticated.
 			// Offer connecting to it. If aborted clear initial connection state and offer regular
 			// connection options.
-			if (connectionState.activeInstance?.authenticated === false) {
+			if (connector.connectionState.activeInstance?.authenticated === false) {
 				try {
-					({ password, connectionState } = await switchToInstance(
+					({ password, connectionState: connector.connectionState } = await switchToInstance(
 						connector.port,
-						connectionState,
+						connector.connectionState,
 						config,
-						connectionState.activeInstance
+						connector.connectionState.activeInstance
 					));
 					return;
 				} catch {
-					connectionState.activeInstance = undefined;
-					connectionState.activeOrganization = undefined;
-					connectionState.availableOrganizations = [];
+					connector.connectionState.activeInstance = undefined;
+					connector.connectionState.activeOrganization = undefined;
+					connector.connectionState.availableOrganizations = [];
+					connector.connectionState.connecting = true;
 					password = undefined;
-					connectionState.connecting = true;
-					refreshButtonText(connectionState);
+					refreshButtonText(connector.connectionState);
 				}
 			}
 			const chosen = await showQuickPickForInstanceSwitching({
-				connectionState,
-				organizations: connectionState.availableOrganizations,
+				connectionState: connector.connectionState,
+				organizations: connector.connectionState.availableOrganizations,
 				instances: config.instances,
 				includeCreateNewOptions: true,
 			});
@@ -495,9 +490,9 @@ const registerSwitchInstanceCommand = (
 			}
 			// A new instance should be created.
 			if (chosen?.type == "newInstance") {
-				({ password, connectionState } = await switchToNewInstance(
+				({ password, connectionState: connector.connectionState } = await switchToNewInstance(
 					connector.port,
-					connectionState,
+					connector.connectionState,
 					config,
 					chosen.useCredentialsFile,
 					password
@@ -506,11 +501,11 @@ const registerSwitchInstanceCommand = (
 			// Switch to another instance.
 			else if (
 				chosen?.type == "instance" &&
-				chosen.instance.instanceId !== connectionState.activeInstance?.instanceId
+				chosen.instance.instanceId !== connector.connectionState.activeInstance?.instanceId
 			) {
-				({ password, connectionState } = await switchToInstance(
+				({ password, connectionState: connector.connectionState } = await switchToInstance(
 					connector.port,
-					connectionState,
+					connector.connectionState,
 					config,
 					chosen.instance,
 					password
@@ -519,11 +514,11 @@ const registerSwitchInstanceCommand = (
 			// Switch to another organization within the same instance.
 			else if (
 				chosen?.type == "organization" &&
-				chosen.organization.UniqueName !== connectionState.activeOrganization?.UniqueName
+				chosen.organization.UniqueName !== connector.connectionState.activeOrganization?.UniqueName
 			) {
-				({ password, connectionState } = await switchToOrganization(
+				({ password, connectionState: connector.connectionState } = await switchToOrganization(
 					connector.port,
-					connectionState,
+					connector.connectionState,
 					chosen.organization,
 					password
 				));
@@ -540,8 +535,8 @@ const registerSwitchInstanceCommand = (
 			}
 			throw e;
 		} finally {
-			connectionState.connecting = false;
-			refreshButtonText(connectionState);
+			connector.connectionState.connecting = false;
+			refreshButtonText(connector.connectionState);
 		}
 	});
 };
@@ -552,7 +547,7 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 		.then((connector) => {
 			const config = new InstanceConfigurationProxy(workspaceState);
 			// Preselect instance used the last time
-			let connectionState: ConnectionState = {
+			connector.connectionState = {
 				activeInstance:
 					config.activeInstance != null
 						? {
@@ -565,13 +560,8 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 				connecting: false,
 			};
 			const [statusBarItem, refreshButtonText] = createStatusBarItem();
-			const removeInstanceCommand = registerRemoveInstanceCommand(connectionState, config, refreshButtonText);
-			const switchInstanceCommand = registerSwitchInstanceCommand(
-				connector,
-				connectionState,
-				config,
-				refreshButtonText
-			);
+			const removeInstanceCommand = registerRemoveInstanceCommand(connector, config, refreshButtonText);
+			const switchInstanceCommand = registerSwitchInstanceCommand(connector, config, refreshButtonText);
 			// Empty command. Just an activation trigger for other modules.
 			const activateModulesCommand = vscode.commands.registerCommand(
 				"cody.toolkit.core.activateModules",
@@ -580,10 +570,10 @@ export function launch({ subscriptions, workspaceState }: vscode.ExtensionContex
 			// Make connection state available to other modules.
 			const getConnectionStateCommand = vscode.commands.registerCommand(
 				"cody.toolkit.core.getConnectionState",
-				() => connectionState
+				() => connector.connectionState
 			);
 			// Set initial button text.
-			refreshButtonText(connectionState);
+			refreshButtonText(connector.connectionState);
 			subscriptions.push(
 				statusBarItem,
 				switchInstanceCommand,

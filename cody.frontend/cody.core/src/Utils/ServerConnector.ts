@@ -3,7 +3,17 @@ import { ChildProcess, spawn } from "child_process";
 import { createInterface } from "readline";
 import { v4 } from "uuid";
 import * as vsc from "vscode";
+import * as api from "../Api/connectionApi";
 import { Configuration } from "../Configuration/ConfigurationProxy";
+import { InstanceConfiguration } from "../Configuration/MementoProxy";
+
+export type ConnectionState = {
+	activeInstance?: InstanceConfiguration & { authenticated: boolean };
+	activeOrganization?: api.OrganizationConfiguration;
+	availableOrganizations: api.OrganizationConfiguration[];
+	connecting: boolean;
+};
+
 export class ServerConnector {
 	/**
 	 * A direct connection to the backend process.
@@ -13,8 +23,15 @@ export class ServerConnector {
 	 * Every module of the Dynamics CRM Toolkit has its own output channel.
 	 */
 	public outputChannels: { [channelId: string]: vsc.OutputChannel };
+	public connectionState: ConnectionState;
 	constructor() {
 		this.outputChannels = {};
+		this.connectionState = {
+			availableOrganizations: [],
+			connecting: false,
+			activeInstance: undefined,
+			activeOrganization: undefined,
+		};
 	}
 	public get port(): number {
 		return Configuration.backendServerPort;
