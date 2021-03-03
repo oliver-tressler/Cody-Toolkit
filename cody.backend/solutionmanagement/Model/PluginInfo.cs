@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace solutionmanagement
+namespace solutionmanagement.Model
 {
     [JsonObject]
     public class PluginInfo

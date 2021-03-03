@@ -5,6 +5,7 @@ using cody.backend.api.Cache;
 using crmconnector;
 using Microsoft.Xrm.Sdk.Client;
 using solutionmanagement;
+using solutionmanagement.Model;
 
 namespace cody.backend.api.Controllers
 {
@@ -48,7 +49,7 @@ namespace cody.backend.api.Controllers
             [FromUri] string assemblyId, [FromUri] string solutionId)
         {
             var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
-            return Ok(new SolutionManager().GetAssemblySteps(conn, Guid.Parse(assemblyId), Guid.Parse(solutionId)));
+            return Ok(new SolutionManager().GetAssemblySteps(conn, Guid.Parse(assemblyId)));
         }
 
         [HttpPost]

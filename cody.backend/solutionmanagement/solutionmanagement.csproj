@@ -53,11 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Model\PluginAssemblyInfo.cs" />
-    <Compile Include="Model\PluginStepImageInfo.cs" />
-    <Compile Include="Model\PluginStepImageInfoAttribute.cs" />
-    <Compile Include="Model\PluginStepInfo.cs" />
-    <Compile Include="Model\PluginTypeInfo.cs" />
+    <Compile Include="Model\AssemblyInfo.cs" />
+    <Compile Include="Model\PluginInfo.cs" />
+    <Compile Include="Model\PublisherInfo.cs" />
+    <Compile Include="Model\SolutionInfo.cs" />
+    <Compile Include="Model\StepInfo.cs" />
+    <Compile Include="Model\WebResourceInfo.cs" />
     <Compile Include="SolutionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

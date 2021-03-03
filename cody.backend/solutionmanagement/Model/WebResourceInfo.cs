@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace solutionmanagement
+namespace solutionmanagement.Model
 {
     [JsonObject]
     public class WebResourceInfo

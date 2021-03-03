@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace solutionmanagement
+namespace solutionmanagement.Model
 {
     [JsonObject]
     public class StepInfo
@@ -11,6 +11,5 @@ namespace solutionmanagement
         public string MessageName { get; set; }
         public string Stage { get; set; }
         public string EntityName { get; set; }
-        public bool? AddedToSolution { get; set; }
     }
 }
