@@ -22,7 +22,7 @@ namespace cody.backend.api.Controllers
         [Route("api/connections/establish")]
         public IHttpActionResult Connect([FromBody] EstablishConnectionToOrganizationViaUserNameAndPasswordRequest request)
         {
-            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CrmConnectionDefaultAuthenticationDetailsProvider(request.DiscoveryServiceUrl, request.UserName, request.Password)));
+            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CrmConnectionDefaultAuthenticationDetailsProvider(request.UserName, request.Password, request.DiscoveryServiceUrl)));
         }
 
         [HttpPost]
