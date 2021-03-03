@@ -57,7 +57,7 @@ export async function addAssemblyToSolution() {
 			const assembly = await chooseAssembly(progress, activeOrganization.UniqueName);
 			progress.report({ message: `Adding ${assembly.Name} to solution ${solution.Name}` });
 			try {
-				await addAssemblyToSolutionRequest(activeOrganization.UniqueName, solution.UniqueName, assembly.Id);
+				await addAssemblyToSolutionRequest(activeOrganization.UniqueName, assembly.Id, solution.UniqueName);
 			} catch (e) {
 				vscode.window.showErrorMessage((e as AxiosError).response?.data.Message ?? e.message);
 				return;
