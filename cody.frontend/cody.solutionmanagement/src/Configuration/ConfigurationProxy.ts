@@ -1,5 +1,4 @@
 import * as vsc from "vscode";
-import { FileInfo } from "../Utils/FileInfo";
 
 /**
  * Wrapper around the VS Code Settings API. Basic property override by using experimental annotation API.
@@ -57,14 +56,19 @@ export class Configuration {
 	 * Port used by the backend service.
 	 */
 	static backendServerPort: number;
-	@config("cody.toolkit.core", vsc.ConfigurationTarget.Workspace)
-	/**
-	 * CWD to enable relative paths.
-	 */
-	static projectRootPath: string;
 	@config("cody.toolkit.solutionmanagement", vsc.ConfigurationTarget.Workspace)
 	/**
 	 * Use date based solution version if no version is provided.
 	 */
 	static suggestDateBasedSolutionVersions: boolean;
+	@config("cody.toolkit.solutionmanagement", vsc.ConfigurationTarget.Workspace)
+	/**
+	 * Generate a solution name based on the currently checked out git branch
+	 */
+	static suggestSolutionNameBasedOnGitBranch: boolean;
+	@config("cody.toolkit.solutionmanagement", vsc.ConfigurationTarget.Workspace)
+	/**
+	 * A regular expression that matches branchnames that should not be used for solution suggestions
+	 */
+	static ignoreTheseBranchNamesForSolutionNameSuggestions: string;
 }

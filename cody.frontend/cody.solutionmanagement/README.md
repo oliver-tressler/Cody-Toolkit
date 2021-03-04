@@ -26,7 +26,9 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 -   `cody.toolkit.core.suggestDateBasedSolutionVersions`: Suggest date-based solution versions when creating solutions.
     Date based versions should not be used when working on managed solutions, since it will not be possible to create
-    patches. This setting defaults to `false` to avoid bad practices.
+    patches. This setting defaults to `false` to avoid accidental bad practices.
+-   `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch`: Suggest a solution name based on the git branch you have currently checked out. This will take the name of the branch, replace all `/` characters with `_` and strips all non-numeric and non-alphabetic characters. All words that were previously separated by these characters will have their first letter characterized. This setting defaults to `false` to avoid accidental bad practices.
+-   `cody.toolkit.core.ignoreTheseBranchNamesForSolutionNameSuggestions`: Enter a string that can be parsed via the JS `RegExp` constructor. All branch names that are matched by this expression will be ignored for solution name suggestions. If `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch` is set to `false`, this setting will be ignored.
 
 ## Release Notes
 

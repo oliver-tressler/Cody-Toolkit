@@ -21,9 +21,9 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:cody.toolkit.solutionmanager.addassemblytosolution",
-		"onCommand:cody.toolkit.solutionmanager.addwebresourcetosolution",
-		"onCommand:cody.toolkit.solutionmanager.createnewsolution"
+		"onCommand:cody.toolkit.solutionmanagement.addassemblytosolution",
+		"onCommand:cody.toolkit.solutionmanagement.addwebresourcetosolution",
+		"onCommand:cody.toolkit.solutionmanagement.createnewsolution"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -34,23 +34,35 @@
 					"markdownDescription": "Suggest date-based solution versions when creating solutions. Date based versions should not be used when working on managed solutions, since it will not be possible to patches. This setting defaults to `false` to avoid bad practices.",
 					"type": "boolean",
 					"scope": "window",
-					"default": "false"
+					"default": false
+				},
+				"cody.toolkit.solutionmanagement.suggestSolutionNameBasedOnGitBranch": {
+					"markdownDescription": "Suggest a solution name based on the git branch you have currently checked out. This will take the name of the branch, replace all `/` characters with `_` and strips all non-numeric and non-alphabetic characters. All words that were previously separated by these characters will have their first letter characterized. This setting defaults to `false` to avoid accidental bad practices.",
+					"type": "boolean",
+					"scope": "window",
+					"default": false
+				},
+				"cody.toolkit.solutionmanagement.ignoreTheseBranchNamesForSolutionNameSuggestions": {
+					"markdownDescription": "Enter a string that can be parsed via the JS `RegExp` constructor. All branch names that are matched by this expression will be ignored for solution name suggestions. If `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch` is set to `false`, this setting will be ignored.",
+					"type": "string",
+					"scope": "window",
+					"default": "^(main|master|dev|develop|development)$"
 				}
 			}
 		},
 		"commands": [
 			{
-				"command": "cody.toolkit.solutionmanager.addassemblytosolution",
+				"command": "cody.toolkit.solutionmanagement.addassemblytosolution",
 				"title": "Add Assembly To Solution",
 				"category": "Cody Solution Management"
 			},
 			{
-				"command": "cody.toolkit.solutionmanager.addwebresourcetosolution",
+				"command": "cody.toolkit.solutionmanagement.addwebresourcetosolution",
 				"title": "Add Web Resource To Solution",
 				"category": "Cody Solution Management"
 			},
 			{
-				"command": "cody.toolkit.solutionmanager.createnewsolution",
+				"command": "cody.toolkit.solutionmanagement.createnewsolution",
 				"title": "Create Solution",
 				"category": "Cody Solution Management"
 			}

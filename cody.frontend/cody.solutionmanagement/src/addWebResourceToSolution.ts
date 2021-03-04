@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import { addWebResourceToSolution as addWebResourceToSolutionRequest } from "./Api/Api";
 import { chooseSolution, chooseWebResources, Progress } from "./Utils/userInteraction";
-import { getActiveOrganization } from "./Utils/connection";
+import { getConnectionState } from "./Utils/connection";
 
 export async function addWebResourceToSolution() {
-	const activeOrganization = await getActiveOrganization();
+	const activeOrganization = (await getConnectionState())?.activeOrganization;
 	if (activeOrganization == null) {
 		vscode.window.showErrorMessage("Not Authenticated");
 		return;

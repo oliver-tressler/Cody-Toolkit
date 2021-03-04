@@ -8,7 +8,7 @@ import {
 	SolutionInfo,
 } from "./Api/Api";
 import { chooseAssembly, choosePlugin, chooseSolution, chooseSteps, Progress } from "./Utils/userInteraction";
-import { getActiveOrganization } from "./Utils/connection";
+import { getConnectionState } from "./Utils/connection";
 async function addStepsToSolution(
 	progress: Progress,
 	activeOrganization: string,
@@ -45,7 +45,7 @@ async function addStepsToSolution(
 }
 
 export async function addAssemblyToSolution() {
-	const activeOrganization = await getActiveOrganization();
+	const activeOrganization = (await getConnectionState())?.activeOrganization;
 	if (activeOrganization == null) {
 		vscode.window.showErrorMessage("Not Authenticated");
 		return;

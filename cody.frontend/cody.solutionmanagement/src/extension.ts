@@ -5,15 +5,15 @@ import { createNewSolution } from "./createSolution";
 
 export function activate(context: vscode.ExtensionContext) {
 	const addAssemblyToSolutionCommand = vscode.commands.registerCommand(
-		"cody.toolkit.solutionmanager.addassemblytosolution",
+		"cody.toolkit.solutionmanagement.addassemblytosolution",
 		addAssemblyToSolution
 	);
 	const addWebResourceToSolutionCommand = vscode.commands.registerCommand(
-		"cody.toolkit.solutionmanager.addwebresourcetosolution",
+		"cody.toolkit.solutionmanagement.addwebresourcetosolution",
 		addWebResourceToSolution
 	);
 	const createSolutionCommand = vscode.commands.registerCommand(
-		"cody.toolkit.solutionmanager.createnewsolution",
+		"cody.toolkit.solutionmanagement.createnewsolution",
 		() => createNewSolution(context)
 	);
 	context.subscriptions.push(addAssemblyToSolutionCommand, addWebResourceToSolutionCommand, createSolutionCommand);

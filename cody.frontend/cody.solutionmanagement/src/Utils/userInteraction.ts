@@ -1,3 +1,4 @@
+import * as path from "path";
 import * as vscode from "vscode";
 import {
 	AssemblyInfo,
@@ -13,9 +14,62 @@ import {
 } from "../Api/Api";
 import { Configuration } from "../Configuration/ConfigurationProxy";
 import { PreferredPublisherProxy } from "../Configuration/MementoProxy";
+import type { GitExtension } from "../Vendor/git";
 import { ConnectionState } from "./connection";
-
 export type Progress = vscode.Progress<{ message: string }>;
+
+function isSubDirOrEqualDir(parent: string, child: string) {
+	const parentPath = path.parse(parent);
+	const childPath = path.parse(child);
+	if (parentPath.dir == childPath.dir) return true;
+	const rel = path.relative(parent, child);
+	return rel && !rel.startsWith("..") && !path.isAbsolute(rel);
+}
+
+function tryToGetGitBranchName(): string | undefined {
+	const extension = vscode.extensions.getExtension("vscode.git")?.exports as GitExtension;
+	const projectPath = !vscode.workspace.workspaceFolders
+		? undefined
+		: vscode.workspace.workspaceFolders.length === 0
+		? undefined
+		: vscode.workspace.workspaceFolders[0].uri.fsPath;
+	if (extension?.enabled !== true) return undefined;
+	try {
+		const api = extension.getAPI(1);
+		const repo = projectPath
+			? api.repositories.find((r) => isSubDirOrEqualDir(r.rootUri.fsPath, projectPath))
+			: undefined;
+		if (repo == null || repo.state.HEAD == null) return undefined;
+		const { name } = repo.state.HEAD;
+		return name;
+	} catch {
+		return undefined;
+	}
+}
+
+function gitBranchNameToSolutionName(branchName: string | undefined) {
+	if (branchName == null) return undefined;
+	try {
+		if (Configuration.ignoreTheseBranchNamesForSolutionNameSuggestions) {
+			const regex = new RegExp(Configuration.ignoreTheseBranchNamesForSolutionNameSuggestions);
+			if (regex.test(branchName) === true) return;
+		}
+	} catch {
+		vscode.window.showErrorMessage(
+			"The RegExp you entered at Cody Toolkit > Solution Management > ignoreTheseBranchNamesForSolutionNameSuggestions is invalid"
+		);
+	}
+	const groups = branchName.split("/").map((g) => {
+		const toUnderScore = g.replace(/([^0-9a-zA-Z])+/g, "_").replace(/^_|_$/, "");
+		const toUpperCase = toUnderScore
+			.split("_")
+			.filter(Boolean)
+			.map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+			.join("");
+		return toUpperCase;
+	});
+	return groups.join("_");
+}
 
 function publisherToQuickPick(publisher: PublisherInfo): vscode.QuickPickItem & { info: PublisherInfo } {
 	return {
@@ -67,9 +121,13 @@ function stepToQuickPick(step: StepInfo): vscode.QuickPickItem & { info: StepInf
 }
 
 export async function getSolutionName() {
+	const gitSolutionName = Configuration.suggestSolutionNameBasedOnGitBranch
+		? gitBranchNameToSolutionName(tryToGetGitBranchName())
+		: undefined;
 	const solutionName = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
 		prompt: "Enter a name for the new solution.",
+		value: gitSolutionName,
 		validateInput: (val) => {
 			return !val ? "The solution name must not be empty" : "";
 		},
@@ -82,21 +140,23 @@ export async function getVersion() {
 	const versionYear = new Date().getFullYear() % 100;
 	const versionMonth = new Date().getMonth() + 1;
 	const versionDay = new Date().getDate();
-	const versionPlaceHolder = [versionYear, versionMonth, versionDay]
-		.map((val) => val.toString().padStart(2, "0"))
-		.join(".");
+	const versionPlaceHolder =
+		Configuration.suggestDateBasedSolutionVersions === true
+			? [versionYear, versionMonth, versionDay].map((val) => val.toString().padStart(2, "0")).join(".")
+			: undefined;
 	let version = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
 		prompt: "Enter a version number for the new solution.",
-		placeHolder: Configuration.suggestDateBasedSolutionVersions === true ? versionPlaceHolder : undefined,
+		placeHolder: versionPlaceHolder,
 		validateInput: (val) => {
 			if (!val) return null;
-			const validator = new RegExp(/(\d+\.){2,3}\d+/);
+			const validator = new RegExp(/^(\d+\.){2,3}\d+$/);
 			if (!validator.test(val)) return "Please enter a valid version string.";
 			return null;
 		},
 	});
-	if (!version) return versionPlaceHolder;
+	if (version === "" && versionPlaceHolder) return versionPlaceHolder;
+	if (!version) throw new Error("A version is required to create a solution");
 	return version;
 }
 
