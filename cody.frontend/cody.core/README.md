@@ -31,7 +31,9 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 -   The backend server is not yet included in the extension to reduce bundle size.
 -   Organization Service expiration is currently not communicated to the user.
 -   Since there always is just one backend instance, the output logs will be forwarded to the VS Code instance that
-    started the process
+    started the process. In future releases, the communication between the server and the extension will be switched to
+    gRPC over IPC, which will address this issue. A backend instance will not be shared between extensions then. If that
+    is explicitly required, it might be possible to provide the user with an option to use gRPC over TCP instead.
 
 ## Release Notes
 
