@@ -40,7 +40,7 @@ namespace pluginregistration
                 IncludeSubdirectories = false,
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size
             };
-            fsw.Changed += async (_, _) =>
+            fsw.Changed += async (_, args) =>
             {
                 var startMs = DateTime.Now;
                 var assembly = service.Retrieve(PluginAssembly.EntityLogicalName, assemblyId, new ColumnSet(true)).ToEntity<PluginAssembly>();

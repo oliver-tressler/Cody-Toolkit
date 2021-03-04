@@ -93,7 +93,7 @@ namespace proxygenerator.Data
                     else
                     {
                         var relatedEntityData = entityBuilder.ConstructRelatedEntity(entityMetadata);
-                        _relatedEntities.AddOrUpdate(relatedEntityData.LogicalName, relatedEntityData, (_, _) => relatedEntityData);
+                        _relatedEntities.AddOrUpdate(relatedEntityData.LogicalName, relatedEntityData, (_, red) => relatedEntityData);
                     }
             }
         }
@@ -155,7 +155,7 @@ namespace proxygenerator.Data
             foreach (var entityMetadata in metadatas)
             {
                 var relatedEntity = entityBuilder.ConstructRelatedEntity(entityMetadata);
-                _relatedEntities.AddOrUpdate(entityMetadata.LogicalName, relatedEntity, (_, _) => relatedEntity);
+                _relatedEntities.AddOrUpdate(entityMetadata.LogicalName, relatedEntity, (_, uvf) => relatedEntity);
             }
             ConsoleHelper.RefreshLine("Identifying related entities ...");
             var relatedInformation = GetRequiredRelatedData(metadatas.ToArray());
