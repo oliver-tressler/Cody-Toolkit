@@ -25,6 +25,8 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 ## Extension Settings
 
 -   `cody.toolkit.core.suggestDateBasedSolutionVersions`: Suggest date-based solution versions when creating solutions.
+    Date based versions should not be used when working on managed solutions, since it will not be possible to create
+    patches. This setting defaults to `false` to avoid bad practices.
 
 ## Release Notes
 

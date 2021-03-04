@@ -31,7 +31,7 @@
 			"title": "Cody Toolkit",
 			"properties": {
 				"cody.toolkit.solutionmanagement.suggestDateBasedSolutionVersions": {
-					"description": "Suggest a solution version based on the current date when creating new solutions.",
+					"markdownDescription": "Suggest date-based solution versions when creating solutions. Date based versions should not be used when working on managed solutions, since it will not be possible to patches. This setting defaults to `false` to avoid bad practices.",
 					"type": "boolean",
 					"scope": "window",
 					"default": "false"
