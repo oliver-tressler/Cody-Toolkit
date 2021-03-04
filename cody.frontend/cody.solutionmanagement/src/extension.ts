@@ -3,7 +3,7 @@ import { addAssemblyToSolution } from "./addAssemblyOrStepsToSolution";
 import { addWebResourceToSolution } from "./addWebResourceToSolution";
 import { createNewSolution } from "./createSolution";
 
-export function activate({ subscriptions }: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
 	const addAssemblyToSolutionCommand = vscode.commands.registerCommand(
 		"cody.toolkit.solutionmanager.addassemblytosolution",
 		addAssemblyToSolution
@@ -14,9 +14,9 @@ export function activate({ subscriptions }: vscode.ExtensionContext) {
 	);
 	const createSolutionCommand = vscode.commands.registerCommand(
 		"cody.toolkit.solutionmanager.createnewsolution",
-		createNewSolution
+		() => createNewSolution(context)
 	);
-	subscriptions.push(addAssemblyToSolutionCommand, addWebResourceToSolutionCommand, createSolutionCommand);
+	context.subscriptions.push(addAssemblyToSolutionCommand, addWebResourceToSolutionCommand, createSolutionCommand);
 }
 
 // this method is called when your extension is deactivated

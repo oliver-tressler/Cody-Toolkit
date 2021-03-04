@@ -11,6 +11,8 @@ import {
 	StepInfo,
 	WebResourceInfo,
 } from "../Api/Api";
+import { PreferredPublisherProxy } from "../Configuration/MementoProxy";
+import { ConnectionState } from "./connection";
 
 export type Progress = vscode.Progress<{ message: string }>;
 
@@ -97,11 +99,30 @@ export async function getVersion() {
 	return version;
 }
 
-export async function getPublisher(progress: Progress, activeOrganization: string) {
+export async function getPublisher(
+	progress: Progress,
+	connectionState: ConnectionState,
+	config: PreferredPublisherProxy
+) {
+	if (
+		connectionState.activeOrganization == null ||
+		!connectionState.activeOrganization.UniqueName ||
+		!connectionState.activeInstance?.instanceId
+	)
+		throw new Error("No active organization");
+	const preferredPublisherId = config.getPreferredPublisherId(
+		connectionState.activeInstance.instanceId,
+		connectionState.activeOrganization.UniqueName
+	);
 	progress.report({ message: "Retrieving Publishers" });
-	const availablePublishers = retrievePublishers(activeOrganization).then((response) => {
+	const availablePublishers = retrievePublishers(connectionState.activeOrganization.UniqueName).then((response) => {
 		progress.report({ message: "Awaiting User Input" });
-		return response.data.map(publisherToQuickPick);
+		return response.data.map(publisherToQuickPick).sort((pubA, pubB) => {
+			if (preferredPublisherId && pubA.info.Id == preferredPublisherId) {
+				return -Infinity;
+			}
+			return pubA.label.localeCompare(pubB.label);
+		});
 	});
 	const publisher = await vscode.window.showQuickPick(availablePublishers, {
 		canPickMany: false,
@@ -109,6 +130,11 @@ export async function getPublisher(progress: Progress, activeOrganization: strin
 		placeHolder: "Choose your publisher. Press ESC to cancel.",
 	});
 	if (publisher == null) throw new Error("The publisher is mandatory");
+	config.setPreferredPublisher(
+		connectionState.activeInstance.instanceId,
+		connectionState.activeOrganization.UniqueName,
+		publisher.info
+	);
 	return publisher.info;
 }
 

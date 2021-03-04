@@ -1,10 +1,12 @@
 import * as vscode from "vscode";
 import { createSolution } from "./Api/Api";
 import { getSolutionName, getVersion, getPublisher, getDescription, Progress } from "./Utils/userInteraction";
-import { getActiveOrganization } from "./Utils/connection";
+import { getConnectionState } from "./Utils/connection";
+import { PreferredPublisherProxy } from "./Configuration/MementoProxy";
 
-export async function createNewSolution() {
-	const activeOrganization = await getActiveOrganization();
+export async function createNewSolution({ workspaceState }: vscode.ExtensionContext) {
+	const connectionState = await getConnectionState();
+	const activeOrganization = connectionState?.activeOrganization;
 	if (activeOrganization == null) {
 		vscode.window.showErrorMessage("Not Authenticated");
 		return;
@@ -17,7 +19,11 @@ export async function createNewSolution() {
 				const solutionName = await getSolutionName();
 				progress.report({ message: "Awaiting User Input" });
 				const version = await getVersion();
-				const publisher = await getPublisher(progress, activeOrganization.UniqueName);
+				const publisher = await getPublisher(
+					progress,
+					connectionState!,
+					new PreferredPublisherProxy(workspaceState)
+				);
 				progress.report({ message: "Awaiting User Input" });
 				const description = await getDescription();
 				progress.report({ message: "Creating Solution ..." });
