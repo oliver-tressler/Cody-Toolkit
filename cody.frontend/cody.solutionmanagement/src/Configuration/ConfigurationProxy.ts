@@ -62,4 +62,9 @@ export class Configuration {
 	 * CWD to enable relative paths.
 	 */
 	static projectRootPath: string;
+	@config("cody.toolkit.solutionmanagement", vsc.ConfigurationTarget.Workspace)
+	/**
+	 * Use date based solution version if no version is provided.
+	 */
+	static suggestDateBasedSolutionVersions: boolean;
 }

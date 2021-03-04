@@ -27,6 +27,17 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
+		"configuration": {
+			"title": "Cody Toolkit",
+			"properties": {
+				"cody.toolkit.solutionmanagement.suggestDateBasedSolutionVersions": {
+					"description": "Suggest a solution version based on the current date when creating new solutions.",
+					"type": "boolean",
+					"scope": "window",
+					"default": "false"
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "cody.toolkit.solutionmanager.addassemblytosolution",

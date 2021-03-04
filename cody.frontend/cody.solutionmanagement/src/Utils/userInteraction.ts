@@ -11,6 +11,7 @@ import {
 	StepInfo,
 	WebResourceInfo,
 } from "../Api/Api";
+import { Configuration } from "../Configuration/ConfigurationProxy";
 import { PreferredPublisherProxy } from "../Configuration/MementoProxy";
 import { ConnectionState } from "./connection";
 
@@ -87,7 +88,7 @@ export async function getVersion() {
 	let version = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
 		prompt: "Enter a version number for the new solution.",
-		placeHolder: versionPlaceHolder,
+		placeHolder: Configuration.suggestDateBasedSolutionVersions === true ? versionPlaceHolder : undefined,
 		validateInput: (val) => {
 			if (!val) return null;
 			const validator = new RegExp(/(\d+\.){2,3}\d+/);

@@ -22,6 +22,10 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 -   Cody Toolkit (Core)
 
+## Extension Settings
+
+-   `cody.toolkit.core.suggestDateBasedSolutionVersions`: Suggest date-based solution versions when creating solutions.
+
 ## Release Notes
 
 ### 1.0.0
