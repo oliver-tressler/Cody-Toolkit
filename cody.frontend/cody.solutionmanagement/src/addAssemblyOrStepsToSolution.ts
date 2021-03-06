@@ -9,6 +9,17 @@ import {
 } from "./Api/Api";
 import { chooseAssembly, choosePlugin, chooseSolution, chooseSteps, Progress } from "./Utils/userInteraction";
 import { getConnectionState } from "./Utils/connection";
+
+/**
+ * Give the user the option to add steps that belong to the assembly that was chosen in addAssemblyToSolution to a
+ * solution. This will group them by their plugins and give a selection of plugins first, then show steps that belong
+ * to these plugins. Plugins without steps will not be shown. After selecting steps, the plugin selection will show up
+ * again, so that the user may add steps from multiple plugins in one go.
+ * @param progress VS Code Progress Item
+ * @param activeOrganization The unique id of the organization that Cody is currently connected to.
+ * @param assembly The assembly that was chosen in addAssemblyToSolution
+ * @param solution The solution that was chosen in addAssemblyToSolution
+ */
 async function addStepsToSolution(
 	progress: Progress,
 	activeOrganization: string,
@@ -44,6 +55,11 @@ async function addStepsToSolution(
 	}
 }
 
+/**
+ * Add an assembly existing on the server to a solution existing in Dynamics CRM. After choosing an assembly to add, the
+ * user also has the option to add steps from plugins from this assembly to the same solution. For details on selecting
+ * steps have a look at addStepsToSolution.
+ */
 export async function addAssemblyToSolution() {
 	const activeOrganization = (await getConnectionState())?.activeOrganization;
 	if (activeOrganization == null) {

@@ -4,6 +4,11 @@ import { getSolutionName, getVersion, getPublisher, getDescription, Progress } f
 import { getConnectionState } from "./Utils/connection";
 import { PreferredPublisherProxy } from "./Configuration/MementoProxy";
 
+/**
+ * Create a new unmanaged solution in Dynamics CRM. Will prompt the user for
+ * solution name, version, publisher and description (optional).
+ * @param context VS Code extension context containing the workspace memento
+ */
 export async function createNewSolution({ workspaceState }: vscode.ExtensionContext) {
 	const connectionState = await getConnectionState();
 	const activeOrganization = connectionState?.activeOrganization;
