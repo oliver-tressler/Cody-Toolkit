@@ -5,6 +5,9 @@ export type ConnectionState = {
 	activeOrganization?: undefined | { UniqueName: string };
 };
 
+/**
+ * Get the connection state from cody core to determine the active instance and organization
+ */
 export function getConnectionState() {
 	return vscode.commands.executeCommand<ConnectionState>("cody.toolkit.core.getConnectionState");
 }

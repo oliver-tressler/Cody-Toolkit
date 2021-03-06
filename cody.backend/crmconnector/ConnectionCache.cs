@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Http;
 using Microsoft.Xrm.Sdk.Client;
 
 namespace crmconnector
@@ -76,7 +74,7 @@ namespace crmconnector
                 _connection = new CrmConnection(authenticationDetailsProvider);
             }
             var proxy = _connection.CreateOrganizationServiceProxy(authenticationDetailsProvider, organizationName);
-            _cache.AddOrUpdate(organizationName, s => proxy, (s, _) => proxy);
+            _cache[organizationName] = proxy;
             return new AuthorizedOrganizationCreatedResponse
                 {Expires = proxy.SecurityTokenResponse.Response.Lifetime.Expires, Success = true};
         }

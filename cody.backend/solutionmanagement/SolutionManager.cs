@@ -128,6 +128,7 @@ namespace solutionmanagement
                 SdkMessageProcessingStep.PrimaryIdAttribute, SdkMessageProcessingStep.Fields.Description,
                 SdkMessageProcessingStep.Fields.Stage);
             stepLink.EntityAlias = "step";
+            // Use filter to get the entity name
             var filterLink = stepLink.AddLink(SdkMessageFilter.EntityLogicalName,
                 SdkMessageProcessingStep.Fields.SdkMessageFilterId,
                 SdkMessageFilter.PrimaryIdAttribute);
@@ -170,6 +171,11 @@ namespace solutionmanagement
             return assemblies;
         }
 
+        /**
+         * Constructs a plugin info object from a group where the key is the Id of the plugin and the entities are
+         * plugins which have the steps and filters as link attributes. The plugin info object will have the
+         * steps attached.
+         */
         private PluginInfo ConstructPluginInfo(IGrouping<Guid, Entity> pluginAndStepData)
         {
             var pluginType = pluginAndStepData.First().ToEntity<PluginType>();

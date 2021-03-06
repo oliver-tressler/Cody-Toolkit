@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Web.Http;
-using cody.backend.api.Cache;
 using crmconnector;
 using Microsoft.Xrm.Sdk.Client;
 using solutionmanagement;
@@ -44,9 +43,9 @@ namespace cody.backend.api.Controllers
         }
 
         [HttpGet]
-        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/{solutionId}/showSteps")]
-        public IHttpActionResult GetAssemblyStepsNotInSolution([FromUri] string organization,
-            [FromUri] string assemblyId, [FromUri] string solutionId)
+        [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/steps")]
+        public IHttpActionResult AssemblySteps([FromUri] string organization,
+            [FromUri] string assemblyId)
         {
             var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
             return Ok(new SolutionManager().GetAssemblySteps(conn, Guid.Parse(assemblyId)));

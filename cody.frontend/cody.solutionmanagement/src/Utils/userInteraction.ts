@@ -18,6 +18,11 @@ import type { GitExtension } from "../Vendor/git";
 import { ConnectionState } from "./connection";
 export type Progress = vscode.Progress<{ message: string }>;
 
+/**
+ * Check if a given dir is equal to or a subdirectory of another dir
+ * @param parent fsPath (dir)
+ * @param child fsPath (dir)
+ */
 function isSubDirOrEqualDir(parent: string, child: string) {
 	const parentPath = path.parse(parent);
 	const childPath = path.parse(child);
@@ -26,6 +31,11 @@ function isSubDirOrEqualDir(parent: string, child: string) {
 	return rel && !rel.startsWith("..") && !path.isAbsolute(rel);
 }
 
+/**
+ * Tries to fetch the current branch name from the vscode.git extension. If the extension is not installed, this will
+ * just return undefined. The git repository is matched by getting the path of the first workspace folder and testing
+ * if it is a subfolder of any of the currently active git repositories root folders.
+ */
 function tryToGetGitBranchName(): string | undefined {
 	const extension = vscode.extensions.getExtension("vscode.git")?.exports as GitExtension;
 	const projectPath = !vscode.workspace.workspaceFolders
@@ -33,7 +43,7 @@ function tryToGetGitBranchName(): string | undefined {
 		: vscode.workspace.workspaceFolders.length === 0
 		? undefined
 		: vscode.workspace.workspaceFolders[0].uri.fsPath;
-	if (extension?.enabled !== true) return undefined;
+	if (extension?.enabled !== true || projectPath == null) return undefined;
 	try {
 		const api = extension.getAPI(1);
 		const repo = projectPath
@@ -47,27 +57,45 @@ function tryToGetGitBranchName(): string | undefined {
 	}
 }
 
+/**
+ * Takes the name of a git branch and checks if it should be excluded given the regex that can be provided via
+ * ignoreTheseBranchNamesForSolutionNameSuggestions. The name will be transformed according to these steps:
+ * 1: Split the string at every slash (allows detecting feature branches, etc)
+ * 2: For each resulting group, throw out all non alphanumeric characters
+ * 3: Per group, wherever characters are thrown out, a word break is assumed
+ * 4: Capitalize all words in a group
+ * 5: Merge words in a group so they are written in Pascal Case
+ * 6: Merge groups with _ separator
+ *
+ * @param branchName Name of the active git branch
+ */
 function gitBranchNameToSolutionName(branchName: string | undefined) {
 	if (branchName == null) return undefined;
 	try {
+		// Attempt to parse user provided regex and test if it matches branch name
 		if (Configuration.ignoreTheseBranchNamesForSolutionNameSuggestions) {
 			const regex = new RegExp(Configuration.ignoreTheseBranchNamesForSolutionNameSuggestions);
-			if (regex.test(branchName) === true) return;
+			if (regex.test(branchName) === true) return undefined;
 		}
 	} catch {
 		vscode.window.showErrorMessage(
 			"The RegExp you entered at Cody Toolkit > Solution Management > ignoreTheseBranchNamesForSolutionNameSuggestions is invalid"
 		);
 	}
-	const groups = branchName.split("/").map((g) => {
-		const toUnderScore = g.replace(/([^0-9a-zA-Z])+/g, "_").replace(/^_|_$/, "");
-		const toUpperCase = toUnderScore
-			.split("_")
-			.filter(Boolean)
-			.map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-			.join("");
-		return toUpperCase;
-	});
+	// See method description for what's going on here
+	const groups = branchName
+		.split("/")
+		.map((g) => {
+			// use underscore as available split operator
+			const toUnderScore = g.replace(/([^0-9a-zA-Z])+/g, "_").replace(/^_|_$/, "");
+			const toUpperCase = toUnderScore
+				.split("_")
+				.filter(Boolean)
+				.map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+				.join("");
+			return toUpperCase;
+		})
+		.filter(Boolean);
 	return groups.join("_");
 }
 
@@ -120,6 +148,11 @@ function stepToQuickPick(step: StepInfo): vscode.QuickPickItem & { info: StepInf
 	};
 }
 
+/**
+ * Request a solution name from the user. If vscode.git is installed and enabled and
+ * suggestSolutionNameBasedOnGitBranch is active, this will attempt to read the name of the current branch and apply
+ * some string transformations. Throws an error if nothing is provided.
+ */
 export async function getSolutionName() {
 	const gitSolutionName = Configuration.suggestSolutionNameBasedOnGitBranch
 		? gitBranchNameToSolutionName(tryToGetGitBranchName())
@@ -136,6 +169,11 @@ export async function getSolutionName() {
 	return solutionName;
 }
 
+/**
+ * Request a version from the user. If suggestDateBasedSolutionVersions, it is injected as a placeholder.
+ * If the user aborts via ESC this will always throw an error. This also throws an error if no version is supplied and
+ * the date based version suggestion is inactive. Will also validate for SemVer notation.
+ */
 export async function getVersion() {
 	const versionYear = new Date().getFullYear() % 100;
 	const versionMonth = new Date().getMonth() + 1;
@@ -160,6 +198,13 @@ export async function getVersion() {
 	return version;
 }
 
+/**
+ * Let the user choose the publisher for an extension. If a publisher has been selected for this instance and
+ * organization before, this publisher will be selected. If nothing is selected, this will throw an error.
+ * @param progress VS Code progress item
+ * @param connectionState Cody Toolkit Core connection state
+ * @param config Workspace memento proxy
+ */
 export async function getPublisher(
 	progress: Progress,
 	connectionState: ConnectionState,
@@ -171,6 +216,7 @@ export async function getPublisher(
 		!connectionState.activeInstance?.instanceId
 	)
 		throw new Error("No active organization");
+	// Preferred publisher will be the one that has been used last for this combination of instance and organzation
 	const preferredPublisherId = config.getPreferredPublisherId(
 		connectionState.activeInstance.instanceId,
 		connectionState.activeOrganization.UniqueName
@@ -178,6 +224,7 @@ export async function getPublisher(
 	progress.report({ message: "Retrieving Publishers" });
 	const availablePublishers = retrievePublishers(connectionState.activeOrganization.UniqueName).then((response) => {
 		progress.report({ message: "Awaiting User Input" });
+		// Sort items such that the preferred publisher is on top of the list and the rest is sorted by name
 		return response.data.map(publisherToQuickPick).sort((pubA, pubB) => {
 			if (preferredPublisherId && pubA.info.Id == preferredPublisherId) {
 				return -Infinity;
@@ -199,6 +246,9 @@ export async function getPublisher(
 	return publisher.info;
 }
 
+/**
+ * Prompts the user for a description for a solution. This is optional, so it will never throw an error either way.
+ */
 export async function getDescription() {
 	const description = await vscode.window.showInputBox({
 		prompt: "Enter a description. (optional)",
@@ -207,6 +257,11 @@ export async function getDescription() {
 	return description;
 }
 
+/**
+ * Prompts the user to choose a solution from the solutions that exist in the CRM.
+ * @param progress VS Code Progress item
+ * @param activeOrganization The unique name of the currently active Dynamics CRM organization
+ */
 export async function chooseSolution(progress: Progress, activeOrganization: string) {
 	progress.report({ message: "Loading Solutions" });
 	const solutions = retrieveSolutions(activeOrganization).then((response) => {
@@ -224,6 +279,11 @@ export async function chooseSolution(progress: Progress, activeOrganization: str
 	return chosenSolution.info;
 }
 
+/**
+ * Prompts the user to choose a webresource from the existing webresource in the CRM.
+ * @param progress VS Code Progress item
+ * @param activeOrganization The unique name of the currently active Dynamics CRM organization
+ */
 export async function chooseWebResources(progress: Progress, activeOrganization: string) {
 	progress.report({ message: "Loading WebResources" });
 	const webResources = retrieveWebResources(activeOrganization).then((response) => {
@@ -241,6 +301,11 @@ export async function chooseWebResources(progress: Progress, activeOrganization:
 	return chosenWebResources.map((wr) => wr.info);
 }
 
+/**
+ * Prompts the user to choose an assembly from the existing assemblies in the CRM.
+ * @param progress VS Code Progress item
+ * @param activeOrganization The unique name of the currently active Dynamics CRM organization
+ */
 export async function chooseAssembly(progress: Progress, activeOrganization: string) {
 	progress.report({ message: "Loading Assemblies" });
 	const assemblies = retrieveAssemblies(activeOrganization).then((response) => {
@@ -258,6 +323,10 @@ export async function chooseAssembly(progress: Progress, activeOrganization: str
 	return chosenAssembly.info;
 }
 
+/**
+ * Prompts the user to choose a plugin from a set of plugins.
+ * @param plugIns
+ */
 export async function choosePlugin(plugIns: PluginInfo[]) {
 	const plugin = await vscode.window.showQuickPick(plugIns.map(pluginToQuickPick), {
 		canPickMany: false,
@@ -267,6 +336,10 @@ export async function choosePlugin(plugIns: PluginInfo[]) {
 	return plugin?.info;
 }
 
+/**
+ * Prompts the user to choose a step from a set of steps.
+ * @param steps
+ */
 export async function chooseSteps(steps: StepInfo[]) {
 	const chosenSteps = await vscode.window.showQuickPick(steps.map(stepToQuickPick), {
 		canPickMany: true,

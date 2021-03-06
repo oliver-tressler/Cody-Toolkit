@@ -3,6 +3,9 @@ import { addWebResourceToSolution as addWebResourceToSolutionRequest } from "./A
 import { chooseSolution, chooseWebResources, Progress } from "./Utils/userInteraction";
 import { getConnectionState } from "./Utils/connection";
 
+/**
+ * Allows the user to add one or multiple webresources to a solution
+ */
 export async function addWebResourceToSolution() {
 	const activeOrganization = (await getConnectionState())?.activeOrganization;
 	if (activeOrganization == null) {

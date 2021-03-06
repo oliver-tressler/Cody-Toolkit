@@ -14,6 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 	const createSolutionCommand = vscode.commands.registerCommand(
 		"cody.toolkit.solutionmanagement.createnewsolution",
+		// Pass context to provide access to localstorage memento object.
+		// This allows caching the last used publisher.
 		() => createNewSolution(context)
 	);
 	context.subscriptions.push(addAssemblyToSolutionCommand, addWebResourceToSolutionCommand, createSolutionCommand);

@@ -65,10 +65,13 @@ export function retrieveAssemblies(organization: string) {
 	return axios.get<AssemblyInfo[]>(`${baseUrl()}${organization}/assemblies`);
 }
 
-export function retrieveAssemblySteps(organization: string, assemblyId: string, solutionUniqueName: string) {
-	return axios.get<PluginInfo[]>(
-		`${baseUrl()}${organization}/assembly/${assemblyId}/addToSolution/${solutionUniqueName}/showSteps`
-	);
+/**
+ * Retrieve all steps that belong to a specificied assembly grouped by their associated plugin
+ * @param organization Unique name of the Dynamics CRM Organization
+ * @param assemblyId Id of the assembly that the steps belong to
+ */
+export function retrieveAssemblySteps(organization: string, assemblyId: string) {
+	return axios.get<PluginInfo[]>(`${baseUrl()}${organization}/assembly/${assemblyId}/steps`);
 }
 
 export function addAssemblyToSolution(organization: string, assemblyId: string, solutionUniqueName: string) {
