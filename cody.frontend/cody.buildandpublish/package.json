@@ -12,7 +12,7 @@
 	"icon": "assets/d365-icon.png",
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Build & Publish)",
-	"description": "Publish WebResources from within VS Code directly to Dynamics CRM 2016 On-Premise.",
+	"description": "Publish WebResources from within VS Code to Dynamics CRM 2016 On-Premise.",
 	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.53.0"
@@ -25,8 +25,36 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
-		"commands": [
-		]
+		"commands": [],
+		"configuration": {
+			"title": "",
+			"properties": {
+				"cody.toolkit.buildAndPublish.tsConfigPath": {
+					"description": "Path to the tsconfig.json file of the project",
+					"type": "string",
+					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*tsconfig.json)?$",
+					"scope": "window"
+				},
+				"cody.toolkit.buildAndPublish.devFolder": {
+					"description": "Path to the folder containing the .ts source",
+					"type": "string",
+					"pattern": "^([a-zA-Z]:((/[^\\?/\n]+))*)?$",
+					"scope": "window"
+				},
+				"cody.toolkit.buildAndPublish.outFolder": {
+					"description": "Path to the output folder",
+					"type": "string",
+					"pattern": "^([a-zA-Z]:((/[^\\?/\n]+))*)?$",
+					"scope": "window"
+				},
+				"cody.toolkit.buildAndPublish.createFiddlerRules": {
+					"type": "boolean",
+					"description": "Fiddler rules should be created to facilitate debugging.",
+					"scope": "window",
+					"default": "true"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",

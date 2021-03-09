@@ -12,7 +12,7 @@
 	"icon": "assets/d365-icon.png",
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Solution Management)",
-	"description": "Create new solutions directly from VS Code or add WebResources, Assemblies and Steps to existing solutions.",
+	"description": "Create new solutions in Dynamics CRM 2016 On-Premise directly from VS Code or add WebResources, Assemblies and Steps to existing solutions.",
 	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.53.0"
