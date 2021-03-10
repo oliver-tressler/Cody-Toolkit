@@ -60,7 +60,7 @@ export class Configuration {
 		getTransform: (val: string) => val == "true",
 		setTransform: (val: boolean) => (val ? "true" : "false"),
 	})
-	static createFiddlerRulesWhenMinifyingScripts: boolean;
+	static createFiddlerRulesWhenBuildingScripts: boolean;
 	@config("cody.toolkit.buildAndPublish", vsc.ConfigurationTarget.Workspace)
 	static fiddlerRuleFolder: string;
 }

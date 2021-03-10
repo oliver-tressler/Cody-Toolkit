@@ -34,8 +34,8 @@ class MementoProxy {
 }
 
 export type BuildAndPublishFileConfiguration = {
-	inputFile: string;
-	outputFile: string;
+	inputFile?: string;
+	outputFile?: string;
 };
 
 /**

@@ -1,9 +1,9 @@
-import * as vscode from "vscode";
 import * as path from "path";
-import * as ts from "typescript";
-import * as fs from "fs";
+import * as vscode from "vscode";
+import { build, getBuildInfo } from "./build";
+import { Configuration } from "./Configuration/ConfigurationProxy";
 import { CustomBuildTaskTerminal } from "./Console";
-import { getBuildInfo } from "./build";
+import { generateFiddlerRule } from "./generateFiddlerRules";
 
 /**
  * Check if a given dir is equal to or a subdirectory of another dir
@@ -57,18 +57,26 @@ function taskDefinitionToTask(
 		source: "Cody Toolkit",
 		problemMatchers: ["$tsc"],
 		presentationOptions: {
-			showReuseMessage: false,
-			clear: true,
-			focus: false,
-			panel: vscode.TaskPanelKind.New,
-			reveal: vscode.TaskRevealKind.Silent,
+			reveal: vscode.TaskRevealKind.Never,
 		},
 		runOptions: {},
 		isBackground: false,
 		execution: new vscode.CustomExecution(async () => {
-			return new CustomBuildTaskTerminal(async () => {
-				getBuildInfo(filePath, context.workspaceState);
+			await vscode.window.withProgress({location: vscode.ProgressLocation.Notification, cancellable: false, title: "Build & Publish"}, async (progress) => {
+				progress.report({message: "Gathering Build Info ..."});
+				const buildInfo = await getBuildInfo(filePath, context.workspaceState, definition);
+				progress.report({message: "Building ..."});
+				await build(buildInfo)
+				if (Configuration.createFiddlerRulesWhenBuildingScripts) {
+					progress.report({ message: "Generating Fiddler File ..." });
+					generateFiddlerRule(buildInfo);
+				}
+				vscode.window.showInformationMessage("Building complete");
+			})
+			const terminal = new CustomBuildTaskTerminal(async () => {
 			});
+			terminal.close();
+			return terminal;
 		}),
 	};
 }
@@ -89,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const fileRequiresBuilding = requiresBuild(parsedFile.ext);
 			return taskDefinitions
 				.filter((t) => t.build == fileRequiresBuilding)
-				.map<vscode.Task>((def) => taskDefinitionToTask(context, def, workspace, file));
+				.map<vscode.Task>((def) => taskDefinitionToTask(context, def, workspace, path.normalize(file)));
 		},
 	});
 	context.subscriptions.push(buildTaskProvider);
