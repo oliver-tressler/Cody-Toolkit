@@ -25,10 +25,12 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
-		"taskDefinitions": [{
-			"type": "Cody Toolkit",
-			"properties": {}
-		}],
+		"taskDefinitions": [
+			{
+				"type": "Cody Toolkit",
+				"properties": {}
+			}
+		],
 		"commands": [],
 		"configuration": {
 			"title": "",
