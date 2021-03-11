@@ -19,9 +19,9 @@ type TaskDefinition = {
 } & vscode.TaskDefinition;
 
 const taskDefinitions: TaskDefinition[] = [
-	{ build: true, publish: false, type: "build", title: "Build" },
-	{ build: true, publish: true, type: "buildpublish", title: "Build and Publish" },
-	{ build: false, publish: true, type: "publish", title: "Publish" },
+	{ build: true, publish: false, type: "cody.toolkit.buildtasks.build", title: "Build" },
+	{ build: true, publish: true, type: "cody.toolkit.buildtasks.buildpublish", title: "Build & Publish" },
+	{ build: false, publish: true, type: "cody.toolkit.buildtasks.publish", title: "Publish" },
 ];
 
 function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string) {
@@ -72,9 +72,9 @@ function taskDefinitionToTask(
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	const buildTaskProvider = vscode.tasks.registerTaskProvider("Cody Tookit", {
+	const taskProvider = (def: TaskDefinition): vscode.TaskProvider<vscode.Task> => ({
 		resolveTask: () => undefined,
-		provideTasks: () => {
+		provideTasks: async () => {
 			const file = vscode.window.activeTextEditor?.document.fileName;
 			if (file == null) {
 				throw new Error("No active editor");
@@ -84,12 +84,15 @@ export function activate(context: vscode.ExtensionContext) {
 				throw new Error("Unable to resolve workspace");
 			}
 			const fileRequiresBuilding = requiresBuild(file);
-			return taskDefinitions
-				.filter((t) => fileRequiresBuilding === undefined || t.build == fileRequiresBuilding)
-				.map<vscode.Task>((def) => taskDefinitionToTask(context, def, path.normalize(file)));
+			if (fileRequiresBuilding !== false && def.build) return [taskDefinitionToTask(context, def, file)];
+			if (fileRequiresBuilding !== true && def.publish) return [taskDefinitionToTask(context, def, file)];
+			return undefined;
 		},
 	});
-	context.subscriptions.push(buildTaskProvider);
+	const buildTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.build", taskProvider(taskDefinitions[0]));
+	const buildPublishTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.buildpublish", taskProvider(taskDefinitions[1]));
+	const publishTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.publish", taskProvider(taskDefinitions[2]));
+	context.subscriptions.push(buildTaskProvider, buildPublishTaskProvider, publishTaskProvider);
 }
 
 // this method is called when your extension is deactivated

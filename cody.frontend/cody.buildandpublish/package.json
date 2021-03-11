@@ -27,7 +27,15 @@
 	"contributes": {
 		"taskDefinitions": [
 			{
-				"type": "Cody Toolkit",
+				"type": "cody.toolkit.buildtasks.build",
+				"properties": {}
+			},
+			{
+				"type": "cody.toolkit.buildtasks.buildpublish",
+				"properties": {}
+			},
+			{
+				"type": "cody.toolkit.buildtasks.publish",
 				"properties": {}
 			}
 		],
