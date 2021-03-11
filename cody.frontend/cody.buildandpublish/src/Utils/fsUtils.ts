@@ -1,7 +1,6 @@
 import * as path from "path";
-import * as vscode from "vscode";
 import { findConfigFile, parseJsonConfigFileContent, readConfigFile, sys } from "typescript";
-import { last } from "./arrayUtils";
+
 /**
  * Check if a given dir is equal to or a subdirectory of another dir
  * @param parent fsPath (dir)
