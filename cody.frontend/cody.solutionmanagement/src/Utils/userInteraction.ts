@@ -293,8 +293,8 @@ export async function chooseWebResources(progress: Progress, activeOrganization:
 	const chosenWebResources = await vscode.window.showQuickPick(webResources, {
 		canPickMany: true,
 		ignoreFocusOut: true,
-		matchOnDescription: true,
-		matchOnDetail: false,
+		matchOnDescription: false,
+		matchOnDetail: true,
 		placeHolder: "Choose the WebResources that you want to add to your solution.",
 	});
 	if (chosenWebResources == null) throw new Error("No WebResources selected");

@@ -6,7 +6,7 @@ export class CustomBuildTaskTerminal implements vsc.Pseudoterminal {
 	onDidClose?: vsc.Event<void> = this.closeEmitter.event;
 	private terminal: vsc.Terminal | undefined;
 
-	constructor(private onOpen: () => Promise<void>) {
+	constructor(private onOpen: () => Promise<any>) {
 		this.terminal = undefined;
 	}
 	error(message?: string): void {

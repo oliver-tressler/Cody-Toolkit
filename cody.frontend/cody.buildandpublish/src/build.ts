@@ -5,9 +5,7 @@ import * as webpack from "webpack";
 import { Configuration } from "./Configuration/ConfigurationProxy";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
 import { generateFiddlerRule } from "./generateFiddlerRules";
-import { getDirs } from "./Utils/fsUtils";
-
-
+import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
 async function requestBundleName(filePath: string) {
 	const fileName = path.parse(filePath).name;
@@ -140,7 +138,16 @@ export async function getBuildInfo(
 	const fileConfiguration = config.getFileConfiguration(filePath) ?? { inputFile: filePath };
 	if (fileConfiguration.outputFile == null) {
 		const bundleName = await requestBundleName(filePath);
-		const bundleDir = path.normalize(await requestBundleTargetFolder(filePath, directories.srcDir));
+		const bundleDir = path.normalize(
+			await requestBundleTargetFolder(
+				filePath,
+				isSubDirOrEqualDir(directories.srcDir, filePath)
+					? directories.srcDir
+					: isSubDirOrEqualDir(directories.outDir, filePath)
+					? directories.outDir
+					: directories.rootDir
+			)
+		);
 		fileConfiguration.inputFile = path.normalize(filePath);
 		fileConfiguration.outputFile = path.join(bundleDir, bundleName + ".bundle.min.js");
 		config.setFileConfiguration(filePath, fileConfiguration);

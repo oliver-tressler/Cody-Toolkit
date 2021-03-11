@@ -43,9 +43,9 @@ export type BuildAndPublishFileConfiguration = {
  */
 export class BuildAndPublishFileConfigurationProxy extends MementoProxy {
 	getFileConfiguration(filePath: string) {
-		return this.getItem<BuildAndPublishFileConfiguration>(filePath);
+		return this.getItem<BuildAndPublishFileConfiguration>(filePath.toLocaleLowerCase());
 	}
-	setFileConfiguration(filePath: string, fileConfiguration: BuildAndPublishFileConfiguration) {
-		this.setItem(filePath, fileConfiguration);
+	setFileConfiguration(filePath: string, fileConfiguration: BuildAndPublishFileConfiguration | undefined) {
+		this.setItem(filePath.toLocaleLowerCase(), fileConfiguration);
 	}
 }
