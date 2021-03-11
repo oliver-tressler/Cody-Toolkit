@@ -47,7 +47,6 @@ export function getDirs(filePath: string) {
 	};
 }
 
-
 export function getWorkspaceForActiveEditor(file: string) {
 	return vscode.workspace.workspaceFolders?.find((wf) => isSubDirOrEqualDir(wf.uri.fsPath, file));
 }

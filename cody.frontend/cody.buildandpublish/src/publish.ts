@@ -6,25 +6,28 @@ import { getConnectionState } from "./Utils/connection";
 import { getDirs, getWorkspaceForActiveEditor, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
 async function requestOutputFileName(filePath: string) {
-	const dirs = getDirs(filePath);
-	const activeWorkspace = getWorkspaceForActiveEditor(filePath);
-	let suggestedFileName = activeWorkspace == null ? filePath : relative(activeWorkspace.uri.fsPath, filePath);
+	const dirs = getDirs(filePath) ?? {
+		rootDir: getWorkspaceForActiveEditor(filePath)?.uri.fsPath,
+		outDir: undefined,
+		srcDir: undefined,
+	};
+	let suggestedFileName = filePath;
 	if (dirs?.srcDir != null && isSubDirOrEqualDir(dirs.srcDir, filePath)) {
-        suggestedFileName = relative(dirs.srcDir, filePath);
+		suggestedFileName = relative(dirs.srcDir, filePath);
 	} else if (dirs?.outDir != null && isSubDirOrEqualDir(dirs.outDir, filePath)) {
-        suggestedFileName = relative(dirs.outDir, filePath);
+		suggestedFileName = relative(dirs.outDir, filePath);
 	} else if (dirs?.rootDir != null && isSubDirOrEqualDir(dirs.rootDir, filePath)) {
-        suggestedFileName = relative(dirs.rootDir, filePath);
+		suggestedFileName = relative(dirs.rootDir, filePath);
 	} else {
 		// WTF are you trying to do here?
 	}
 	const outputFileName = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
-        value: suggestedFileName,
-        prompt: "Please enter the name of the resource",
+		value: suggestedFileName,
+		prompt: "Please enter the name of the resource",
 	});
-    if (outputFileName == null) throw new Error("No resource name provided");
-    return outputFileName;
+	if (outputFileName == null) throw new Error("No resource name provided");
+	return outputFileName;
 }
 
 export async function getPublishInfo(filePath: string, localStorage: vscode.Memento): Promise<PublishFileInfo> {
@@ -33,20 +36,20 @@ export async function getPublishInfo(filePath: string, localStorage: vscode.Meme
 	if (fileConfig?.outputFile == null) {
 		fileConfig = {
 			inputFile: filePath,
-            outputFile: await requestOutputFileName(filePath)
+			outputFile: await requestOutputFileName(filePath),
 		};
-        config.setFileConfiguration(filePath, fileConfig);
+		config.setFileConfiguration(filePath, fileConfig);
 	}
-    
-    return {
-        fileConfiguration: {
-            output: {
-                absoluteOutputFile: filePath,
-                outputFileName: parse(fileConfig.outputFile!).name,
-                relativeOutputFile: fileConfig.outputFile!
-            }
-        }
-    }
+
+	return {
+		fileConfiguration: {
+			output: {
+				absoluteOutputFile: filePath,
+				outputFileName: parse(fileConfig.outputFile!).name,
+				relativeOutputFile: fileConfig.outputFile!,
+			},
+		},
+	};
 }
 
 type PublishFileInfo = {
@@ -62,9 +65,13 @@ type PublishFileInfo = {
 export async function publish(info: PublishFileInfo) {
 	const connection = await getConnectionState();
 	if (connection?.activeOrganization == null) throw new Error("Unauthorized");
-	publishWebResource(connection.activeOrganization!.UniqueName, {
-		Path: info.fileConfiguration.output.absoluteOutputFile,
-		DisplayName: info.fileConfiguration.output.outputFileName,
-		Name: info.fileConfiguration.output.relativeOutputFile,
-	});
+	try {
+		await publishWebResource(connection.activeOrganization!.UniqueName, {
+			Path: info.fileConfiguration.output.absoluteOutputFile,
+			DisplayName: info.fileConfiguration.output.outputFileName.replace(/\\|(\/+)/g, "/"),
+			Name: info.fileConfiguration.output.relativeOutputFile.replace(/\\|(\/+)/g, "/"),
+		});
+	} catch (error) {
+		vscode.window.showErrorMessage(error.message);
+	}
 }

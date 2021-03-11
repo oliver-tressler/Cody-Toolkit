@@ -153,7 +153,7 @@ export async function getBuildInfo(
 			output: {
 				absoluteOutputFile: path.join(directories.outDir, fileConfiguration.outputFile),
 				relativeOutputFile: fileConfiguration.outputFile,
-				outputFileName: path.basename(fileConfiguration.outputFile, "bundle.min.js"),
+				outputFileName: path.basename(fileConfiguration.outputFile, ".bundle.min.js"),
 				outputFile: path.basename(fileConfiguration.outputFile),
 			},
 			input: {

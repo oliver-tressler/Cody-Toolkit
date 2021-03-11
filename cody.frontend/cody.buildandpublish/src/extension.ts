@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { build, getBuildInfo } from "./build";
-import { CustomBuildTaskTerminal } from "./Console";
+import { CustomBuildTaskTerminal } from "./Utils/console";
 import { getPublishInfo, publish } from "./publish";
 import { getWorkspaceForActiveEditor } from "./Utils/fsUtils";
 
@@ -19,9 +19,9 @@ type TaskDefinition = {
 } & vscode.TaskDefinition;
 
 const taskDefinitions: TaskDefinition[] = [
-	{ build: true, publish: false, type: "Cody Toolkit", title: "Build" },
-	{ build: true, publish: true, type: "Cody Toolkit", title: "Build and Publish" },
-	{ build: false, publish: true, type: "Cody Toolkit", title: "Publish" },
+	{ build: true, publish: false, type: "build", title: "Build" },
+	{ build: true, publish: true, type: "buildpublish", title: "Build and Publish" },
+	{ build: false, publish: true, type: "publish", title: "Publish" },
 ];
 
 function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string) {
@@ -46,7 +46,6 @@ function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string) 
 function taskDefinitionToTask(
 	context: vscode.ExtensionContext,
 	definition: TaskDefinition,
-	workspace: vscode.WorkspaceFolder,
 	filePath: string
 ): vscode.Task {
 	return {
@@ -87,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const fileRequiresBuilding = requiresBuild(file);
 			return taskDefinitions
 				.filter((t) => fileRequiresBuilding === undefined || t.build == fileRequiresBuilding)
-				.map<vscode.Task>((def) => taskDefinitionToTask(context, def, workspace, path.normalize(file)));
+				.map<vscode.Task>((def) => taskDefinitionToTask(context, def, path.normalize(file)));
 		},
 	});
 	context.subscriptions.push(buildTaskProvider);
