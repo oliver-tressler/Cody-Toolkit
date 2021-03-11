@@ -1,15 +1,14 @@
-# Cody Toolkit (Solution Management)
+# Cody Toolkit (Build and Publish)
 
 Cody Toolkit allows performing various tasks that are frequent when customizing Dynamics CRM directly in VS Code.
-With the Solution Management Module, you can create unmanaged solutions or add common development components to them
-directly from within VS Code. Right now, Cody supports Assemblies, Steps and WebResources.
+The Build and Publish Module simplifies working with script WebResources dramatically. Compile Typescript, bundle and minify scripts or publish WebResource files to a Dynamics CRM 2016 On-Premise server with just a few button presses.
 
 ## Features
 
--   Create new unmanaged solutions
--   Add WebResources to existing solutions
--   Add Assemblies to existing solutions
--   Add Steps to existing solutions
+-   Compile a Typescript or JavaScript file and all of it's dependencies into a single deployable JavaScript bundle without worrying about webpack and build tasks
+-   Bundles are automatically minified and have source maps
+-   Automatic creation of fiddler rules that allow you to debug your TypeScript/JavaScript code in the browser
+-   Publish WebResource files directly to the CRM (Pairs nicely with Cody Toolkit (Solution Management))
 
 ## Requirements
 
@@ -24,14 +23,11 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Extension Settings
 
--   `cody.toolkit.core.suggestDateBasedSolutionVersions`: Suggest date-based solution versions when creating solutions.
-    Date based versions should not be used when working on managed solutions, since it will not be possible to create
-    patches. This setting defaults to `false` to avoid accidental bad practices.
--   `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch`: Suggest a solution name based on the git branch you have currently checked out. This will take the name of the branch, replace all `/` characters with `_` and strips all non-numeric and non-alphabetic characters. All words that were previously separated by these characters will have their first letter characterized. This setting defaults to `false` to avoid accidental bad practices.
--   `cody.toolkit.core.ignoreTheseBranchNamesForSolutionNameSuggestions`: Enter a string that can be parsed via the JS `RegExp` constructor. All branch names that are matched by this expression will be ignored for solution name suggestions. If `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch` is set to `false`, this setting will be ignored.
+-   `cody.toolkit.buildAndPublish.createFiddlerRulesWhenBuildingScripts`: Bundled and minified files are annoying to debug. If this is enabled, Fiddler rules will be generated for you and can be directly imported into Fiddlers' Autoresponder. This way, you can debug your local code directly inside the CRM.
+-   `cody.toolkit.buildAndPublish.fiddlerRuleFolder`: An optional override for where your Fiddler rule files will be stored. If this is left empty, Fiddler rule files are placed next to their corresponding scripts, but this allows you to store them in a folder of your choice. Just beware, that naming clashes will not be resolved.
 
 ## Release Notes
 
 ### 1.0.0
 
-Initial release **Cody Toolkit (Solution Management)**
+Initial release **Cody Toolkit (Build and Publish)**
