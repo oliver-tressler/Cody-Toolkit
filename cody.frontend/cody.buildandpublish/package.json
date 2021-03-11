@@ -21,7 +21,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:workbench.action.tasks.runTask"
+		"onStartupFinished"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -39,7 +39,56 @@
 				"properties": {}
 			}
 		],
-		"commands": [],
+		"commands": [
+			{
+				"command": "cody.toolkit.buildandpublish.build",
+				"title": "Build",
+				"category": "Cody Toolkit"
+			},
+			{
+				"command": "cody.toolkit.buildandpublish.buildpublish",
+				"title": "Build & Publish",
+				"category": "Cody Toolkit"
+			},
+			{
+				"command": "cody.toolkit.buildandpublish.publish",
+				"title": "Publish",
+				"category": "Cody Toolkit"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "cody.toolkit.buildandpublish.build",
+					"when": "false"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.buildpublish",
+					"when": "false"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.publish",
+					"when": "false"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "cody.toolkit.buildandpublish.build",
+					"group": "buildandpublish@1",
+					"when": "resourceExtname in cody:supportedBuildExtensions"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.buildpublish",
+					"group": "buildandpublish@2",
+					"when": "resourceExtname in cody:supportedBuildExtensions"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.publish",
+					"group": "buildandpublish@3",
+					"when": "resourceExtname in cody:supportedPublishExtensions"
+				}
+			]
+		},
 		"configuration": {
 			"title": "",
 			"properties": {

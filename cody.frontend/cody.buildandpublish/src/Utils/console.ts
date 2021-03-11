@@ -41,10 +41,7 @@ export class CustomBuildTaskTerminal implements vsc.Pseudoterminal {
 	}
 
 	close(): void {
-		// this.terminal?.hide();
-		if (this.terminal?.exitStatus == null) {
-			this.terminal?.dispose();
-			this.closeEmitter.fire();
-		}
+		this.terminal?.exitStatus == undefined && this.terminal?.show();
+		this.closeEmitter.fire();
 	}
 }

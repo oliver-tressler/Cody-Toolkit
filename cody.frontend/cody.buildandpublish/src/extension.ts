@@ -8,7 +8,7 @@ import { getWorkspaceForActiveEditor } from "./Utils/fsUtils";
 const acceptedExtensions = [".ts", ".js", ".html", ".css"];
 function acceptedExtension(filePath: string) {
 	const filePathExtension = path.parse(filePath).ext.toLocaleLowerCase();
-	return acceptedExtensions.some(ext => filePathExtension === ext);
+	return acceptedExtensions.some((ext) => filePathExtension === ext);
 }
 
 function requiresBuild(filePath: string) {
@@ -32,21 +32,16 @@ const taskDefinitions: TaskDefinition[] = [
 
 function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string) {
 	if (definition.build && definition.publish) {
-		return async (localStorage: vscode.Memento) => {
-			await getBuildInfo(filePath, localStorage, definition).then(build).then(publish);
-		};
+		return (localStorage: vscode.Memento) =>
+			getBuildInfo(filePath, localStorage, definition).then(build).then(publish);
 	}
 	if (definition.build) {
-		return async (localStorage: vscode.Memento) => {
-			await getBuildInfo(filePath, localStorage, definition).then(build);
-		};
+		return (localStorage: vscode.Memento) => getBuildInfo(filePath, localStorage, definition).then(build);
 	}
 	if (definition.publish) {
-		return async (localStorage: vscode.Memento) => {
-			await getPublishInfo(filePath, localStorage).then(publish);
-		};
+		return (localStorage: vscode.Memento) => getPublishInfo(filePath, localStorage).then(publish);
 	}
-	return async () => {};
+	return () => Promise.resolve();
 }
 
 function taskDefinitionToTask(
@@ -78,6 +73,11 @@ function taskDefinitionToTask(
 }
 
 export function activate(context: vscode.ExtensionContext) {
+	const supportedBuildExtensions = [".ts", ".js"];
+	vscode.commands.executeCommand("setContext", "cody:supportedBuildExtensions", supportedBuildExtensions);
+	vscode.commands.executeCommand("setContext", "cody:supportedBuildPublishExtensions", supportedBuildExtensions);
+	const supportedPublishExtensions = [".js", ".html", ".css", ".png", ".jpg", ".gif", ".ico"];
+	vscode.commands.executeCommand("setContext", "cody:supportedPublishExtensions", supportedPublishExtensions);
 	const taskProvider = (def: TaskDefinition): vscode.TaskProvider<vscode.Task> => ({
 		resolveTask: () => undefined,
 		provideTasks: async () => {
@@ -90,15 +90,63 @@ export function activate(context: vscode.ExtensionContext) {
 				throw new Error("Unable to resolve workspace");
 			}
 			const fileRequiresBuilding = requiresBuild(file);
-			if (acceptedExtension(file) && fileRequiresBuilding !== false && def.build) return [taskDefinitionToTask(context, def, file)];
-			if (acceptedExtension(file) && fileRequiresBuilding !== true && def.publish) return [taskDefinitionToTask(context, def, file)];
+			if (acceptedExtension(file) && fileRequiresBuilding !== false && def.build)
+				return [taskDefinitionToTask(context, def, file)];
+			if (acceptedExtension(file) && fileRequiresBuilding !== true && def.publish)
+				return [taskDefinitionToTask(context, def, file)];
 			return undefined;
 		},
 	});
-	const buildTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.build", taskProvider(taskDefinitions[0]));
-	const buildPublishTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.buildpublish", taskProvider(taskDefinitions[1]));
-	const publishTaskProvider = vscode.tasks.registerTaskProvider("cody.toolkit.buildtasks.publish", taskProvider(taskDefinitions[2]));
-	context.subscriptions.push(buildTaskProvider, buildPublishTaskProvider, publishTaskProvider);
+	const buildTaskProvider = vscode.tasks.registerTaskProvider(
+		"cody.toolkit.buildtasks.build",
+		taskProvider(taskDefinitions[0])
+	);
+	const buildPublishTaskProvider = vscode.tasks.registerTaskProvider(
+		"cody.toolkit.buildtasks.buildpublish",
+		taskProvider(taskDefinitions[1])
+	);
+	const publishTaskProvider = vscode.tasks.registerTaskProvider(
+		"cody.toolkit.buildtasks.publish",
+		taskProvider(taskDefinitions[2])
+	);
+
+	const buildCommand = vscode.commands.registerCommand("cody.toolkit.buildandpublish.build", async (arg) => {
+		vscode.window.withProgress(
+			{ location: vscode.ProgressLocation.Window, title: "Building...", cancellable: false },
+			async () => {
+				await buildTaskExecutorFactory(taskDefinitions[0], arg.fsPath)(context.workspaceState);
+			}
+		);
+	});
+	const buildPublishCommand = vscode.commands.registerCommand(
+		"cody.toolkit.buildandpublish.buildpublish",
+		async (arg) => {
+			vscode.window.withProgress(
+				{ location: vscode.ProgressLocation.Window, title: "Building...", cancellable: false },
+				async () => {
+					await buildTaskExecutorFactory(taskDefinitions[1], arg.fsPath)(context.workspaceState);
+				}
+			);
+		}
+	);
+	const publishCommand = vscode.commands.registerCommand("cody.toolkit.buildandpublish.publish", async (arg) => {
+		buildTaskExecutorFactory(taskDefinitions[2], arg.fsPath)(context.workspaceState);
+		vscode.window.withProgress(
+			{ location: vscode.ProgressLocation.Window, title: "Publishing...", cancellable: false },
+			async () => {
+				await buildTaskExecutorFactory(taskDefinitions[2], arg.fsPath)(context.workspaceState);
+			}
+		);
+	});
+
+	context.subscriptions.push(
+		buildTaskProvider,
+		buildPublishTaskProvider,
+		publishTaskProvider,
+		buildCommand,
+		buildPublishCommand,
+		publishCommand
+	);
 }
 
 // this method is called when your extension is deactivated
