@@ -1,39 +1,13 @@
 import * as path from "path";
 import { default as TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
-import { findConfigFile, parseJsonConfigFileContent, readConfigFile, sys } from "typescript";
 import * as vscode from "vscode";
 import * as webpack from "webpack";
-import { BuildAndPublishFileConfiguration, BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
+import { Configuration } from "./Configuration/ConfigurationProxy";
+import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
+import { generateFiddlerRule } from "./generateFiddlerRules";
+import { getDirs } from "./Utils/fsUtils";
 
-function getTypescriptConfig(filePath: string) {
-	const tsConfigPath = findConfigFile(filePath, sys.fileExists, "tsconfig.json");
-	if (tsConfigPath == null) {
-		// TODO: Ask user for tsconfig file
-		return undefined;
-	}
-	const configFile = readConfigFile(tsConfigPath, sys.readFile);
-	if (configFile == null || configFile.error != null) {
-		// Unable to read config file
-		return undefined;
-	}
-	const compilerOptions = parseJsonConfigFileContent(configFile.config, sys, "./");
-	return [tsConfigPath, compilerOptions] as const;
-}
 
-function getDirs(filePath: string) {
-	const [tsConfigPath, tsConfig] = getTypescriptConfig(filePath) ?? [undefined, undefined];
-	if (tsConfigPath == undefined || tsConfig == undefined) return undefined;
-	const rootDir = path.parse(tsConfigPath).dir;
-	const srcDir = tsConfig?.options.rootDir;
-	if (srcDir == null) return undefined;
-	const outDir = tsConfig?.options.outDir;
-	if (outDir == null) return undefined;
-	return {
-		rootDir,
-		srcDir: path.resolve(rootDir, srcDir),
-		outDir: path.resolve(rootDir, outDir),
-	};
-}
 
 async function requestBundleName(filePath: string) {
 	const fileName = path.parse(filePath).name;
@@ -121,6 +95,9 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				const errors = [...(stats?.compilation.errors.map((statErr) => statErr.message) ?? []), err?.message];
 				errors.forEach(console.error); // TODO: Route to output channel
 				reject("Some errors appeared during packing. Check the output log for details.");
+			}
+			if (Configuration.createFiddlerRulesWhenBuildingScripts) {
+				generateFiddlerRule(buildInfo);
 			}
 			resolve(buildInfo);
 		});

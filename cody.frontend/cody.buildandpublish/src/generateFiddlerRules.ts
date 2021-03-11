@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { BuildInfo } from "./build";
 import { Configuration } from "./Configuration/ConfigurationProxy";
-import { last } from "./Utils/arrayUtils";
 
 function match(buildInfo: BuildInfo) {
 	return `regex:(?insx).+${buildInfo.fileConfiguration.output.outputFile.replace(/\./g, "\\.")}(?'map'\\.map)?`;
@@ -36,7 +35,7 @@ function createFiddlerRuleFile(buildInfo: BuildInfo, rule: string) {
 	fs.writeFileSync(
 		path.join(
 			ruleFolder,
-			last(path.normalize(buildInfo.fileConfiguration.output.relativeOutputFile).split(path.sep))?.split(".")[0] + ".fiddler.farx"
+			path.parse(buildInfo.fileConfiguration.output.relativeOutputFile).name + ".fiddler.farx"
 		),
 		rule,
 		{
