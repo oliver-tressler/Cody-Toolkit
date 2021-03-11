@@ -5,6 +5,12 @@ import { CustomBuildTaskTerminal } from "./Utils/console";
 import { getPublishInfo, publish } from "./publish";
 import { getWorkspaceForActiveEditor } from "./Utils/fsUtils";
 
+const acceptedExtensions = [".ts", ".js", ".html", ".css"];
+function acceptedExtension(filePath: string) {
+	const filePathExtension = path.parse(filePath).ext.toLocaleLowerCase();
+	return acceptedExtensions.some(ext => filePathExtension === ext);
+}
+
 function requiresBuild(filePath: string) {
 	const extension = path.parse(filePath).ext;
 	if (extension == ".ts") return true;
@@ -84,8 +90,8 @@ export function activate(context: vscode.ExtensionContext) {
 				throw new Error("Unable to resolve workspace");
 			}
 			const fileRequiresBuilding = requiresBuild(file);
-			if (fileRequiresBuilding !== false && def.build) return [taskDefinitionToTask(context, def, file)];
-			if (fileRequiresBuilding !== true && def.publish) return [taskDefinitionToTask(context, def, file)];
+			if (acceptedExtension(file) && fileRequiresBuilding !== false && def.build) return [taskDefinitionToTask(context, def, file)];
+			if (acceptedExtension(file) && fileRequiresBuilding !== true && def.publish) return [taskDefinitionToTask(context, def, file)];
 			return undefined;
 		},
 	});
