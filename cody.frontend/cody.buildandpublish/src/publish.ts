@@ -3,11 +3,12 @@ import * as vscode from "vscode";
 import { publishWebResource } from "./Api/Api";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
 import { getConnectionState } from "./Utils/connection";
-import { getDirs, getWorkspaceForActiveEditor, isSubDirOrEqualDir } from "./Utils/fsUtils";
+import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
 async function requestOutputFileName(filePath: string) {
+	const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(filePath));
 	const dirs = getDirs(filePath) ?? {
-		rootDir: getWorkspaceForActiveEditor(filePath)?.uri.fsPath,
+		rootDir: workspace?.uri.fsPath,
 		outDir: undefined,
 		srcDir: undefined,
 	};

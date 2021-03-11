@@ -41,12 +41,8 @@ export function getDirs(filePath: string) {
 	const outDir = tsConfig?.options.outDir;
 	if (outDir == null) return undefined;
 	return {
-		rootDir,
+		rootDir: path.normalize(rootDir),
 		srcDir: path.resolve(rootDir, srcDir),
 		outDir: path.resolve(rootDir, outDir),
 	};
-}
-
-export function getWorkspaceForActiveEditor(file: string) {
-	return vscode.workspace.workspaceFolders?.find((wf) => isSubDirOrEqualDir(wf.uri.fsPath, file));
 }

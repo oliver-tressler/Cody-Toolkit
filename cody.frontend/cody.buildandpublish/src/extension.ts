@@ -3,9 +3,9 @@ import * as vscode from "vscode";
 import { build, getBuildInfo } from "./build";
 import { CustomBuildTaskTerminal } from "./Utils/console";
 import { getPublishInfo, publish } from "./publish";
-import { getWorkspaceForActiveEditor } from "./Utils/fsUtils";
 import axios, { AxiosError } from "axios";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
+import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
 const acceptedExtensions = [".ts", ".js", ".html", ".css"];
 function acceptedExtension(filePath: string) {
@@ -103,6 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.commands.executeCommand("setContext", "cody:supportedBuildPublishExtensions", supportedBuildExtensions);
 	const supportedPublishExtensions = [".js", ".html", ".css", ".png", ".jpg", ".gif", ".ico"];
 	vscode.commands.executeCommand("setContext", "cody:supportedPublishExtensions", supportedPublishExtensions);
+	
 	const taskProvider = (def: TaskDefinition): vscode.TaskProvider<vscode.Task> => ({
 		resolveTask: () => undefined,
 		provideTasks: async () => {
@@ -110,12 +111,14 @@ export function activate(context: vscode.ExtensionContext) {
 			if (file == null) {
 				throw new Error("No active editor");
 			}
-			const workspace = getWorkspaceForActiveEditor(file);
+			const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(file));
 			if (workspace == null) {
 				throw new Error("Unable to resolve workspace");
 			}
+			const dirs = getDirs(file);
+			const withinSrcFolder = dirs?.srcDir != null && isSubDirOrEqualDir(dirs.srcDir, file);
 			const fileRequiresBuilding = requiresBuild(file);
-			if (acceptedExtension(file) && fileRequiresBuilding !== false && def.build)
+			if (acceptedExtension(file) && fileRequiresBuilding !== false && withinSrcFolder && def.build)
 				return [taskDefinitionToTask(context, def, file)];
 			if (acceptedExtension(file) && fileRequiresBuilding !== true && def.publish)
 				return [taskDefinitionToTask(context, def, file)];

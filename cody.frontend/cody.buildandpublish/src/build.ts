@@ -134,6 +134,7 @@ export async function getBuildInfo(
 ): Promise<BuildInfo> {
 	const directories = getDirs(filePath);
 	if (directories == null) throw new Error("Unable to parse tsconfig.json");
+	if (directories.srcDir == null || !isSubDirOrEqualDir(directories.srcDir, filePath)) throw new Error("Unable to build files outside of src dir. The source dir is taken from tsconfig.json.")
 	const config = new BuildAndPublishFileConfigurationProxy(localStorage);
 	const fileConfiguration = config.getFileConfiguration(filePath) ?? { inputFile: filePath };
 	if (fileConfiguration.outputFile == null) {
