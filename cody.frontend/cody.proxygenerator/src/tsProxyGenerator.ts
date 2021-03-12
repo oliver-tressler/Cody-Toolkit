@@ -31,8 +31,8 @@ async function requestTsProxyFolderLocation() {
 }
 
 async function assertConfigurationPresent() {
-	if (TypeScriptConfiguration.tsProxyFolder == null) {
-		TypeScriptConfiguration.tsProxyFolder = await requestTsProxyFolderLocation();
+	if (!TypeScriptConfiguration.proxyFolder) {
+		TypeScriptConfiguration.proxyFolder = await requestTsProxyFolderLocation();
 	}
 }
 
@@ -102,16 +102,16 @@ function startProxyGeneration({
 	entities,
 }: {
 	connectionState: AuthorizedConnectionState;
-	entities: string[];
+	entities: string[] | undefined;
 }) {
-	if (entities.length === 0) {
+	if (entities != null && entities.length === 0) {
 		return;
 	}
 	return apiGenerateProxies({
-		entitiyLogicalNames: entities,
+		entitiyLogicalNames: entities ?? [],
 		language: "ts",
 		organization: connectionState.activeOrganization.UniqueName,
-		path: TypeScriptConfiguration.tsProxyFolder,
+		path: TypeScriptConfiguration.proxyFolder,
 		globalEnums: TypeScriptConfiguration.globalEnums === true,
 	});
 }
@@ -137,7 +137,7 @@ async function regenerateAllProxies() {
 		() =>
 			assertConfigurationPresent()
 				.then(assertConnection)
-				.then((connectionState) => ({ entities: [] as string[], connectionState }))
+				.then((connectionState) => ({ entities: undefined, connectionState }))
 				.then(startProxyGeneration)
 	);
 }
