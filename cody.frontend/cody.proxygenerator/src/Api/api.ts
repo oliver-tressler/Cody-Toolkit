@@ -20,5 +20,10 @@ type GenerateProxiesRequestOptions = {
 };
 export function generateProxies(requestOptions: GenerateProxiesRequestOptions) {
 	const { language, organization, ...requestData } = requestOptions;
-	return axios.post<void>(`${baseUrl()}${organization}/${language}/generate`, requestData);
+	return axios.post<void>(`${baseUrl()}${organization}/${language}/generate`, {
+		EntityLogicalNames: requestData.entitiyLogicalNames,
+		Path: requestData.path,
+		ProxyNamespace: requestData.proxyNamespace,
+		GlobalEnums: requestData.globalEnums,
+	});
 }
