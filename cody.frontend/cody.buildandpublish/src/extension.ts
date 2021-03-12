@@ -136,7 +136,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (file == null) {
 				throw new Error("No active editor");
 			}
-			const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(file));
+			const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(file));
 			if (workspace == null) {
 				throw new Error("Unable to resolve workspace");
 			}

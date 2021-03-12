@@ -9,7 +9,7 @@ import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
  * Asks the user for the full name of the web resource.
  */
 async function requestOutputFileName(filePath: string) {
-	const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(filePath));
+	const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath));
 	const dirs = getDirs(filePath) ?? {
 		rootDir: workspace?.uri.fsPath,
 		outDir: undefined,

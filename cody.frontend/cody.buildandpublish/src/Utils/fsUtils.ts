@@ -45,7 +45,7 @@ function getTypescriptConfig(filePath: string) {
  * 	tsconfig cannot be determined.
  */
 export function getDirs(filePath: string) {
-	const workSpaceDir = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(filePath))?.uri.fsPath;
+	const workSpaceDir = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath))?.uri.fsPath;
 	const [tsConfigPath, tsConfig] = getTypescriptConfig(filePath) ?? [undefined, undefined];
 	if (!tsConfigPath || !workSpaceDir) return undefined;
 	const rootDir = path.normalize(workSpaceDir ?? path.parse(tsConfigPath).dir);

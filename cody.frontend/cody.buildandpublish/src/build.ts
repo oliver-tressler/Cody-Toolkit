@@ -70,7 +70,7 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				rules: [
 					{
 						test: [/\.ts$/],
-						use: [{ loader: "ts-loader", options: { transpileOnly: true, onlyCompileBundledFiles: true } }],
+						use: [{ loader: "ts-loader", options: { transpileOnly: !buildInfo.taskDefinition.publish, onlyCompileBundledFiles: true } }],
 						exclude: "/node_modules/",
 					},
 				],
@@ -92,20 +92,6 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				$: "jQuery",
 				jquery: "jQuery",
 			},
-			plugins: [
-				new ForkTsCheckerWebpackPlugin({
-					async: !buildInfo.taskDefinition.publish,
-					eslint: {
-						enabled: false,
-						files: [],
-					},
-					typescript: {
-						enabled: path.parse(buildInfo.fileConfiguration.input.inputFile).ext == ".ts",
-						configOverwrite: { files: [buildInfo.fileConfiguration.input.relativeInputFile] },
-						mode: "write-tsbuildinfo",
-					},
-				}),
-			],
 			optimization: {
 				minimize: buildInfo.taskDefinition.publish,
 			},
