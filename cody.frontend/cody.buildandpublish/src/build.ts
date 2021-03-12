@@ -1,4 +1,3 @@
-import ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 import * as path from "path";
 import { default as TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import * as vscode from "vscode";
