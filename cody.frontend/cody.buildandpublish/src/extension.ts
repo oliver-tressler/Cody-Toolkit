@@ -13,6 +13,9 @@ function acceptedExtension(filePath: string) {
 	return acceptedExtensions.some((ext) => filePathExtension === ext);
 }
 
+/**
+ * Determines if a file requires buid. For .js files, we can't be sure.
+ */
 function requiresBuild(filePath: string) {
 	const extension = path.parse(filePath).ext;
 	if (extension == ".ts") return true;
@@ -26,28 +29,42 @@ type TaskDefinition = {
 	publish: boolean;
 } & vscode.TaskDefinition;
 
-const taskDefinitions: TaskDefinition[] = [
-	{ build: true, publish: false, type: "cody.toolkit.buildtasks.build", title: "Build" },
-	{ build: true, publish: true, type: "cody.toolkit.buildtasks.buildpublish", title: "Build & Publish" },
-	{ build: false, publish: true, type: "cody.toolkit.buildtasks.publish", title: "Publish" },
-];
+const taskDefinitions = {
+	build: { build: true, publish: false, type: "cody.toolkit.buildtasks.build", title: "Build" } as TaskDefinition,
+	buildpublish: {
+		build: true,
+		publish: true,
+		type: "cody.toolkit.buildtasks.buildpublish",
+		title: "Build & Publish",
+	} as TaskDefinition,
+	publish: {
+		build: false,
+		publish: true,
+		type: "cody.toolkit.buildtasks.publish",
+		title: "Publish",
+	} as TaskDefinition,
+};
 
-function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string) {
+/**
+ * For a given file and task definition, this will chain the required steps to fulfill the task. Also attaches
+ * an error handler. Returns an execution ready curried function that executes the steps.
+ */
+function buildTaskExecutorFactory(definition: TaskDefinition, filePath: string, localStorage: vscode.Memento) {
 	if (definition.build && definition.publish) {
-		return (localStorage: vscode.Memento) =>
-			getBuildInfo(filePath, localStorage, definition).then(build).then(publish).catch(errorHandler);
+		return () => getBuildInfo(filePath, localStorage, definition).then(build).then(publish).catch(errorHandler);
 	}
 	if (definition.build) {
-		return (localStorage: vscode.Memento) =>
-			getBuildInfo(filePath, localStorage, definition).then(build).catch(errorHandler);
+		return () => getBuildInfo(filePath, localStorage, definition).then(build).catch(errorHandler);
 	}
 	if (definition.publish) {
-		return (localStorage: vscode.Memento) =>
-			getPublishInfo(filePath, localStorage).then(publish).catch(errorHandler);
+		return () => getPublishInfo(filePath, localStorage).then(publish).catch(errorHandler);
 	}
 	return () => Promise.resolve();
 }
 
+/**
+ * Takes a task definition and returns an execution ready build task. This mostly sets metadata. Actual execution path is determined in buildTaskExecutorFactory.
+ */
 function taskDefinitionToTask(
 	context: vscode.ExtensionContext,
 	definition: TaskDefinition,
@@ -71,14 +88,18 @@ function taskDefinitionToTask(
 		runOptions: {},
 		isBackground: false,
 		execution: new vscode.CustomExecution(async () => {
-			const task = buildTaskExecutorFactory(definition, filePath);
-			const terminal = new CustomBuildTaskTerminal(() => task(context.workspaceState));
+			const task = buildTaskExecutorFactory(definition, filePath, context.workspaceState);
+			const terminal = new CustomBuildTaskTerminal(() => task());
 			terminal.close();
 			return terminal;
 		}),
 	};
 }
 
+/**
+ * Basic pass through error handler that tries to provide Server and Extension exception messages to the user
+ * @param e Exception
+ */
 function errorHandler(e: any) {
 	let errText: string | undefined = undefined;
 	if (axios.isAxiosError(e)) {
@@ -98,12 +119,16 @@ function errorHandler(e: any) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+	// Set build-eligible file extensions for when clauses
 	const supportedBuildExtensions = [".ts", ".js"];
 	vscode.commands.executeCommand("setContext", "cody:supportedBuildExtensions", supportedBuildExtensions);
 	vscode.commands.executeCommand("setContext", "cody:supportedBuildPublishExtensions", supportedBuildExtensions);
+	// Set publish-eligible file extensions for when clauses
 	const supportedPublishExtensions = [".js", ".html", ".css", ".png", ".jpg", ".gif", ".ico"];
 	vscode.commands.executeCommand("setContext", "cody:supportedPublishExtensions", supportedPublishExtensions);
-	
+
+	// Generic task provider, will return a vscode Build Task for build, buildpublish or publish depending on
+	// the current cwd (is srcDir), the currently opened file and the file extension.
 	const taskProvider = (def: TaskDefinition): vscode.TaskProvider<vscode.Task> => ({
 		resolveTask: () => undefined,
 		provideTasks: async () => {
@@ -116,6 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
 				throw new Error("Unable to resolve workspace");
 			}
 			const dirs = getDirs(file);
+			// Allow building only from within src folder specified in tsconfig
 			const withinSrcFolder = dirs?.srcDir != null && isSubDirOrEqualDir(dirs.srcDir, file);
 			const fileRequiresBuilding = requiresBuild(file);
 			if (acceptedExtension(file) && fileRequiresBuilding !== false && withinSrcFolder && def.build)
@@ -125,24 +151,26 @@ export function activate(context: vscode.ExtensionContext) {
 			return undefined;
 		},
 	});
+	// Individual build task providers for build, buildpublish and publish. VS Code was detecting duplicates or unexpected tasks otherwise.
 	const buildTaskProvider = vscode.tasks.registerTaskProvider(
 		"cody.toolkit.buildtasks.build",
-		taskProvider(taskDefinitions[0])
+		taskProvider(taskDefinitions.build)
 	);
 	const buildPublishTaskProvider = vscode.tasks.registerTaskProvider(
 		"cody.toolkit.buildtasks.buildpublish",
-		taskProvider(taskDefinitions[1])
+		taskProvider(taskDefinitions.buildpublish)
 	);
 	const publishTaskProvider = vscode.tasks.registerTaskProvider(
 		"cody.toolkit.buildtasks.publish",
-		taskProvider(taskDefinitions[2])
+		taskProvider(taskDefinitions.publish)
 	);
 
+	// Register commands for explorer context menu
 	const buildCommand = vscode.commands.registerCommand("cody.toolkit.buildandpublish.build", async (arg) => {
 		vscode.window.withProgress(
 			{ location: vscode.ProgressLocation.Window, title: "Building...", cancellable: false },
 			async () => {
-				await buildTaskExecutorFactory(taskDefinitions[0], arg.fsPath)(context.workspaceState);
+				await buildTaskExecutorFactory(taskDefinitions.build, arg.fsPath, context.workspaceState)();
 			}
 		);
 	});
@@ -152,7 +180,7 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.withProgress(
 				{ location: vscode.ProgressLocation.Window, title: "Building...", cancellable: false },
 				async () => {
-					await buildTaskExecutorFactory(taskDefinitions[1], arg.fsPath)(context.workspaceState);
+					await buildTaskExecutorFactory(taskDefinitions.buildpublish, arg.fsPath, context.workspaceState)();
 				}
 			);
 		}
@@ -161,11 +189,12 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.withProgress(
 			{ location: vscode.ProgressLocation.Window, title: "Publishing...", cancellable: false },
 			async () => {
-				await buildTaskExecutorFactory(taskDefinitions[2], arg.fsPath)(context.workspaceState);
+				await buildTaskExecutorFactory(taskDefinitions.publish, arg.fsPath, context.workspaceState)();
 			}
 		);
 	});
 
+	// Add command to delete a stored configuration
 	const removeFileConfiguration = vscode.commands.registerCommand(
 		"cody.toolkit.buildandpublish.removeBuildFileConfiguration",
 		async () => {

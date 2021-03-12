@@ -34,7 +34,14 @@ class MementoProxy {
 }
 
 export type BuildAndPublishFileConfiguration = {
+	/**
+	 * The local path to the original file.
+	 */
 	inputFile?: string;
+	/**
+	 * For buildable web resources, this will be the bundle file, which will have the location relative to the output
+	 * path as its name. For non-buildable web resources, this will just be the name of the resource.
+	 */
 	outputFile?: string;
 };
 

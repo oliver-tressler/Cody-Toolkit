@@ -1,14 +1,16 @@
-import * as vsc from "vscode";
-export class CustomBuildTaskTerminal implements vsc.Pseudoterminal {
-	private writeEmitter = new vsc.EventEmitter<string>();
-	onDidWrite: vsc.Event<string> = this.writeEmitter.event;
-	private closeEmitter = new vsc.EventEmitter<void>();
-	onDidClose?: vsc.Event<void> = this.closeEmitter.event;
-	private terminal: vsc.Terminal | undefined;
+import * as vscode from "vscode";
+/**
+ * A minimal Pseudoterminal
+ */
+export class CustomBuildTaskTerminal implements vscode.Pseudoterminal {
+	private writeEmitter = new vscode.EventEmitter<string>();
+	onDidWrite: vscode.Event<string> = this.writeEmitter.event;
+	private closeEmitter = new vscode.EventEmitter<void>();
+	onDidClose?: vscode.Event<void> = this.closeEmitter.event;
 
 	constructor(private onOpen: () => Promise<any>) {
-		this.terminal = undefined;
 	}
+
 	error(message?: string): void {
 		this.writeLine("ERR:" + message?.toString());
 	}
@@ -19,20 +21,13 @@ export class CustomBuildTaskTerminal implements vsc.Pseudoterminal {
 		this.writeLine("INFO:" + message);
 	}
 
-	writeLine(message?: string): void {
+	writeLine(message?: string) {
 		if (message == null) return;
-		if (message.length > 200) {
-			for (let i = 0; i < Math.ceil(message.length / 200); i++) {
-				this.writeLine(message.substring(i * 200, (i + 1) * 200));
-			}
-			return;
-		}
 		this.writeEmitter.fire(message + "\r\n");
 	}
 
 	async open(): Promise<void> {
 		try {
-			this.terminal = vsc.window.activeTerminal;
 			await this.onOpen();
 		} catch {
 			// Do nothing
@@ -41,7 +36,6 @@ export class CustomBuildTaskTerminal implements vsc.Pseudoterminal {
 	}
 
 	close(): void {
-		this.terminal?.exitStatus == undefined && this.terminal?.show();
 		this.closeEmitter.fire();
 	}
 }

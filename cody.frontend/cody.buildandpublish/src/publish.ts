@@ -1,10 +1,13 @@
-import { relative, parse } from "path";
+import { relative, parse, normalize } from "path";
 import * as vscode from "vscode";
 import { publishWebResource } from "./Api/Api";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
 import { getConnectionState } from "./Utils/connection";
 import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
+/**
+ * Asks the user for the full name of the web resource.
+ */
 async function requestOutputFileName(filePath: string) {
 	const workspace = vscode.workspace.getWorkspaceFolder(vscode.Uri.parse(filePath));
 	const dirs = getDirs(filePath) ?? {
@@ -31,6 +34,9 @@ async function requestOutputFileName(filePath: string) {
 	return outputFileName;
 }
 
+/**
+ * Collects info thats required to create a webresource in the CRM.
+ */
 export async function getPublishInfo(filePath: string, localStorage: vscode.Memento): Promise<PublishFileInfo> {
 	const config = new BuildAndPublishFileConfigurationProxy(localStorage);
 	let fileConfig = config.getFileConfiguration(filePath);
@@ -45,9 +51,9 @@ export async function getPublishInfo(filePath: string, localStorage: vscode.Meme
 	return {
 		fileConfiguration: {
 			output: {
-				absoluteOutputFile: filePath,
+				absoluteOutputFile: normalize(filePath),
 				outputFileName: parse(fileConfig.outputFile!).name,
-				relativeOutputFile: fileConfig.outputFile!,
+				relativeOutputFile: normalize(fileConfig.outputFile!),
 			},
 		},
 	};
@@ -63,6 +69,12 @@ type PublishFileInfo = {
 	};
 };
 
+/**
+ * Publishes a WebResource file to the CRM. Throws error if Cody Core is not authenticated.
+ * Display name will be the bundle name, Name will be the path of the output file relative to the output dir.
+ * If the WebResource already exists, the display name will not be updated. The check for existing webresources
+ * is done by checking if a resource with an equal name exists.
+ */
 export async function publish(info: PublishFileInfo) {
 	const connection = await getConnectionState();
 	if (connection?.activeOrganization == null) throw new Error("Unauthorized");

@@ -1,3 +1,4 @@
+import ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 import * as path from "path";
 import { default as TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import * as vscode from "vscode";
@@ -7,11 +8,16 @@ import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoPr
 import { generateFiddlerRule } from "./generateFiddlerRules";
 import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
 
+/**
+ * Asks the user to provide a name for the output file.
+ * @param filePath File for which to get the bundle name
+ * @returns
+ */
 async function requestBundleName(filePath: string) {
 	const fileName = path.parse(filePath).name;
 	const bundleName = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
-		prompt: "Please enter the name of the bundle (without '.bundle.js')",
+		prompt: "Please enter the name of the bundle (without extensions like '.bundle.min.js')",
 		value: fileName,
 		validateInput: (val) => {
 			return new RegExp(/^[\w]+$/).test(val) ? null : "Please enter a valid file name without an extension";
@@ -21,6 +27,12 @@ async function requestBundleName(filePath: string) {
 	return bundleName;
 }
 
+/**
+ * Asks the user to provide the output folder for the extension relative to the src dir specified in tsconfig.
+ * @param filePath File for which to get the output dir.
+ * @param srcFolder Src folder which will be used to construct the relative dir.
+ * @returns Output folder relative to src dir
+ */
 async function requestBundleTargetFolder(filePath: string, srcFolder: string) {
 	const bundleDirPath = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
@@ -42,6 +54,10 @@ async function requestBundleTargetFolder(filePath: string, srcFolder: string) {
 	return bundleDirPath;
 }
 
+/**
+ * Runs webpack with ts-loader (transpile only), tsconfig-paths-plugin and default minifier.
+ * Fails if errors are encountered.
+ */
 export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 	return new Promise((resolve, reject) => {
 		webpack({
@@ -76,16 +92,27 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				$: "jQuery",
 				jquery: "jQuery",
 			},
+			plugins: [
+				new ForkTsCheckerWebpackPlugin({
+					async: !buildInfo.taskDefinition.publish,
+					eslint: {
+						enabled: false,
+						files: [],
+					},
+					typescript: {
+						enabled: path.parse(buildInfo.fileConfiguration.input.inputFile).ext == ".ts",
+						configOverwrite: { files: [buildInfo.fileConfiguration.input.relativeInputFile] },
+						mode: "write-tsbuildinfo",
+					},
+				}),
+			],
 			optimization: {
 				minimize: buildInfo.taskDefinition.publish,
 			},
 			output: {
 				filename: buildInfo.fileConfiguration.output.outputFile,
 				libraryTarget: "umd",
-				path: path.join(
-					buildInfo.directories.outDir,
-					path.dirname(buildInfo.fileConfiguration.output.relativeOutputFile ?? "")
-				),
+				path: path.dirname(buildInfo.fileConfiguration.output.absoluteOutputFile),
 				pathinfo: true,
 			},
 		}).run((err, stats) => {
@@ -105,8 +132,8 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 export type BuildInfo = {
 	directories: {
 		rootDir: string;
-		srcDir: string;
-		outDir: string;
+		srcDir?: string;
+		outDir?: string;
 	};
 	fileConfiguration: {
 		output: {
@@ -127,6 +154,14 @@ export type BuildInfo = {
 		publish: boolean;
 	};
 };
+
+/**
+ * Collect info required to execute build. Store info in local storage so that user is not prompted every time.
+ * @param filePath File to build
+ * @param localStorage VS Code Workspace Memento
+ * @param taskDefinition What to do with the file
+ * @returns
+ */
 export async function getBuildInfo(
 	filePath: string,
 	localStorage: vscode.Memento,
@@ -134,21 +169,15 @@ export async function getBuildInfo(
 ): Promise<BuildInfo> {
 	const directories = getDirs(filePath);
 	if (directories == null) throw new Error("Unable to parse tsconfig.json");
-	if (directories.srcDir == null || !isSubDirOrEqualDir(directories.srcDir, filePath)) throw new Error("Unable to build files outside of src dir. The source dir is taken from tsconfig.json.")
+	if (directories.srcDir == null || !isSubDirOrEqualDir(directories.srcDir, filePath))
+		throw new Error("Unable to build files outside of src dir. The source dir is taken from tsconfig.json.");
 	const config = new BuildAndPublishFileConfigurationProxy(localStorage);
 	const fileConfiguration = config.getFileConfiguration(filePath) ?? { inputFile: filePath };
+	if (directories.outDir == null)
+		throw new Error("Unable to read out dir. Check the outDir option in your tsconfig.json");
 	if (fileConfiguration.outputFile == null) {
 		const bundleName = await requestBundleName(filePath);
-		const bundleDir = path.normalize(
-			await requestBundleTargetFolder(
-				filePath,
-				isSubDirOrEqualDir(directories.srcDir, filePath)
-					? directories.srcDir
-					: isSubDirOrEqualDir(directories.outDir, filePath)
-					? directories.outDir
-					: directories.rootDir
-			)
-		);
+		const bundleDir = path.normalize(await requestBundleTargetFolder(filePath, directories.srcDir));
 		fileConfiguration.inputFile = path.normalize(filePath);
 		fileConfiguration.outputFile = path.join(bundleDir, bundleName + ".bundle.min.js");
 		config.setFileConfiguration(filePath, fileConfiguration);

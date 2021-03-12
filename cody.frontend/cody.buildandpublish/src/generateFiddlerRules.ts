@@ -4,11 +4,11 @@ import { BuildInfo } from "./build";
 import { Configuration } from "./Configuration/ConfigurationProxy";
 
 function match(buildInfo: BuildInfo) {
-	return `regex:(?insx).+${buildInfo.fileConfiguration.output.outputFile.replace(/\./g, "\\.")}(?'map'\\.map)?`;
+	return `regex:(?insx).*${buildInfo.fileConfiguration.output.outputFile.replace(/\./g, "\\.")}(?'map'\\.map)?`;
 }
 
 function action(buildInfo: BuildInfo) {
-	return `${path.join(buildInfo.directories.outDir, buildInfo.fileConfiguration.output.absoluteOutputFile!)}\${map}`;
+	return `${path.join(buildInfo.directories.outDir!, buildInfo.fileConfiguration.output.absoluteOutputFile!)}\${map}`;
 }
 
 function responseRule(match: string, action: string, enabled: boolean) {
@@ -31,12 +31,9 @@ function fiddlerRuleWrapper(responseRule: string) {
 function createFiddlerRuleFile(buildInfo: BuildInfo, rule: string) {
 	const ruleFolder = Configuration.fiddlerRuleFolder
 		? path.normalize(Configuration.fiddlerRuleFolder)
-		: path.join(buildInfo.directories.outDir, path.dirname(buildInfo.fileConfiguration.output.relativeOutputFile));
+		: path.join(buildInfo.directories.outDir!, path.dirname(buildInfo.fileConfiguration.output.relativeOutputFile));
 	fs.writeFileSync(
-		path.join(
-			ruleFolder,
-			path.parse(buildInfo.fileConfiguration.output.relativeOutputFile).name + ".fiddler.farx"
-		),
+		path.join(ruleFolder, path.parse(buildInfo.fileConfiguration.output.relativeOutputFile).name + ".fiddler.farx"),
 		rule,
 		{
 			encoding: "utf8",
@@ -44,6 +41,10 @@ function createFiddlerRuleFile(buildInfo: BuildInfo, rule: string) {
 	);
 }
 
+/**
+ * Creates a fiddler rule file next to the output bundle or in the folder specified in the configuration.
+ * Fiddler rule will match bundle file and source map.
+ */
 export function generateFiddlerRule(buildInfo: BuildInfo) {
 	createFiddlerRuleFile(buildInfo, fiddlerRuleWrapper(responseRule(match(buildInfo), action(buildInfo), true)));
 }

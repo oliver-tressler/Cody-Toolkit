@@ -60,7 +60,14 @@ export class Configuration {
 		getTransform: (val: string) => val == "true",
 		setTransform: (val: boolean) => (val ? "true" : "false"),
 	})
+	/**
+	 * If this is enabled, Fiddler rules will be generated and can be directly imported into Fiddlers' Autoresponder.
+	 * This way, you can debug your local code directly inside the CRM.
+	 */
 	static createFiddlerRulesWhenBuildingScripts: boolean;
 	@config("cody.toolkit.buildAndPublish", vsc.ConfigurationTarget.Workspace)
+	/**
+	 * An optional override for where your Fiddler rule files will be stored.
+	 */
 	static fiddlerRuleFolder: string;
 }
