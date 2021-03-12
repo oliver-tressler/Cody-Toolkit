@@ -105,7 +105,7 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 			if (err || stats?.hasErrors()) {
 				const errors = [...(stats?.compilation.errors.map((statErr) => statErr.message) ?? []), err?.message];
 				errors.forEach(console.error); // TODO: Route to output channel
-				reject("Some errors appeared during packing. Check the output log for details.");
+				reject(new Error("Some errors appeared during packing. Check the output log for details."));
 			}
 			if (Configuration.createFiddlerRulesWhenBuildingScripts) {
 				generateFiddlerRule(buildInfo);
