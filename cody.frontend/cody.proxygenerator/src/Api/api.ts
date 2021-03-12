@@ -7,7 +7,7 @@ function baseUrl() {
 }
 
 export function retrieveAvailableEntities(organization: string) {
-	return axios.get<AvailableEntity[]>(`${baseUrl()}availableEntities/${organization}`);
+	return axios.get<AvailableEntity[]>(`${baseUrl()}${organization}/availableEntities`);
 }
 
 type GenerateProxiesRequestOptions = {
@@ -19,6 +19,6 @@ type GenerateProxiesRequestOptions = {
 	globalEnums?: boolean;
 };
 export function generateProxies(requestOptions: GenerateProxiesRequestOptions) {
-	const { language, ...requestData } = requestOptions;
-	return axios.post<void>(`${baseUrl()}${language}/generate`, requestData);
+	const { language, organization, ...requestData } = requestOptions;
+	return axios.post<void>(`${baseUrl()}${organization}/${language}/generate`, requestData);
 }

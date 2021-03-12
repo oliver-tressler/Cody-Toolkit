@@ -72,7 +72,6 @@
     <Compile Include="Data\Model\PropertyData.cs" />
     <Compile Include="Data\EntityMetadataCache.cs" />
     <Compile Include="Data\Model\RelatedEntityData.cs" />
-    <Compile Include="eLanguage.cs" />
     <Compile Include="Generators\CS\AttributeGenerators\AttributeGeneratorFactory.cs" />
     <Compile Include="Generators\CS\AttributeGenerators\Concrete\DefaultAttributeGenerator.cs" />
     <Compile Include="Generators\CS\AttributeGenerators\Contract\BaseAttributeGenerator.cs" />

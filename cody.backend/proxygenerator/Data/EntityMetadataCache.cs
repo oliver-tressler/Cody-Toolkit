@@ -18,15 +18,15 @@ namespace proxygenerator.Data
     public class EntityMetadataCache
     {
         private readonly IOrganizationService _service;
-        private readonly eLanguage _language;
+        private readonly string _language;
         private readonly bool _globalEnums;
         private readonly List<string> _availableProxies;
         private readonly ConcurrentDictionary<string, RelatedEntityData> _relatedEntities;
 
-        public EntityMetadataCache(IOrganizationService service, ProxyGenerationOptions options, List<string> availableProxies)
+        public EntityMetadataCache(IOrganizationService service, string language, ProxyGenerationOptions options, List<string> availableProxies)
         {
             _service = service;
-            _language = options.Language;
+            _language = language;
             _availableProxies = availableProxies;
             _relatedEntities = new ConcurrentDictionary<string, RelatedEntityData>();
         }
@@ -39,10 +39,10 @@ namespace proxygenerator.Data
                 IEntityBuilder entityBuilder;
                 switch (_language)
                 {
-                    case eLanguage.Typescript:
+                    case "ts":
                         entityBuilder = new Builder.TS.EntityBuilder(this);
                         break;
-                    case eLanguage.CSharpCrmToolkit:
+                    case "cs":
                         entityBuilder = new Builder.CS.EntityBuilder(this, new List<string>(), false);
                         break;
                     default:
@@ -72,10 +72,10 @@ namespace proxygenerator.Data
                 IAttributeBuilder attributeBuilder;
                 switch (_language)
                 {
-                    case eLanguage.Typescript:
+                    case "ts":
                         attributeBuilder = new Builder.TS.Attributes.AttributeBuilder();
                         break;
-                    case eLanguage.CSharpCrmToolkit:
+                    case "cs":
                         attributeBuilder = new Builder.CS.Attributes.AttributeBuilder();
                         break;
                     default:
@@ -111,10 +111,10 @@ namespace proxygenerator.Data
             IEntityBuilder entityBuilder;
             switch (_language)
             {
-                case eLanguage.Typescript:
+                case "ts":
                     entityBuilder = new Builder.TS.EntityBuilder(this);
                     break;
-                case eLanguage.CSharpCrmToolkit:
+                case "cs":
                     entityBuilder = new Builder.CS.EntityBuilder(this, _availableProxies, _globalEnums);
                     break;
                 default:
