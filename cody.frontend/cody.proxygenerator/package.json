@@ -26,7 +26,18 @@
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
-		"commands": [],
+		"commands": [
+			{
+				"command": "cody.toolkit.proxyGenerator.ts.generateProxies",
+				"title": "Generate TS Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllProxies",
+				"title": "Regenerate all TS Proxies",
+				"category": "Cody Proxy Generator"
+			}
+		],
 		"configuration": {
 			"title": "Cody Toolkit (Proxy Generator)",
 			"properties": {
@@ -40,7 +51,7 @@
 					"scope": "window",
 					"default": "QuickPick"
 				},
-				"cody.toolkit.proxyGenerator.ts.tsProxyFolder": {
+				"cody.toolkit.proxyGenerator.ts.proxyFolder": {
 					"description": "Path to the folder containing the Typescript Proxies",
 					"type": "string",
 					"scope": "window",

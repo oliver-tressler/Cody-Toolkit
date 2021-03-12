@@ -76,7 +76,7 @@ export class TypeScriptConfiguration extends Configuration {
 	/**
 	 * Folder that typescript proxy files should be written to.
 	 */
-	static tsProxyFolder: string;
+	static proxyFolder: string;
 	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace, {
 		getTransform: (val) => val === "true",
 		setTransform: (val) => val.toString(),
