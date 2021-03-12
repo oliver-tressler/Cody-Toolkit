@@ -1,6 +1,6 @@
-import { Configuration } from "../Configuration/ConfigurationProxy";
 import axios from "axios";
-import { AvailableEntity, eLanguage } from "../sharedTypings";
+import { Configuration } from "../Configuration/ConfigurationProxy";
+import { AvailableEntity } from "../sharedTypings";
 
 function baseUrl() {
 	return `http://localhost:${Configuration.backendServerPort}/api/ProxyGenerator/`;
