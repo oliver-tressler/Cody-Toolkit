@@ -43,22 +43,22 @@
 			{
 				"command": "cody.toolkit.buildandpublish.build",
 				"title": "Build",
-				"category": "Cody Toolkit"
+				"category": "Cody Build & Publish"
 			},
 			{
 				"command": "cody.toolkit.buildandpublish.buildpublish",
 				"title": "Build & Publish",
-				"category": "Cody Toolkit"
+				"category": "Cody Build & Publish"
 			},
 			{
 				"command": "cody.toolkit.buildandpublish.publish",
 				"title": "Publish",
-				"category": "Cody Toolkit"
+				"category": "Cody Build & Publish"
 			},
 			{
 				"command": "cody.toolkit.buildandpublish.removeBuildFileConfiguration",
 				"title": "Remove Build File Configuration",
-				"category": "Cody Toolkit"
+				"category": "Cody Build & Publish"
 			}
 		],
 		"menus": {
