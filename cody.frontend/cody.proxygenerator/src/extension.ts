@@ -4,7 +4,7 @@ import { tsCommandProvider } from "./tsProxyGenerator";
 import axios, { AxiosError } from "axios";
 
 /**
- * Basic pass through error handler that tries to provide Server and Extension exception messages to the user
+ * Basic error handler that tries to provide Server and Extension exception messages to the user
  * @param e Exception
  */
 function errorHandler(e: any) {
@@ -23,7 +23,6 @@ function errorHandler(e: any) {
 		console.error(e);
 		vscode.window.showErrorMessage(errText);
 	}
-	throw e;
 }
 
 const commandProviders: GenerateProxyCommandProvider[] = [tsCommandProvider];
