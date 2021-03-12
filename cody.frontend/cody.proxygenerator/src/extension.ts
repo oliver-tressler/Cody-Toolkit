@@ -25,6 +25,8 @@ function errorHandler(e: any) {
 	}
 }
 
+// Command providers simplify registering commands. Add new providers to support new languages.
+// Don't forget to add activation events and public facing commands in package.json.
 const commandProviders: GenerateProxyCommandProvider[] = [tsCommandProvider];
 export function activate(context: vscode.ExtensionContext) {
 	for (const provider of commandProviders) {

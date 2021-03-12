@@ -4,6 +4,10 @@ import { generateProxies as apiGenerateProxies, retrieveAvailableEntities } from
 import { Configuration, TypeScriptConfiguration } from "./Configuration/ConfigurationProxy";
 import { ConnectionState, getConnectionState } from "./connection";
 import { AvailableEntity, GenerateProxyCommandProvider } from "./sharedTypings";
+
+/**
+ * Make sure that the user is logged in to an organization.
+ */
 async function assertConnection() {
 	const state = await getConnectionState();
 	if (state?.activeOrganization?.UniqueName == null) {
@@ -16,6 +20,9 @@ type AuthorizedConnectionState = ConnectionState & {
 	activeOrganization: { UniqueName: string };
 };
 
+/**
+ * Prompt the user for the typescript proxy folder location.
+ */
 async function requestTsProxyFolderLocation() {
 	const proxyFolder = await vscode.window.showOpenDialog({
 		canSelectFiles: false,
@@ -30,12 +37,19 @@ async function requestTsProxyFolderLocation() {
 	return normalize(proxyFolder[0].fsPath);
 }
 
+/**
+ * Make sure that all configuration values are set.
+ */
 async function assertConfigurationPresent() {
 	if (!TypeScriptConfiguration.proxyFolder) {
 		TypeScriptConfiguration.proxyFolder = await requestTsProxyFolderLocation();
 	}
 }
 
+/**
+ * Prompt the user to enter entity logical names as a comma separated list.
+ * @returns cleansed logical names of user-provided entities
+ */
 async function chooseEntitiesViaFreeText(connectionState: AuthorizedConnectionState) {
 	const entities = await vscode.window.showInputBox({
 		ignoreFocusOut: true,
@@ -71,6 +85,10 @@ function availableEntityToQuickPick(entity: AvailableEntity): vscode.QuickPickIt
 	};
 }
 
+/**
+ * Retrieve all available entities from the Dynamics CRM 2016 server and offer selection via a multi-select prompt.
+ * @returns logical names of selected entities
+ */
 async function chooseEntitiesViaQuickPick(connectionState: AuthorizedConnectionState) {
 	const availableEntitiesResponse = retrieveAvailableEntities(
 		connectionState.activeOrganization!.UniqueName
@@ -116,6 +134,9 @@ function startProxyGeneration({
 	});
 }
 
+/**
+ * Let the user choose which proxies to generate.
+ */
 async function generateProxies() {
 	await vscode.window.withProgress(
 		{
@@ -127,6 +148,9 @@ async function generateProxies() {
 	);
 }
 
+/**
+ * Read the proxy folder and regenerate all files that have a matching logical name.
+ */
 async function regenerateAllProxies() {
 	await vscode.window.withProgress(
 		{
