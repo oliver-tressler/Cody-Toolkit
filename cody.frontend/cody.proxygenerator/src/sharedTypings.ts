@@ -11,7 +11,3 @@ export type AvailableEntity = {
 	DisplayName?: string;
 	Description?: string;
 };
-
-export enum eLanguage {
-	Typescript
-}
