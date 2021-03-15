@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using Newtonsoft.Json;
 using proxygenerator.Data;
 using proxygenerator.Data.Builder.TS;
 using proxygenerator.Data.Model;
@@ -14,6 +15,12 @@ namespace proxygenerator
 {
     public class ProxyBootstrap
     {
+        [JsonObject]
+        public class InitActionProxyGenerationResult
+        {
+            public bool CreatedNewFiles { get; set; }
+        }
+
         private static List<string> ListProxyFileNames(string dir, string language)
         {
             return
@@ -24,9 +31,11 @@ namespace proxygenerator
                     .ToList();
         }
 
-        public static void InitActionProxyGeneration(ActionProxyGenerationOptions options, string language,
+        public static InitActionProxyGenerationResult InitActionProxyGeneration(ActionProxyGenerationOptions options,
+            string language,
             IOrganizationService organizationService)
         {
+            var createdNewFiles = false;
             var proxyFolderPath = options.Path.Replace("\"", "");
             if (!Directory.Exists(proxyFolderPath))
             {
@@ -51,27 +60,44 @@ namespace proxygenerator
             var messageQuery = query.AddLink("sdkmessage", "sdkmessageid", "sdkmessageid");
             messageQuery.EntityAlias = "message";
             messageQuery.Columns.AddColumns("name");
-            messageQuery.LinkCriteria.AddCondition(new ConditionExpression("name", ConditionOperator.In, proxiesToGenerate));
+            messageQuery.LinkCriteria.AddCondition(new ConditionExpression("name", ConditionOperator.In,
+                proxiesToGenerate));
             var actions = organizationService.RetrieveMultiple(query).Entities
                 .Select(action => new ActionBuilder().ConstructAction(action));
             foreach (var action in actions)
             {
                 var fileContent = new ActionGenerator(action).GenerateActionCode();
+                if (!createdNewFiles && !File.Exists(
+                    Path.Combine($"{proxyFolderPath}", "Actions", $"{action.Name}.{language}")))
+                {
+                    createdNewFiles = true;
+                }
+
                 File.WriteAllText(
                     Path.Combine($"{proxyFolderPath}", "Actions", $"{action.Name}.{language}"),
                     fileContent);
             }
+
+            return new InitActionProxyGenerationResult {CreatedNewFiles = true};
         }
-        
-        public static void InitEntityProxyGeneration(EntityProxyGenerationOptions options, string language,
+
+        [JsonObject]
+        public class InitEntityProxyGenerationResult
+        {
+            public bool CreatedNewFiles { get; set; }
+        }
+
+        public static InitEntityProxyGenerationResult InitEntityProxyGeneration(EntityProxyGenerationOptions options,
+            string language,
             IOrganizationService organizationService)
         {
+            var createdNewFiles = false;
             var proxyFolderPath = options.Path.Replace("\"", "");
             if (!Directory.Exists(proxyFolderPath))
             {
                 throw new DirectoryNotFoundException("Proxy directory not found");
             }
-            
+
             var availableProxyFiles =
                 ListProxyFileNames(Path.Combine(options.Path, "Entities"), language);
             var cache = new EntityMetadataCache(organizationService, language, options,
@@ -96,6 +122,12 @@ namespace proxygenerator
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
+                if (!createdNewFiles && !File.Exists(Path.Combine($"{proxyFolderPath}", "Entities",
+                    $"{entity.LogicalName}.{language}")))
+                {
+                    createdNewFiles = true;
+                }
+
                 File.WriteAllText(Path.Combine($"{proxyFolderPath}", "Entities", $"{entity.LogicalName}.{language}"),
                     generator.GenerateEntityCode());
                 optionSets.AddRange(generator.GenerateExternalOptionSets());
@@ -115,10 +147,18 @@ namespace proxygenerator
                 .Select(group => group.First()).ToList();
             foreach (var (fileName, content) in optionSets)
             {
+                if (!createdNewFiles &&
+                    !File.Exists(Path.Combine($"{proxyFolderPath}", "Entities", $"{fileName}.{language}")))
+                {
+                    createdNewFiles = true;
+                }
+
                 File.WriteAllText(
                     Path.Combine($"{proxyFolderPath}", "OptionSets", $"{fileName}.{language}"),
                     content);
             }
+
+            return new InitEntityProxyGenerationResult() {CreatedNewFiles = createdNewFiles};
         }
     }
 }

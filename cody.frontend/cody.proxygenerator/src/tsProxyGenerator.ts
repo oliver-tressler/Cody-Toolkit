@@ -1,15 +1,15 @@
+import { AxiosResponse } from "axios";
 import { normalize } from "path";
-import { existsSync } from "fs";
 import * as vscode from "vscode";
 import {
-	generateEntityProxies as apiGenerateEntityProxies,
 	generateActionProxies as apiGenerateActionProxies,
+	generateEntityProxies as apiGenerateEntityProxies,
 	retrieveAvailableActions,
 	retrieveAvailableEntities,
 } from "./Api/api";
 import { Configuration, TypeScriptConfiguration } from "./Configuration/ConfigurationProxy";
-import { ConnectionState, getConnectionState } from "./Utils/connection";
 import { AvailableAction, AvailableEntity, GenerateProxyCommandProvider } from "./sharedTypings";
+import { ConnectionState, getConnectionState } from "./Utils/connection";
 import { isSubDirOrEqualDir } from "./Utils/fsUtils";
 
 /**
@@ -49,24 +49,24 @@ async function requestTsProxyFolderLocation() {
  * typescript server if the proxy file would be newly created, if the command is available and one of the open workspace
  * folders is a parent dir of the configured proxy folder.
  */
-async function withTsServerRestartIfRequired<T>(delegate: Promise<T>): Promise<T | undefined> {
-	if (
-		vscode.workspace.workspaceFolders?.some((wf) =>
-			isSubDirOrEqualDir(wf.uri.fsPath, TypeScriptConfiguration.proxyFolder)
-		) === true &&
-		(await vscode.commands.getCommands(true)).includes("typescript.restartTsServer")
-	) {
-		let delegateResult = await delegate;
-		try {
-			await vscode.commands.executeCommand("typescript.restartTsServer");
-		} catch {
-			// Fail silently for this one. This does not need to bother the user.
-		} finally {
-			return delegateResult;
+async function withTsServerRestartIfRequired<T extends AxiosResponse<{ CreatedNewFiles: boolean }>>(
+	delegate: Promise<T>
+): Promise<T | undefined> {
+	let delegateResult: T | undefined = await delegate;
+	try {
+		if (
+			delegateResult.data.CreatedNewFiles && // This is way cleaner than using a file system watcher
+			vscode.workspace.workspaceFolders?.some(
+				(wf) => isSubDirOrEqualDir(wf.uri.fsPath, TypeScriptConfiguration.proxyFolder) // only if one of the workspace folders is the proxy folder
+			) === true &&
+			(await vscode.commands.getCommands(true)).includes("typescript.restartTsServer") // only if command available
+		) {
+			vscode.commands.executeCommand("typescript.restartTsServer");
 		}
-	} else {
-		return await delegate;
+	} catch {
+		// Fail silently for this one. This does not need to bother the user.
 	}
+	return delegateResult;
 }
 
 /**

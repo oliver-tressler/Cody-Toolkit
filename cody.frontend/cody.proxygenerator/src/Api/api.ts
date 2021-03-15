@@ -18,9 +18,12 @@ type GenerateEntityProxiesRequestOptions = {
 	proxyNamespace?: string;
 	globalEnums?: boolean;
 };
+type GenerateProxiesBaseResponse = {
+	CreatedNewFiles: boolean;
+};
 export function generateEntityProxies(requestOptions: GenerateEntityProxiesRequestOptions) {
 	const { language, organization, ...requestData } = requestOptions;
-	return axios.post<void>(`${baseUrl()}${organization}/${language}/generateEntityProxies`, {
+	return axios.post<GenerateProxiesBaseResponse>(`${baseUrl()}${organization}/${language}/generateEntityProxies`, {
 		EntityLogicalNames: requestData.entitiyLogicalNames,
 		Path: requestData.path,
 		ProxyNamespace: requestData.proxyNamespace,
@@ -40,7 +43,7 @@ export function retrieveAvailableActions(organization: string) {
 }
 export function generateActionProxies(requestOptions: GenerateActionProxiesRequestOptions) {
 	const { language, organization, ...requestData } = requestOptions;
-	return axios.post<void>(`${baseUrl()}${organization}/${language}/generateActionProxies`, {
+	return axios.post<GenerateProxiesBaseResponse>(`${baseUrl()}${organization}/${language}/generateActionProxies`, {
 		ActionNames: requestData.actionNames,
 		Path: requestData.path,
 		ProxyNamespace: requestData.proxyNamespace,

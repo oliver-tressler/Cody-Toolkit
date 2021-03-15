@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Web.Http;
 using crmconnector;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
-using Microsoft.Xrm.Sdk.Metadata.Query;
-using Microsoft.Xrm.Sdk.Query;
-using Newtonsoft.Json;
 using proxygenerator;
 using proxygenerator.Data;
-using proxygenerator.Data.Model;
-using proxygenerator.Generators.Contract;
-using utils;
 
 namespace cody.backend.api.Controllers
 {
@@ -25,8 +14,7 @@ namespace cody.backend.api.Controllers
             [FromBody] EntityProxyGenerationOptions options)
         {
             var organizationService = ConnectionCache.Instance.Value.GetOrganizationService(organization);
-            ProxyBootstrap.InitEntityProxyGeneration(options, language, organizationService);
-            return Ok();
+            return Ok(ProxyBootstrap.InitEntityProxyGeneration(options, language, organizationService));
         }
 
         [HttpGet]
@@ -44,8 +32,7 @@ namespace cody.backend.api.Controllers
             [FromBody] ActionProxyGenerationOptions options)
         {
             var organizationService = ConnectionCache.Instance.Value.GetOrganizationService(organization);
-            ProxyBootstrap.InitActionProxyGeneration(options, language, organizationService);
-            return Ok();
+            return Ok(ProxyBootstrap.InitActionProxyGeneration(options, language, organizationService));
         }
 
         [HttpGet]
