@@ -78,7 +78,7 @@ namespace proxygenerator
                     fileContent);
             }
 
-            return new InitActionProxyGenerationResult {CreatedNewFiles = true};
+            return new InitActionProxyGenerationResult {CreatedNewFiles = createdNewFiles};
         }
 
         [JsonObject]
