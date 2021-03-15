@@ -21,20 +21,32 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:cody.toolkit.proxyGenerator.ts.generateProxies",
-		"onCommand:cody.toolkit.proxyGenerator.ts.regenerateAllProxies"
+		"onCommand:cody.toolkit.proxyGenerator.ts.generateEntityProxies",
+		"onCommand:cody.toolkit.proxyGenerator.ts.generateActionProxies",
+		"onCommand:cody.toolkit.proxyGenerator.ts.regenerateAllEntityProxies",
+		"onCommand:cody.toolkit.proxyGenerator.ts.regenerateAllActionProxies"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "cody.toolkit.proxyGenerator.ts.generateProxies",
-				"title": "Generate TS Proxies",
+				"command": "cody.toolkit.proxyGenerator.ts.generateEntityProxies",
+				"title": "Generate TS Entity Proxies",
 				"category": "Cody Proxy Generator"
 			},
 			{
-				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllProxies",
-				"title": "Regenerate all TS Proxies",
+				"command": "cody.toolkit.proxyGenerator.ts.generateActionProxies",
+				"title": "Generate TS Action Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllEntityProxies",
+				"title": "Regenerate all TS Entity Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllActionProxies",
+				"title": "Regenerate all TS Action Proxies",
 				"category": "Cody Proxy Generator"
 			}
 		],

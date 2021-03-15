@@ -40,8 +40,14 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Xaml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Builder\TS\ActionBuilder.cs" />
+    <Compile Include="Data\Model\ActionData.cs" />
+    <Compile Include="Generators\Contract\IActionGenerator.cs" />
+    <Compile Include="Generators\TS\ActionGenerator\ActionGenerator.cs" />
+    <Compile Include="ProxyBootstrap.cs" />
     <Compile Include="Data\Builder\CS\Attributes\AttributeBuilder.cs" />
     <Compile Include="Data\Builder\CS\Attributes\PropertyBuilder.cs" />
     <Compile Include="Data\Builder\CS\Collections\CollectionFetcherBuilder.cs" />
@@ -58,6 +64,7 @@
     <Compile Include="Data\Builder\IEntityBuilder.cs" />
     <Compile Include="Data\Builder\TS\OptionSets\OptionBuilder.cs" />
     <Compile Include="Data\Builder\TS\OptionSets\OptionSetBuilder.cs" />
+    <Compile Include="Data\ProxyFetchers.cs" />
     <Compile Include="Data\Model\Attributes\AttributeData.cs" />
     <Compile Include="Data\Model\Attributes\LookupRelationData.cs" />
     <Compile Include="Data\Model\Attributes\OptionSetAttributeData.cs" />
@@ -123,12 +130,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Generators\CS\EnumGenerators\Contract\" />
-    <Folder Include="Generators\TS\EnumGenerators\Contract\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.IdentityModel" Version="7.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Scriban" Version="2.1.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />

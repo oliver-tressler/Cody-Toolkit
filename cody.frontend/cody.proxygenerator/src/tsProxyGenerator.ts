@@ -1,9 +1,14 @@
 import { normalize } from "path";
 import * as vscode from "vscode";
-import { generateProxies as apiGenerateProxies, retrieveAvailableEntities } from "./Api/api";
+import {
+	generateEntityProxies as apiGenerateEntityProxies,
+	generateActionProxies as apiGenerateActionProxies,
+	retrieveAvailableActions,
+	retrieveAvailableEntities,
+} from "./Api/api";
 import { Configuration, TypeScriptConfiguration } from "./Configuration/ConfigurationProxy";
 import { ConnectionState, getConnectionState } from "./connection";
-import { AvailableEntity, GenerateProxyCommandProvider } from "./sharedTypings";
+import { AvailableAction, AvailableEntity, GenerateProxyCommandProvider } from "./sharedTypings";
 
 /**
  * Make sure that the user is logged in to an organization.
@@ -115,7 +120,7 @@ async function chooseEntities(connectionState: AuthorizedConnectionState) {
 		: chooseEntitiesViaFreeText(connectionState);
 }
 
-function startProxyGeneration({
+function startEntityProxyGeneration({
 	connectionState,
 	entities,
 }: {
@@ -125,7 +130,7 @@ function startProxyGeneration({
 	if (entities != null && entities.length === 0) {
 		return;
 	}
-	return apiGenerateProxies({
+	return apiGenerateEntityProxies({
 		entitiyLogicalNames: entities ?? [],
 		language: "ts",
 		organization: connectionState.activeOrganization.UniqueName,
@@ -137,21 +142,21 @@ function startProxyGeneration({
 /**
  * Let the user choose which proxies to generate.
  */
-async function generateProxies() {
+async function generateEntityProxies() {
 	await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Window,
 			cancellable: false,
 			title: "Generating Proxies",
 		},
-		() => assertConfigurationPresent().then(assertConnection).then(chooseEntities).then(startProxyGeneration)
+		() => assertConfigurationPresent().then(assertConnection).then(chooseEntities).then(startEntityProxyGeneration)
 	);
 }
 
 /**
  * Read the proxy folder and regenerate all files that have a matching logical name.
  */
-async function regenerateAllProxies() {
+async function regenerateAllEntityProxies() {
 	await vscode.window.withProgress(
 		{
 			location: vscode.ProgressLocation.Window,
@@ -162,14 +167,120 @@ async function regenerateAllProxies() {
 			assertConfigurationPresent()
 				.then(assertConnection)
 				.then((connectionState) => ({ entities: undefined, connectionState }))
-				.then(startProxyGeneration)
+				.then(startEntityProxyGeneration)
+	);
+}
+
+function availableActionToQuickPick(action: AvailableAction): vscode.QuickPickItem {
+	return {
+		label: action.Name,
+		description: action.DisplayName + (action.PrimaryEntityName ? `(${action.PrimaryEntityName})` : ""),
+	};
+}
+
+async function chooseActionsViaFreeText(connectionState: AuthorizedConnectionState) {
+	const actions = await vscode.window.showInputBox({
+		ignoreFocusOut: true,
+		placeHolder: "Example: new_customaction1, new_customaction2",
+		prompt:
+			"Please enter the unique names (incl. vendor prefix) of the actions that you want to generate proxies for",
+		validateInput: (val) => {
+			return val
+				.split(",")
+				.filter(Boolean)
+				.every((logicalName) => new RegExp(/^\s*\w+\s*$/).test(logicalName))
+				? null
+				: "Only alphanumeric characters and the underscore are allowed in action names";
+		},
+	});
+	const names = actions
+		?.split(",")
+		.map((logicalName) => logicalName.trim())
+		.filter(Boolean);
+	if (names == null || names.length === 0) {
+		throw new Error("No entity names provided");
+	}
+	return {
+		connectionState,
+		actions: names,
+	};
+}
+
+async function chooseActionsViaQuickPick(connectionState: AuthorizedConnectionState) {
+	const availableActionsResponse = retrieveAvailableActions(
+		connectionState.activeOrganization!.UniqueName
+	).then((val) => val.data.map(availableActionToQuickPick));
+	const selected = await vscode.window.showQuickPick(availableActionsResponse, {
+		canPickMany: true,
+		ignoreFocusOut: true,
+		matchOnDescription: true,
+	});
+	const names = selected?.map((s) => s.label);
+	if (names == null || names.length === 0) {
+		throw new Error("No actions selected");
+	}
+	return {
+		connectionState,
+		actions: names,
+	};
+}
+
+async function chooseActions(connectionState: AuthorizedConnectionState) {
+	return Configuration.selectionMode === "QuickPick"
+		? chooseActionsViaQuickPick(connectionState)
+		: chooseActionsViaFreeText(connectionState);
+}
+
+function startActionProxyGeneration({
+	connectionState,
+	actions,
+}: {
+	connectionState: AuthorizedConnectionState;
+	actions?: string[];
+}) {
+	if (actions != null && actions.length === 0) {
+		return;
+	}
+	return apiGenerateActionProxies({
+		actionNames: actions ?? [],
+		language: "ts",
+		organization: connectionState.activeOrganization.UniqueName,
+		path: TypeScriptConfiguration.proxyFolder,
+	});
+}
+
+async function generateActionProxies() {
+	await vscode.window.withProgress(
+		{
+			location: vscode.ProgressLocation.Window,
+			cancellable: false,
+			title: "Generating Proxies",
+		},
+		() => assertConfigurationPresent().then(assertConnection).then(chooseActions).then(startActionProxyGeneration)
+	);
+}
+
+async function regenerateAllActionProxies() {
+	await vscode.window.withProgress(
+		{
+			location: vscode.ProgressLocation.Window,
+			cancellable: false,
+			title: "Generating Proxies",
+		},
+		() =>
+			assertConfigurationPresent()
+				.then(assertConnection)
+				.then((connectionState) => ({ entities: undefined, connectionState }))
+				.then(startActionProxyGeneration)
 	);
 }
 
 export const tsCommandProvider: GenerateProxyCommandProvider = {
 	languageAbbreviation: "ts",
 	commands: {
-		generateProxies,
-		regenerateAllProxies,
+		generateEntityProxies,
+		generateActionProxies,
+		regenerateAllEntityProxies,
+		regenerateAllActionProxies
 	},
 };

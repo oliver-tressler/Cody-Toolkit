@@ -11,3 +11,9 @@ export type AvailableEntity = {
 	DisplayName?: string;
 	Description?: string;
 };
+
+export type AvailableAction = {
+	Name: string;
+	DisplayName: string;
+	PrimaryEntityName: string;
+};

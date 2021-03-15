@@ -19,8 +19,8 @@ namespace proxygenerator.Generators.TS.EntityGenerator
         private readonly List<(string[] Classes, string From)> _imports = new List<(string[], string)>
         {
             (new[] {"Guid"}, "guid-typescript"),
-            (new[] {"Attribute", "BaseProxyClass", "LookupAttribute", "EntityReference", "DateTimeAttribute", "DateTimeBehaviour", "OData", "ODataEntityResult"},
-                "./BaseProxyClass")
+            (new[] {"Attribute", "BaseEntityProxy", "LookupAttribute", "EntityReference", "DateTimeAttribute", "DateTimeBehaviour", "OData", "ODataEntityResult"},
+                "../core/BaseEntityProxy")
         };
 
         public EntityGenerator(EntityData data)
@@ -34,7 +34,7 @@ namespace proxygenerator.Generators.TS.EntityGenerator
                     {
                         os.EnumName == os.InternalEnumName ? os.EnumName : $"{os.EnumName} as {os.InternalEnumName}"
                     },
-                    "./Enums/" + os.FileName);
+                    "../GlobalOptionSets/" + os.FileName);
             }));
         }
 
@@ -61,7 +61,7 @@ namespace proxygenerator.Generators.TS.EntityGenerator
         {
             if (_data.ClassComment.Generate)
                 code.AppendLine(_data.ClassComment.GenerateComment(0));
-            code.AppendLine($"export class {_data.ClassName} extends BaseProxyClass {{");
+            code.AppendLine($"export class {_data.ClassName} extends BaseEntityProxy {{");
             code.AppendLine(new Comment("Collection of all attributes indexed by their logical name")
                 .GenerateComment(1));
             GenerateAttributes(code, 1);

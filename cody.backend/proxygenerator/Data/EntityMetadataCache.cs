@@ -23,11 +23,12 @@ namespace proxygenerator.Data
         private readonly List<string> _availableProxies;
         private readonly ConcurrentDictionary<string, RelatedEntityData> _relatedEntities;
 
-        public EntityMetadataCache(IOrganizationService service, string language, ProxyGenerationOptions options, List<string> availableProxies)
+        public EntityMetadataCache(IOrganizationService service, string language, EntityProxyGenerationOptions options, List<string> availableProxies)
         {
             _service = service;
             _language = language;
             _availableProxies = availableProxies;
+            _globalEnums = options.GlobalEnums;
             _relatedEntities = new ConcurrentDictionary<string, RelatedEntityData>();
         }
 
