@@ -150,7 +150,7 @@ namespace proxygenerator.Generators.TS.ActionGenerator
                             entityTypeInputArgument.Name, entityTypeInputArgument.Name,
                             string.IsNullOrWhiteSpace(entityTypeInputArgument.EntityType)
                                 ? string.Empty
-                                : $", {entityTypeInputArgument.EntityType}"));
+                                : $", \"{entityTypeInputArgument.EntityType}\""));
                 }
 
                 code.AppendLine($"{TextUtils.Indentation(2)}] as InputParameter[];");
