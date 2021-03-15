@@ -1,0 +1,58 @@
+{
+  "name": "cody-toolkit-pluginmanagement",
+  "author": {
+    "name": "Oliver Tressler",
+    "email": "oliver.tressler@protonmail.com"
+  },
+  "repository": {
+    "url": "https://github.com/otressler/cody-toolkit.git",
+    "type": "github"
+  },
+  "publisher": "otressler",
+  "icon": "assets/d365-icon.png",
+  "license": "GPLv3",
+  "displayName": "Cody Toolkit (Plugin Management)",
+  "description": "Browse and edit Dynamics CRM 2016 On-Premise Assemblies, Plugins, Steps and Images from within VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:cody-toolkit-plugin-manager.helloWorld"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": []
+  },
+  "scripts": {
+    "vscode:prepublish": "webpack --mode production",
+    "webpack": "webpack --mode development",
+    "webpack-dev": "webpack --mode development --watch",
+    "test-compile": "tsc -p ./"
+  },
+  "extensionDependencies": [
+    "otressler.cody-toolkit-core"
+  ],
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.54.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
+    "eslint": "^7.19.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.2.1",
+    "ts-loader": "^8.0.14",
+    "typescript": "^4.1.3",
+    "vscode-test": "^1.5.0",
+    "webpack": "^5.19.0",
+    "webpack-cli": "^4.4.0"
+  },
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
