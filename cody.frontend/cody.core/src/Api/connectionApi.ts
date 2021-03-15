@@ -8,6 +8,7 @@ type BaseUserNameAndAuthenticationDetails = {
 };
 type BaseCredentialsFileAuthenticationDetails = {
 	CredentialsFilePath: string;
+	Key: string;
 };
 type ConnectionRequest = (BaseCredentialsFileAuthenticationDetails | BaseUserNameAndAuthenticationDetails) & {
 	Organization: string;
@@ -25,12 +26,13 @@ export type OrganizationConfiguration = {
  * @param instance A Dynamics CRM Instance.
  * @param password If no credentials file is used a password must be provided.
  */
-export async function fetchOrganizationsForInstance(port: number, instance: InstanceConfiguration, password?: string) {
+export async function fetchOrganizationsForInstance(port: number, instance: InstanceConfiguration, password: string) {
 	const data:
 		| BaseUserNameAndAuthenticationDetails
 		| BaseCredentialsFileAuthenticationDetails = instance.useCredentialsFile
 		? {
 				CredentialsFilePath: instance.credentialsFilePath,
+				Key: password,
 		  }
 		: {
 				DiscoveryServiceUrl: instance.discoveryServiceUrl,
@@ -60,16 +62,16 @@ export async function fetchOrganizationsForInstance(port: number, instance: Inst
 export async function isValidDiscoveryServiceConfiguration(
 	port: number,
 	instance: InstanceConfiguration,
-	password?: string
+	password: string
 ) {
 	const data:
 		| BaseUserNameAndAuthenticationDetails
 		| BaseCredentialsFileAuthenticationDetails = instance.useCredentialsFile
-		? { CredentialsFilePath: instance.credentialsFilePath }
+		? { CredentialsFilePath: instance.credentialsFilePath, Key: password }
 		: {
 				DiscoveryServiceUrl: instance.discoveryServiceUrl,
 				UserName: instance.userName,
-				Password: password!,
+				Password: password,
 		  };
 	const endpoint =
 		`http://localhost:${port}/api/connections/isValidInstanceConfiguration` +
@@ -98,13 +100,14 @@ export async function establishConnection(
 	port: number,
 	instance: InstanceConfiguration,
 	organization: OrganizationConfiguration,
-	password?: string
+	password: string
 ): Promise<EstablishConnectionResponse> {
 	let data: ConnectionRequest | undefined;
 	if (instance.useCredentialsFile === true) {
 		data = {
 			CredentialsFilePath: instance.credentialsFilePath,
 			Organization: organization.UniqueName,
+			Key: password,
 		};
 	} else {
 		data = {
@@ -135,4 +138,16 @@ export async function connectionAlive(port: number, organizationUniqueName: stri
 	} catch (e) {
 		return false;
 	}
+}
+
+type CreateCredentialsFileRequest = {
+	UserName: string;
+	Password: string;
+	DiscoveryServiceUrl: string;
+	CredentialsFilePath: string;
+	Key: string;
+};
+export function createCredentialsFile(port: number, requestData: CreateCredentialsFileRequest) {
+	const url = `http://localhost:${port}/api/connections/createCredentialsFile`;
+	return axios.post(url, requestData);
 }

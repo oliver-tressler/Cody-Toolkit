@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import * as api from "./Api/connectionApi";
+import * as path from "path";
+import * as fs from "fs";
 import { OrganizationConfiguration } from "./Api/connectionApi";
 import { Configuration } from "./Configuration/ConfigurationProxy";
 import {
@@ -61,17 +63,27 @@ const requestDiscoUrl = async () => {
 	return discoUrl;
 };
 
-const requestCredentialsFileLocation = async (instanceName: string) => {
+const createCredentialsFile = async (instanceId: string, config: InstanceConfigurationProxy) => {
+	const userName = await requestUserName(instanceId);
+	const password = await requestPassword(instanceId);
+	const discoveryServiceUrl = await requestDiscoUrl();
 	const file = await vscode.window.showOpenDialog({
-		canSelectFiles: true,
-		canSelectFolders: false,
+		canSelectFolders: true,
+		canSelectFiles: false,
 		canSelectMany: false,
-		title: "Choose Credentials File " + instanceName,
-		filters: { "XML Files": ["xml", "XML"] },
-		openLabel: "Use",
+		title: "Choose a Location for the Credentials File",
+		openLabel: "Choose",
 	});
-	if (file?.length !== 1) throw new Error("No credentials file selected");
-	return file[0].fsPath;
+	if (file?.length !== 1) throw new Error("No credentials file location provided");
+	const credentialsFilePath = path.join(file[0].fsPath, instanceId + ".codycon");
+	await api.createCredentialsFile(Configuration.backendServerPort, {
+		DiscoveryServiceUrl: discoveryServiceUrl,
+		CredentialsFilePath: credentialsFilePath,
+		UserName: userName,
+		Password: password,
+		Key: config.getCredentialsFileKey(instanceId),
+	});
+	return credentialsFilePath;
 };
 
 /**
@@ -108,14 +120,18 @@ async function requestInfoForUsernameAndPasswordInstance(port: number) {
  * Requests a set of authentication details for connecting to a Dynamics CRM Instance using a credential file.
  * If the authentication details are not valid, this will throw an error.
  */
-async function requestInfoForCredentialsFileInstance(port: number) {
+async function requestInfoForCredentialsFileInstance(port: number, config: InstanceConfigurationProxy) {
 	const instanceId = await requestInstanceId();
-	const credentialsFile = await requestCredentialsFileLocation(instanceId);
-	const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(port, {
-		credentialsFilePath: credentialsFile,
-		instanceId,
-		useCredentialsFile: true,
-	});
+	const credentialsFile = await createCredentialsFile(instanceId, config);
+	const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(
+		port,
+		{
+			credentialsFilePath: credentialsFile,
+			instanceId,
+			useCredentialsFile: true,
+		},
+		config.getCredentialsFileKey(instanceId)
+	);
 	if (isValidConfigurationResponse.data !== true) throw new Error("Connection to instance discovery service failed.");
 	const instance: CredentialsFileInstanceConfiguration = {
 		credentialsFilePath: credentialsFile,
@@ -247,6 +263,13 @@ async function removeInstance(
 		connectionState.activeInstance = undefined;
 		connectionState.activeOrganization = undefined;
 		connectionState.availableOrganizations = [];
+		config.activeInstance = undefined;
+	}
+	if (instance.useCredentialsFile) {
+		try {
+			fs.unlinkSync(instance.credentialsFilePath);
+			config.removeCredentialsFileKey(instance.instanceId);
+		} catch {}
 	}
 	return { connectionState };
 }
@@ -269,9 +292,13 @@ async function registerInstance(
 	password?: string;
 }> {
 	if (useCredentialsFile === true) {
-		const instance = await requestInfoForCredentialsFileInstance(port);
+		const instance = await requestInfoForCredentialsFileInstance(port, config);
 		config.addInstance(instance);
-		const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(port, instance, password);
+		const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(
+			port,
+			instance,
+			config.getCredentialsFileKey(instance.instanceId)
+		);
 		return { instance, availableOrganizations: availableOrganizationsResponse.data };
 	} else {
 		const [instance, password] = await requestInfoForUsernameAndPasswordInstance(port);
@@ -292,6 +319,7 @@ async function registerInstance(
 async function switchToOrganization(
 	port: number,
 	connectionState: ConnectionState,
+	config: InstanceConfigurationProxy,
 	chosenOrganization?: OrganizationConfiguration,
 	password?: string
 ) {
@@ -307,7 +335,7 @@ async function switchToOrganization(
 		connectionState.activeInstance,
 		chosenOrganization,
 		connectionState.activeInstance.useCredentialsFile
-			? undefined
+			? config.getCredentialsFileKey(connectionState.activeInstance.instanceId)
 			: await (async () => {
 					if (password != null) return password;
 					password = await requestPassword(connectionState.activeInstance!.instanceId);
@@ -342,7 +370,7 @@ async function switchToInstance(
 		port,
 		chosenInstance,
 		chosenInstance.useCredentialsFile
-			? undefined
+			? config.getCredentialsFileKey(chosenInstance.instanceId)
 			: await (async () => {
 					if (password != null) return password;
 					password = await requestPassword(chosenInstance.instanceId);
@@ -357,7 +385,7 @@ async function switchToInstance(
 			port,
 			chosenInstance,
 			chosenInstance.useCredentialsFile
-				? undefined
+				? config.getCredentialsFileKey(chosenInstance.instanceId)
 				: await (async () => {
 						if (password != null) return password;
 						password = await requestPassword(chosenInstance.instanceId);
@@ -370,7 +398,7 @@ async function switchToInstance(
 		organizations: connectionState.availableOrganizations,
 	});
 	if (chosenOrg == null || chosenOrg.type !== "organization") return { password, connectionState };
-	return await switchToOrganization(port, connectionState, chosenOrg.organization, password);
+	return await switchToOrganization(port, connectionState, config, chosenOrg.organization, password);
 }
 
 /**
@@ -412,7 +440,7 @@ async function switchToNewInstance(
 		instance,
 		chosenOrg.organization,
 		instance.useCredentialsFile
-			? undefined
+			? config.getCredentialsFileKey(instance.instanceId)
 			: await (async () => {
 					if (password != null) return password;
 					password = await requestPassword(instance.instanceId);
@@ -519,6 +547,7 @@ const registerSwitchInstanceCommand = (
 				({ password, connectionState: connector.connectionState } = await switchToOrganization(
 					connector.port,
 					connector.connectionState,
+					config,
 					chosen.organization,
 					password
 				));
@@ -541,11 +570,11 @@ const registerSwitchInstanceCommand = (
 	});
 };
 
-export function launch({ subscriptions, workspaceState }: vscode.ExtensionContext) {
+export function launch({ subscriptions, workspaceState, globalState }: vscode.ExtensionContext) {
 	new ServerConnector()
 		.launchServer()
 		.then((connector) => {
-			const config = new InstanceConfigurationProxy(workspaceState);
+			const config = new InstanceConfigurationProxy(workspaceState, globalState);
 			// Preselect instance used the last time
 			connector.connectionState = {
 				activeInstance:
