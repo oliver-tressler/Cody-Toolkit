@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using proxygenerator.Data.Model;
 using proxygenerator.Generators.Contract;
 using proxygenerator.Utils;
@@ -31,8 +32,8 @@ namespace proxygenerator.Generators.TS.ActionGenerator
         {
             _data = data;
             _actionClassName = string.Join(string.Empty,
-                (_data.DisplayName ?? _data.Name).Split(new[] {'_'}, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => Scriban.Functions.StringFunctions.Capitalize(s)));
+                Regex.Split(_data.DisplayName ?? _data.Name, "\\W+").Where(s =>!string.IsNullOrWhiteSpace(s))
+                .Select(s => Scriban.Functions.StringFunctions.Capitalize(Regex.Replace(s, "\\W", ""))));
             _isTargetAction = !string.IsNullOrWhiteSpace(_data.PrimaryEntity);
             _imports = new List<(string[] Classes, string From)>
             {
