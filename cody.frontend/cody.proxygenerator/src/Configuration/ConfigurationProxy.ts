@@ -85,4 +85,9 @@ export class TypeScriptConfiguration extends Configuration {
 	 * If active, global enums will be generated in addition to local enums.
 	 */
 	static globalEnums: boolean;
+	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace, {
+		getTransform: (val) => val === "true",
+		setTransform: (val) => val.toString(),
+	})
+	static restartTsProxyServerWhenCreatingNewFiles: boolean;
 }

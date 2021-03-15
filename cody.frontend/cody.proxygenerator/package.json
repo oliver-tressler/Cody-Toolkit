@@ -73,6 +73,12 @@
 					"markdownDescriptions": "If Global Enum generation is active, separate enum files will be generated and placed in a shared `Enums` folder within your proxy folder. While different enums are comparable in typescript, this provides the ability to choose more lightweight imports.",
 					"type": "boolean",
 					"scope": "window"
+				},
+				"cody.toolkit.proxyGenerator.ts.restartTsProxyServerWhenCreatingNewFiles": {
+					"markdownDescriptions": "If `tsconfig.json` includes path configurations, the Typescript Language Server sometimes fails at recognizing imports when new files are added. By enabling this, all TypeScript Proxy Generation actions will check if new files have been generated and restart the server automatically.",
+					"type": "boolean",
+					"scope": "window",
+					"default": false
 				}
 			}
 		}

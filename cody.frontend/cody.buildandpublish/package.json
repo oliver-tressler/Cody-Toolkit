@@ -101,7 +101,7 @@
 					"type": "boolean",
 					"description": "Create Fiddler rules to facilitate debugging.",
 					"scope": "window",
-					"default": "true"
+					"default": true
 				},
 				"cody.toolkit.buildAndPublish.fiddlerRuleFolder": {
 					"type": "string",
