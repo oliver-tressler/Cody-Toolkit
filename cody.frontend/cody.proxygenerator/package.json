@@ -77,6 +77,9 @@
 			}
 		}
 	},
+	"extensionDependencies": [
+		"otressler.cody-toolkit-core"
+	],
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",
 		"webpack": "webpack --mode development",
