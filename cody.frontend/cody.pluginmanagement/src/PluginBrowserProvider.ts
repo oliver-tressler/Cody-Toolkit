@@ -8,7 +8,7 @@ export type AssemblyPluginMetadata = {
 	FullName: string;
 	Name: string;
 };
-export class PluginBrowserProvider {
+export class PluginBrowserProvider implements vsc.Disposable {
 	private dataProvider: DataProvider;
 	constructor({ subscriptions }: vsc.ExtensionContext) {
 		this.dataProvider = new DataProvider();
@@ -122,5 +122,8 @@ export class PluginBrowserProvider {
 				});
 			})
 		);
+	}
+	dispose() {
+		this.dataProvider.dispose();
 	}
 }

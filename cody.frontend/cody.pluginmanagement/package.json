@@ -176,7 +176,7 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"icon": "./assets/d365-icon.png",
+					"icon": "assets/d365-icon.png",
 					"id": "crmtooling",
 					"title": "Dynamics CRM"
 				}

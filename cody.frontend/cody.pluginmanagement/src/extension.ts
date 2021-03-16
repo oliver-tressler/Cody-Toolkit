@@ -1,9 +1,9 @@
-import * as vscode from 'vscode';
-import { PluginBrowserProvider } from './PluginBrowserProvider';
-import { PluginEditorProvider } from './PluginEditorProvider';
+import * as vscode from "vscode";
+import { PluginBrowserProvider } from "./PluginBrowserProvider";
+import { PluginEditorProvider } from "./PluginEditorProvider";
 
 export function activate(context: vscode.ExtensionContext) {
-	new PluginBrowserProvider(context);
+	context.subscriptions.push(new PluginBrowserProvider(context));
 	new PluginEditorProvider(context);
 }
 

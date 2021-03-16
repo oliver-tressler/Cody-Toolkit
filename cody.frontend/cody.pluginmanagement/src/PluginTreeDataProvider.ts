@@ -27,7 +27,7 @@ export class Organization extends TreeData {
 	public assemblies: { [id: string]: Assembly };
 	constructor(organizationName: string) {
 		super(organizationName, organizationName, "organization");
-		this.iconPath = path.resolve(__filename, "..", "..", "..", "assets", "organization.svg");
+		this.iconPath = path.resolve(__filename, "..", "..", "assets", "organization.svg");
 		this.assemblies = {};
 	}
 }
@@ -38,7 +38,6 @@ export class Assembly extends TreeData {
 		super(assemblyName, id, "assembly");
 		this.iconPath = path.resolve(
 			__filename,
-			"..",
 			"..",
 			"..",
 			"assets",
@@ -53,7 +52,7 @@ export class Plugin extends TreeData {
 	public steps: { [id: string]: Step };
 	constructor(pluginName: string, id: string, public assembly: Assembly) {
 		super(pluginName, id, "plugin");
-		this.iconPath = path.resolve(__filename, "..", "..", "..", "assets", "plugin.svg");
+		this.iconPath = path.resolve(__filename, "..", "..", "assets", "plugin.svg");
 		this.steps = {};
 	}
 }
@@ -68,14 +67,7 @@ export class Step extends TreeData {
 		public plugin: Plugin
 	) {
 		super(stepName, id, "step");
-		this.iconPath = path.resolve(
-			__filename,
-			"..",
-			"..",
-			"..",
-			"assets",
-			disabled ? "stepDisabled.svg" : "step.svg"
-		);
+		this.iconPath = path.resolve(__filename, "..", "..", "assets", disabled ? "stepDisabled.svg" : "step.svg");
 		this.contextValue = disabled ? "stepDisabled" : "step";
 		if (!canHaveImages) {
 			this.contextValue += "NoImage";
@@ -88,7 +80,7 @@ export class Step extends TreeData {
 export class Image extends TreeData {
 	constructor(imageName: string, id: string, public step: Step) {
 		super(imageName, id, "image");
-		this.iconPath = path.resolve(__filename, "..", "..", "..", "assets", "image.svg");
+		this.iconPath = path.resolve(__filename, "..", "..", "assets", "image.svg");
 	}
 }
 
@@ -213,12 +205,12 @@ class ImageTreeDataProvider extends TreeDataProvider<Image, TreeData, Step> {
 }
 
 class RootTreeDataProvider extends TreeDataProvider<TreeData, TreeData, TreeData> {
-	constructor(data: Organization) {
+	constructor(data?: Organization) {
 		super(data);
 	}
 
 	async getChildren(): Promise<TreeData[]> {
-		return [new Organization((await getConnectionState())?.activeOrganization?.UniqueName!)];
+		return this.treeElement ? [this.treeElement] : [];
 	}
 	getElement(): vsc.TreeItem | undefined {
 		return undefined;
@@ -232,8 +224,9 @@ class RootTreeDataProvider extends TreeDataProvider<TreeData, TreeData, TreeData
 class TreeDataProviderFactory {
 	async getProvider(data?: TreeData): Promise<TreeDataProvider<TreeData, TreeData, TreeData>> {
 		if (data == null) {
+			const activeOrganizationName = (await getConnectionState())?.activeOrganization?.UniqueName;
 			return new RootTreeDataProvider(
-				new Organization((await getConnectionState())?.activeOrganization?.UniqueName!)
+				activeOrganizationName != null ? new Organization(activeOrganizationName) : undefined
 			);
 		}
 		switch (data.type) {
@@ -256,9 +249,18 @@ export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 	readonly onDidChangeTreeData?: vsc.Event<TreeData | undefined>;
 	private dataProviderFactory: TreeDataProviderFactory;
 	private rootElement: Organization | undefined;
+	private refresher: NodeJS.Timeout;
 	constructor() {
 		this.dataProviderFactory = new TreeDataProviderFactory();
 		this.onDidChangeTreeData = this._onDidChangeTreeData.event;
+		// Use polling to see if organization changes
+		this.refresher = setInterval(async () => {
+			const connectionState = await getConnectionState();
+			if (connectionState?.activeOrganization?.UniqueName === this.rootElement?.id) {
+				return;
+			}
+			this._onDidChangeTreeData.fire(null);
+		}, 10000);
 	}
 
 	async getTreeItem(element?: TreeData): Promise<vsc.TreeItem> {
@@ -278,6 +280,12 @@ export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 
 	refreshElement() {
 		this._onDidChangeTreeData.fire(this.rootElement);
+	}
+
+	dispose() {
+		try {
+			clearInterval(this.refresher);
+		} catch {}
 	}
 
 	private _onDidChangeTreeData: vsc.EventEmitter<TreeData | undefined> = new vsc.EventEmitter<TreeData | undefined>();
