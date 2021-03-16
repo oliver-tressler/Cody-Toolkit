@@ -124,7 +124,7 @@ function availableEntityToQuickPick(entity: AvailableEntity): vscode.QuickPickIt
  */
 async function chooseEntitiesViaQuickPick(connectionState: AuthorizedConnectionState) {
 	const availableEntitiesResponse = retrieveAvailableEntities(
-		connectionState.activeOrganization!.UniqueName
+		connectionState.activeOrganization.UniqueName
 	).then((val) => val.data.map(availableEntityToQuickPick));
 
 	const selected = await vscode.window.showQuickPick(availableEntitiesResponse, {
@@ -238,7 +238,7 @@ async function chooseActionsViaFreeText(connectionState: AuthorizedConnectionSta
 
 async function chooseActionsViaQuickPick(connectionState: AuthorizedConnectionState) {
 	const availableActionsResponse = retrieveAvailableActions(
-		connectionState.activeOrganization!.UniqueName
+		connectionState.activeOrganization.UniqueName
 	).then((val) => val.data.map(availableActionToQuickPick));
 	const selected = await vscode.window.showQuickPick(availableActionsResponse, {
 		canPickMany: true,

@@ -78,7 +78,7 @@ type PublishFileInfo = {
 export async function publish(info: PublishFileInfo) {
 	const connection = await getConnectionState();
 	if (connection?.activeOrganization == null) throw new Error("Unauthorized");
-	await publishWebResource(connection.activeOrganization!.UniqueName, {
+	await publishWebResource(connection.activeOrganization.UniqueName, {
 		Path: info.fileConfiguration.output.absoluteOutputFile,
 		DisplayName: info.fileConfiguration.output.outputFileName.replace(/\\|(\/+)/g, "/"),
 		Name: info.fileConfiguration.output.relativeOutputFile.replace(/\\|(\/+)/g, "/"),

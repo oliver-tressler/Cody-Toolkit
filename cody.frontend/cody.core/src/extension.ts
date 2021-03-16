@@ -338,7 +338,8 @@ async function switchToOrganization(
 			? config.getCredentialsFileKey(connectionState.activeInstance.instanceId)
 			: await (async () => {
 					if (password != null) return password;
-					password = await requestPassword(connectionState.activeInstance!.instanceId);
+					if (connectionState.activeInstance == null) throw new Error("Chose org without active instance");
+					password = await requestPassword(connectionState.activeInstance.instanceId);
 					return password;
 			  })()
 	);
