@@ -176,12 +176,18 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"icon": "assets/d365-icon.png",
+					"icon": "./assets/d365-icon.png",
 					"id": "crmtooling",
 					"title": "Dynamics CRM"
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "crmtooling.pluginsandsteps",
+				"contents": "It looks like you are not connected to a Dynamics CRM Instance yet.\n Click the button below to connect to one. It might take a couple seconds for this window to refresh after the authentication process has been completed.\n[Connect](command:cody.toolkit.core.connect.switchInstance)"
+			}
+		],
 		"views": {
 			"crmtooling": [
 				{
