@@ -3,7 +3,7 @@
 "use strict";
 
 const path = require("path");
-
+const nodeExternals = require("webpack-node-externals");
 /**@type {import('webpack').Configuration}*/
 const config = {
 	target: "node", // vscode extensions run in a Node.js-context 📖 -> https://webpack.js.org/configuration/node/
@@ -17,9 +17,9 @@ const config = {
 		devtoolModuleFilenameTemplate: "../[resource-path]",
 	},
 	devtool: "source-map",
-	externals: {
-		vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/
-	},
+	externals: [{
+		vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed, 📖 -> https://webpack.js.org/configuration/externals/,
+	}, nodeExternals()],
 	resolve: {
 		// support reading TypeScript and JavaScript files, 📖 -> https://github.com/TypeStrong/ts-loader
 		extensions: [".ts", ".js"],

@@ -1,58 +1,227 @@
 {
-  "name": "cody-toolkit-pluginmanagement",
-  "author": {
-    "name": "Oliver Tressler",
-    "email": "oliver.tressler@protonmail.com"
-  },
-  "repository": {
-    "url": "https://github.com/otressler/cody-toolkit.git",
-    "type": "github"
-  },
-  "publisher": "otressler",
-  "icon": "assets/d365-icon.png",
-  "license": "GPLv3",
-  "displayName": "Cody Toolkit (Plugin Management)",
-  "description": "Browse and edit Dynamics CRM 2016 On-Premise Assemblies, Plugins, Steps and Images from within VS Code",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.54.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onCommand:cody-toolkit-plugin-manager.helloWorld"
-  ],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": []
-  },
-  "scripts": {
-    "vscode:prepublish": "webpack --mode production",
-    "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
-    "test-compile": "tsc -p ./"
-  },
-  "extensionDependencies": [
-    "otressler.cody-toolkit-core"
-  ],
-  "devDependencies": {
-    "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.4",
-    "@types/node": "^12.11.7",
-    "@types/vscode": "^1.54.0",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
-    "eslint": "^7.19.0",
-    "glob": "^7.1.6",
-    "mocha": "^8.2.1",
-    "ts-loader": "^8.0.14",
-    "typescript": "^4.1.3",
-    "vscode-test": "^1.5.0",
-    "webpack": "^5.19.0",
-    "webpack-cli": "^4.4.0"
-  },
-  "dependencies": {
-    "axios": "^0.21.1"
-  }
+	"name": "cody-toolkit-pluginmanagement",
+	"author": {
+		"name": "Oliver Tressler",
+		"email": "oliver.tressler@protonmail.com"
+	},
+	"repository": {
+		"url": "https://github.com/otressler/cody-toolkit.git",
+		"type": "github"
+	},
+	"publisher": "otressler",
+	"icon": "assets/d365-icon.png",
+	"license": "GPLv3",
+	"displayName": "Cody Toolkit (Plugin Management)",
+	"description": "Browse and edit Dynamics CRM 2016 On-Premise Assemblies, Plugins, Steps and Images from within VS Code",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.54.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onView:crmtooling.pluginsandsteps"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.crmtooling.pluginsandsteps.reload",
+				"title": "Reload",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.edit",
+				"title": "Edit",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.add",
+				"title": "Add",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(add)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.disable",
+				"title": "Disable",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(debug-pause)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.enable",
+				"title": "Enable",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(run)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.watch",
+				"title": "Auto-Deploy Assembly",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(eye)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.unwatch",
+				"title": "Stop Auto-Deploying Assembly",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(eye-closed)"
+			},
+			{
+				"command": "extension.crmtooling.pluginsandsteps.delete",
+				"title": "Delete",
+				"category": "CRM Plugin Explorer",
+				"icon": "$(trash)"
+			}
+		],
+		"configuration": {
+			"title": "Cody Toolkit (Plugin Management)",
+			"properties": {
+				"crmtooling.pluginBrowser.assemblyConfigurations": {
+					"type": "object",
+					"description": "Local paths to assembly DLLs",
+					"scope": "window"
+				},
+				"crmtooling.pluginBrowser.askBeforeAutomaticallyRemovingPlugins": {
+					"type": "boolean",
+					"description": "When updating an assembly it could be that plugins are missing. In that case the missing plugins and their child steps and images would be deleted. If this option is selected, you will be asked for confirmation before deletions are processed. If this option is set to false, a watched assembly will also not update automatically in case it detects that plugins are missing.",
+					"scope": "machine",
+					"default": true
+				}
+			}
+		},
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.edit",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.add",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.disable",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.enable",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.delete",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.unwatch",
+					"when": "false"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.watch",
+					"when": "false"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"group": "inline@1",
+					"when": "view == crmtooling.pluginsandsteps && viewItem == organization"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.edit",
+					"group": "inline@9",
+					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.add",
+					"group": "inline@8",
+					"when": "view == crmtooling.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.delete",
+					"group": "inline@10",
+					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.disable",
+					"group": "inline@1",
+					"when": "view == crmtooling.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.enable",
+					"group": "inline@1",
+					"when": "view == crmtooling.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.watch",
+					"group": "inline@1",
+					"when": "view == crmtooling.pluginsandsteps && viewItem == assembly"
+				},
+				{
+					"command": "extension.crmtooling.pluginsandsteps.unwatch",
+					"group": "inline@1",
+					"when": "view == crmtooling.pluginsandsteps && viewItem == assemblyWatched"
+				}
+			]
+		},
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"icon": "./assets/d365-icon.png",
+					"id": "crmtooling",
+					"title": "Dynamics CRM"
+				}
+			]
+		},
+		"views": {
+			"crmtooling": [
+				{
+					"id": "crmtooling.pluginsandsteps",
+					"name": "Plugin Browser"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"extensionDependencies": [
+		"otressler.cody-toolkit-core"
+	],
+	"devDependencies": {
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.54.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
+		"eslint": "^7.19.0",
+		"glob": "^7.1.6",
+		"mocha": "^8.2.1",
+		"ts-loader": "^8.0.14",
+		"typescript": "^4.1.3",
+		"vscode-test": "^1.5.0",
+		"webpack": "^5.19.0",
+		"webpack-cli": "^4.4.0",
+		"webpack-node-externals": "^2.5.2"
+	},
+	"dependencies": {
+		"@types/jsdom": "^16.2.7",
+		"@types/uuid": "^8.3.0",
+		"axios": "^0.21.1",
+		"jsdom": "^16.5.1",
+		"uuid": "^3.4.0"
+	}
 }
