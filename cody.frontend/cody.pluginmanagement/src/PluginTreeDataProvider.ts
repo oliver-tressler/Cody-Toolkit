@@ -93,6 +93,7 @@ export class Image extends TreeData {
 	}
 }
 
+// A typed tree data provider as there are different elements with different behaviors
 abstract class TreeDataProvider<T, C, P> {
 	constructor(protected treeElement: T) {}
 	abstract getChildren(): Promise<C[]>;
@@ -273,8 +274,8 @@ export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 		}, 7500);
 	}
 
-	async getTreeItem(element?: TreeData): Promise<vsc.TreeItem> {
-		return (await this.dataProviderFactory.getProvider(element))?.getElement()!;
+	async getTreeItem(element?: TreeData) {
+		return (await this.dataProviderFactory.getProvider(element)).getElement() ?? {};
 	}
 	async getChildren(element?: TreeData): Promise<TreeData[]> {
 		const children = (await (await this.dataProviderFactory?.getProvider(element)).getChildren()) ?? [];
@@ -284,8 +285,8 @@ export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 		return children;
 	}
 
-	async getParent(element?: TreeData): Promise<TreeData> {
-		return (await this.dataProviderFactory.getProvider(element))?.getParent()!;
+	async getParent(element?: TreeData) {
+		return (await this.dataProviderFactory.getProvider(element)).getParent();
 	}
 
 	refreshElement() {
