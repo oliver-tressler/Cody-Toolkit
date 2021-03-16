@@ -64,7 +64,7 @@ export class PluginBrowserProvider implements vsc.Disposable {
 									diff.MissingLocal.map((val) => val.Name).join(", "),
 								"Proceed anyway",
 								"Cancel"
-							)) != "Proceed anyway"
+							)) !== "Proceed anyway"
 						) {
 							return;
 						}

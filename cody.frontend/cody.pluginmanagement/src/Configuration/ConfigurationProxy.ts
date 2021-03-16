@@ -79,7 +79,7 @@ export class PluginBrowserConfiguration {
 	static askBeforeAutomaticallyRemovingPlugins: boolean;
 }
 
-export type AssemblyConfiguration  = {
+export type AssemblyConfiguration = {
 	assemblyId: string;
 	assemblyPath: string;
-}
+};
