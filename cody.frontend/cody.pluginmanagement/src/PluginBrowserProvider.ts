@@ -19,10 +19,10 @@ export class PluginBrowserProvider implements vsc.Disposable {
 		});
 		subscriptions.push(
 			treeView,
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.reload", async () => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.reload", async () => {
 				this.dataProvider?.refreshElement();
 			}),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.watch", async (data: Assembly) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.watch", async (data: Assembly) => {
 				await withAuthentication(async ({ activeOrganization }) => {
 					const assemblyConfigurations = PluginBrowserConfiguration.assemblyConfigurations;
 					let assemblyConfig = assemblyConfigurations[data.id];
@@ -82,14 +82,14 @@ export class PluginBrowserProvider implements vsc.Disposable {
 					this.dataProvider?.refreshElement();
 				});
 			}),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.unwatch", async (data: Assembly) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.unwatch", async (data: Assembly) => {
 				await withAuthentication(async ({ activeOrganization }) => {
 					await Api.unwatchAssembly(activeOrganization.UniqueName, data.id);
 					vsc.window.showInformationMessage(`Stopped watching ${data.name}.`);
 					this.dataProvider?.refreshElement();
 				});
 			}),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.enable", async (data: Step) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.enable", async (data: Step) => {
 				await withAuthentication(async ({ activeOrganization }) => {
 					await vsc.window.withProgress(
 						{
@@ -105,7 +105,7 @@ export class PluginBrowserProvider implements vsc.Disposable {
 					this.dataProvider?.refreshElement();
 				});
 			}),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.disable", async (data: Step) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.disable", async (data: Step) => {
 				await withAuthentication(async ({ activeOrganization }) => {
 					await vsc.window.withProgress(
 						{

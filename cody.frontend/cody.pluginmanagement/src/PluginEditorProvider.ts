@@ -19,7 +19,7 @@ export class PluginEditorProvider {
 		this.createdPanels = {};
 		context.subscriptions.push(
 			vsc.commands.registerCommand(
-				"extension.crmtooling.pluginsandsteps.add",
+				"cody.toolkit.pluginmanagement.add",
 				async (data: Organization | Plugin | Step) => {
 					return await withAuthentication(async ({ activeOrganization }) => {
 						const provider = new EditorProvider();
@@ -135,7 +135,7 @@ export class PluginEditorProvider {
 					});
 				}
 			),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.edit", async (data: TreeData) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.edit", async (data: TreeData) => {
 				return await withAuthentication(async ({ activeOrganization }) => {
 					const cleanedId = data.id.replace("POST", "").replace("PRE", "");
 					const panelId = this.dataToPanelIdMap[cleanedId] || cleanedId;
@@ -206,7 +206,7 @@ export class PluginEditorProvider {
 					);
 				});
 			}),
-			vsc.commands.registerCommand("extension.crmtooling.pluginsandsteps.delete", async (data: TreeData) => {
+			vsc.commands.registerCommand("cody.toolkit.pluginmanagement.delete", async (data: TreeData) => {
 				return await withAuthentication(async ({ activeOrganization }) => {
 					const cleanedId = data.id.replace("POST", "").replace("PRE", "");
 					const response = await vsc.window.showQuickPick(["Yes", "No"], {
@@ -251,7 +251,7 @@ export class PluginEditorProvider {
 	}
 
 	refresh() {
-		vsc.commands.executeCommand("extension.crmtooling.pluginsandsteps.reload");
+		vsc.commands.executeCommand("cody.toolkit.pluginmanagement.reload");
 	}
 
 	private async promptForAssemblyPath(payload: { fileType: string }) {

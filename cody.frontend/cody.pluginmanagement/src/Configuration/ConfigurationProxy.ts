@@ -72,10 +72,10 @@ export class Configuration {
 }
 
 export class PluginBrowserConfiguration {
-	@config("crmtooling.pluginBrowser", vscode.ConfigurationTarget.Workspace)
+	@config("cody.toolkit.pluginmanagement", vscode.ConfigurationTarget.Workspace)
 	static assemblyConfigurations: { [assemblyId: string]: AssemblyConfiguration };
 
-	@config("crmtooling.pluginBrowser", vscode.ConfigurationTarget.Workspace)
+	@config("cody.toolkit.pluginmanagement", vscode.ConfigurationTarget.Workspace)
 	static askBeforeAutomaticallyRemovingPlugins: boolean;
 }
 

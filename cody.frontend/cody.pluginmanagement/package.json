@@ -27,49 +27,49 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "extension.crmtooling.pluginsandsteps.reload",
+				"command": "cody.toolkit.pluginmanagement.reload",
 				"title": "Reload",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(refresh)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.edit",
+				"command": "cody.toolkit.pluginmanagement.edit",
 				"title": "Edit",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(edit)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.add",
+				"command": "cody.toolkit.pluginmanagement.add",
 				"title": "Add",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(add)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.disable",
+				"command": "cody.toolkit.pluginmanagement.disable",
 				"title": "Disable",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(debug-pause)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.enable",
+				"command": "cody.toolkit.pluginmanagement.enable",
 				"title": "Enable",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(run)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.watch",
+				"command": "cody.toolkit.pluginmanagement.watch",
 				"title": "Auto-Deploy Assembly",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(eye)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.unwatch",
+				"command": "cody.toolkit.pluginmanagement.unwatch",
 				"title": "Stop Auto-Deploying Assembly",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(eye-closed)"
 			},
 			{
-				"command": "extension.crmtooling.pluginsandsteps.delete",
+				"command": "cody.toolkit.pluginmanagement.delete",
 				"title": "Delete",
 				"category": "CRM Plugin Explorer",
 				"icon": "$(trash)"
@@ -78,12 +78,12 @@
 		"configuration": {
 			"title": "Cody Toolkit (Plugin Management)",
 			"properties": {
-				"crmtooling.pluginBrowser.assemblyConfigurations": {
+				"cody.toolkit.pluginmanagement.assemblyConfigurations": {
 					"type": "object",
 					"description": "Local paths to assembly DLLs",
 					"scope": "window"
 				},
-				"crmtooling.pluginBrowser.askBeforeAutomaticallyRemovingPlugins": {
+				"cody.toolkit.pluginmanagement.askBeforeAutomaticallyRemovingPlugins": {
 					"type": "boolean",
 					"description": "When updating an assembly it could be that plugins are missing. In that case the missing plugins and their child steps and images would be deleted. If this option is selected, you will be asked for confirmation before deletions are processed. If this option is set to false, a watched assembly will also not update automatically in case it detects that plugins are missing.",
 					"scope": "machine",
@@ -94,80 +94,80 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"command": "cody.toolkit.pluginmanagement.reload",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.edit",
+					"command": "cody.toolkit.pluginmanagement.edit",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.add",
+					"command": "cody.toolkit.pluginmanagement.add",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.disable",
+					"command": "cody.toolkit.pluginmanagement.disable",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.enable",
+					"command": "cody.toolkit.pluginmanagement.enable",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.delete",
+					"command": "cody.toolkit.pluginmanagement.delete",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"command": "cody.toolkit.pluginmanagement.reload",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.unwatch",
+					"command": "cody.toolkit.pluginmanagement.unwatch",
 					"when": "false"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.watch",
+					"command": "cody.toolkit.pluginmanagement.watch",
 					"when": "false"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "extension.crmtooling.pluginsandsteps.reload",
+					"command": "cody.toolkit.pluginmanagement.reload",
 					"group": "inline@1",
 					"when": "view == crmtooling.pluginsandsteps && viewItem == organization"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.edit",
+					"command": "cody.toolkit.pluginmanagement.edit",
 					"group": "inline@9",
 					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.add",
+					"command": "cody.toolkit.pluginmanagement.add",
 					"group": "inline@8",
 					"when": "view == crmtooling.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.delete",
+					"command": "cody.toolkit.pluginmanagement.delete",
 					"group": "inline@10",
 					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.disable",
+					"command": "cody.toolkit.pluginmanagement.disable",
 					"group": "inline@1",
 					"when": "view == crmtooling.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.enable",
+					"command": "cody.toolkit.pluginmanagement.enable",
 					"group": "inline@1",
 					"when": "view == crmtooling.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.watch",
+					"command": "cody.toolkit.pluginmanagement.watch",
 					"group": "inline@1",
 					"when": "view == crmtooling.pluginsandsteps && viewItem == assembly"
 				},
 				{
-					"command": "extension.crmtooling.pluginsandsteps.unwatch",
+					"command": "cody.toolkit.pluginmanagement.unwatch",
 					"group": "inline@1",
 					"when": "view == crmtooling.pluginsandsteps && viewItem == assemblyWatched"
 				}
