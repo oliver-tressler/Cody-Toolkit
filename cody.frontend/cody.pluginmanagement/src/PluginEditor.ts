@@ -32,8 +32,8 @@ export class EditorProvider {
 					{
 						enableScripts: true,
 						localResourceRoots: [
-							vsc.Uri.file(path.join(context.extensionPath, "out", "PluginBrowser", "static", "CSS")),
-							vsc.Uri.file(path.join(context.extensionPath, "out", "PluginBrowser", "static", "JS")),
+							vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS")),
+							vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS")),
 							vsc.Uri.file(path.join(context.extensionPath, "assets")),
 						],
 					}
@@ -47,7 +47,7 @@ export class EditorProvider {
 			const htmlPath = editor.htmlPath;
 			const script = panel.webview.asWebviewUri(editor.scriptPath);
 			const style = panel.webview.asWebviewUri(
-				vsc.Uri.file(path.join(context.extensionPath, "out", "PluginBrowser", "static", "CSS", "style.css"))
+				vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS", "style.css"))
 			);
 			const icon = panel.webview.asWebviewUri(editor.iconPath);
 			const content = fs
@@ -159,10 +159,10 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 	constructor(context: vsc.ExtensionContext) {
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "image.svg"));
 		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "HTML", "image-form.html")
+			path.join(context.extensionPath, "dist", "static", "HTML", "image-form.html")
 		);
 		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "JS", "image_script.js")
+			path.join(context.extensionPath, "dist", "static", "JS", "image_script.js")
 		);
 	}
 
@@ -323,10 +323,10 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 	constructor(context: vsc.ExtensionContext) {
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "step.svg"));
 		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "HTML", "step-form.html")
+			path.join(context.extensionPath, "dist", "static", "HTML", "step-form.html")
 		);
 		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "JS", "step_script.js")
+			path.join(context.extensionPath, "dist", "static", "JS", "step_script.js")
 		);
 	}
 
@@ -568,10 +568,10 @@ class AssemblyEditor implements IEditor<AssemblyItem, Assembly, Organization> {
 	constructor(context: vsc.ExtensionContext) {
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "assembly.svg"));
 		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "HTML", "assembly-form.html")
+			path.join(context.extensionPath, "dist", "static", "HTML", "assembly-form.html")
 		);
 		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "out", "PluginBrowser", "static", "JS", "assembly_script.js")
+			path.join(context.extensionPath, "dist", "static", "JS", "assembly_script.js")
 		);
 	}
 }
