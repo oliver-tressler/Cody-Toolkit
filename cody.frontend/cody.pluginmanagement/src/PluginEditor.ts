@@ -3,8 +3,8 @@ import { JSDOM } from "jsdom";
 import * as path from "path";
 import { v4 } from "uuid";
 import * as vsc from "vscode";
-import { Configuration, PluginBrowserConfiguration } from "./Configuration/ConfigurationProxy";
 import { Api } from "./Api";
+import { PluginBrowserConfiguration } from "./Configuration/ConfigurationProxy";
 import { Assembly, Image, Organization, Plugin, Step, TreeData } from "./PluginTreeDataProvider";
 import { withAuthentication } from "./Utils/connection";
 export class EditorProvider {
@@ -19,7 +19,7 @@ export class EditorProvider {
 			const factory = new EditorFactory();
 			const editor = factory.getEditor(context, data, mode);
 			progress.report({ message: "Fetching Data" });
-			const item = await (mode == "add" ? editor.getDetailsCreate(data) : editor.getDetailsUpdate(data));
+			const item = await (mode === "add" ? editor.getDetailsCreate(data) : editor.getDetailsUpdate(data));
 			progress.report({ message: "Generating Editor" });
 			const panelId = editor.getPanelId(item) ?? v4();
 			const panelName = editor.getPanelName(item);
@@ -57,8 +57,11 @@ export class EditorProvider {
 				.replace("{{imageicon}}", icon.toString());
 
 			const dom = new JSDOM(content);
-			if (mode == "add") editor.renderCreate(dom.window.document, item);
-			else editor.renderUpdate(dom.window.document, item);
+			if (mode === "add") {
+				editor.renderCreate(dom.window.document, item);
+			} else {
+				editor.renderUpdate(dom.window.document, item);
+			}
 			panel.webview.html = dom.serialize();
 			return { panelId, panel };
 		} catch (e) {
@@ -70,25 +73,25 @@ export class EditorProvider {
 
 class EditorFactory {
 	getEditor(context: vsc.ExtensionContext, data: TreeData, mode: "add" | "edit"): IEditor<any, TreeData, TreeData> {
-		if (mode == "add") {
-			if (data.contextValue?.indexOf("step") >= 0) {
+		if (mode === "add" && data.contextValue) {
+			if (data.contextValue.indexOf("step") >= 0) {
 				return new ImageEditor(context);
 			}
-			if (data.contextValue?.indexOf("plugin") >= 0) {
+			if (data.contextValue.indexOf("plugin") >= 0) {
 				return new StepEditor(context);
 			}
-			if (data.contextValue?.indexOf("organization") >= 0) {
+			if (data.contextValue.indexOf("organization") >= 0) {
 				return new AssemblyEditor(context);
 			}
 		}
-		if (mode == "edit") {
-			if (data.contextValue?.indexOf("image") >= 0) {
+		if (mode === "edit" && data.contextValue) {
+			if (data.contextValue.indexOf("image") >= 0) {
 				return new ImageEditor(context);
 			}
-			if (data.contextValue?.indexOf("step") >= 0) {
+			if (data.contextValue.indexOf("step") >= 0) {
 				return new StepEditor(context);
 			}
-			if (data.contextValue?.indexOf("assembly") >= 0) {
+			if (data.contextValue.indexOf("assembly") >= 0) {
 				return new AssemblyEditor(context);
 			}
 		}
@@ -102,7 +105,7 @@ interface IEditor<I, T, P> {
 	scriptPath: vsc.Uri;
 	getPanelId(item: I): string;
 	getPanelName(item: I): string;
-	getDetailsCreate(data: P): I | Promise<I>;
+	getDetailsCreate(data: P): I | Promise<I | undefined>;
 	getDetailsUpdate(data: T): I | Promise<I>;
 	renderCreate(document: Document, item: I): void;
 	renderUpdate(document: Document, item: I): void;
@@ -123,7 +126,9 @@ function createCheckbox(
 	input.type = "checkbox";
 	input.name = name;
 	input.id = id;
-	if (state) input.setAttribute("checked", "true");
+	if (state) {
+		input.setAttribute("checked", "true");
+	}
 	for (const key in attributes) {
 		if (attributes.hasOwnProperty(key)) {
 			input.setAttribute(key, attributes[key]);
@@ -158,12 +163,8 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 	scriptPath: vsc.Uri;
 	constructor(context: vsc.ExtensionContext) {
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "image.svg"));
-		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "HTML", "image-form.html")
-		);
-		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "JS", "image_script.js")
-		);
+		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "image-form.html"));
+		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "image_script.js"));
 	}
 
 	getPanelId(item: ImageItem): string {
@@ -191,22 +192,24 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 	}
 
 	renderUpdate(document: Document, item: ImageItem): void {
-		document.getElementById("heading_image_name").textContent = item.Name;
-		document.getElementById("input_image_name").setAttribute("value", item.Name);
-		document.getElementById("input_image_entity_alias").setAttribute("value", item.EntityAlias);
+		document.getElementById("heading_image_name")!.textContent = item.Name;
+		document.getElementById("input_image_name")!.setAttribute("value", item.Name);
+		document.getElementById("input_image_entity_alias")!.setAttribute("value", item.EntityAlias);
 
 		if (!item.AvailablePre) {
-			document.getElementById("input_container_pre_image").style.display = "none";
+			document.getElementById("input_container_pre_image")!.style.display = "none";
 		} else {
 			if (item.IsPre) {
-				document.getElementById("input_image_pre_image").setAttribute("checked", "true");
+				document.getElementById("input_image_pre_image")!.setAttribute("checked", "true");
 			}
 		}
 
 		if (!item.AvailablePost) {
-			document.getElementById("input_container_post_image").style.display = "none";
+			document.getElementById("input_container_post_image")!.style.display = "none";
 		} else {
-			if (item.IsPost) document.getElementById("input_image_post_image").setAttribute("checked", "true");
+			if (item.IsPost) {
+				document.getElementById("input_image_post_image")!.setAttribute("checked", "true");
+			}
 		}
 		const attributes = item.ImageAttributes;
 		const attributeElement = document.createDocumentFragment();
@@ -240,23 +243,23 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 			row.append(checkBoxCell, displayNameCell, logicalNameCell);
 			attributeElement.append(row);
 		}
-		document.querySelector("#attribute_container tbody").append(attributeElement);
+		document.querySelector("#attribute_container tbody")!.append(attributeElement);
 	}
 
 	renderCreate(document: Document, item: ImageItem): void {
-		document.getElementById("heading_image_name").textContent = "New Image";
-		document.getElementById("input_image_name").setAttribute("value", "Image");
-		document.getElementById("input_image_entity_alias").setAttribute("value", "EntityAlias");
+		document.getElementById("heading_image_name")!.textContent = "New Image";
+		document.getElementById("input_image_name")!.setAttribute("value", "Image");
+		document.getElementById("input_image_entity_alias")!.setAttribute("value", "EntityAlias");
 		if (!item.AvailablePre) {
-			document.getElementById("input_container_pre_image").style.display = "none";
+			document.getElementById("input_container_pre_image")!.style.display = "none";
 		} else {
-			document.getElementById("input_image_pre_image").setAttribute("checked", "true");
+			document.getElementById("input_image_pre_image")!.setAttribute("checked", "true");
 		}
 
 		if (!item.AvailablePost) {
-			document.getElementById("input_container_post_image").style.display = "none";
+			document.getElementById("input_container_post_image")!.style.display = "none";
 		} else {
-			document.getElementById("input_image_post_image").setAttribute("checked", "true");
+			document.getElementById("input_image_post_image")!.setAttribute("checked", "true");
 		}
 		const attributes = item.ImageAttributes;
 		const attributeElement = document.createDocumentFragment();
@@ -290,7 +293,7 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 			row.append(checkBoxCell, displayNameCell, logicalNameCell);
 			attributeElement.append(row);
 		}
-		document.querySelector("#attribute_container tbody").append(attributeElement);
+		document.querySelector("#attribute_container tbody")!.append(attributeElement);
 	}
 }
 
@@ -321,13 +324,12 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 	private entities: { DisplayName: string; LogicalName: string }[];
 	private users: { UserName: string; UserId: string }[];
 	constructor(context: vsc.ExtensionContext) {
+		this.messages = [];
+		this.entities = [];
+		this.users = [];
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "step.svg"));
-		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "HTML", "step-form.html")
-		);
-		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "JS", "step_script.js")
-		);
+		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "step-form.html"));
+		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "step_script.js"));
 	}
 
 	getPanelId(item: StepItem): string {
@@ -348,25 +350,25 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 		return step;
 	}
 
-	async getDetailsCreate(data: Plugin): Promise<StepItem> {
+	async getDetailsCreate(data: Plugin) {
 		const messageReq = await Api.retrieveMessages(data.assembly.organization.id);
-		// const entityReq = await Api.retrieveEntities(data.assembly.organization.id);
+		const entityReq = await Api.retrieveEntities(data.assembly.organization.id);
 		const userReq = await Api.retrieveUsers(data.assembly.organization.id);
 		this.messages = messageReq.data;
-		// this.entities = entityReq.data;
+		this.entities = entityReq.data;
 		this.users = userReq.data;
-		return null;
+		return undefined;
 	}
 
 	renderUpdate(document: Document, item: StepItem): void {
-		document.getElementById("heading_step_name").textContent = item.Name;
-		document.getElementById("input_step_name").setAttribute("value", item.Name);
-		document.getElementById("input_step_message_name").setAttribute("value", item.MessageName);
-		if (item.EntityName && item.EntityName != "none") {
-			document.getElementById("input_step_entity_name").setAttribute("value", item.EntityName);
+		document.getElementById("heading_step_name")!.textContent = item.Name;
+		document.getElementById("input_step_name")!.setAttribute("value", item.Name);
+		document.getElementById("input_step_message_name")!.setAttribute("value", item.MessageName);
+		if (item.EntityName && item.EntityName !== "none") {
+			document.getElementById("input_step_entity_name")!.setAttribute("value", item.EntityName);
 		}
-		document.getElementById("input_step_execution_order").setAttribute("value", item.ExecutionOrder.toString());
-		const messageNameList = document.getElementById("messages");
+		document.getElementById("input_step_execution_order")!.setAttribute("value", item.ExecutionOrder.toString());
+		const messageNameList = document.getElementById("messages")!;
 		messageNameList.append(
 			...this.messages.map((message) => {
 				const option = document.createElement("option");
@@ -376,7 +378,7 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 				return option;
 			})
 		);
-		const entityNameList = document.getElementById("entitynames");
+		const entityNameList = document.getElementById("entitynames")!;
 		entityNameList.append(
 			...this.entities.map((entity) => {
 				const option = document.createElement("option");
@@ -398,7 +400,7 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 				option.id = "user_" + user.UserId;
 				option.value = user.UserId;
 				option.label = option.textContent = user.UserName;
-				if (user.UserId == item.UserId) {
+				if (user.UserId === item.UserId) {
 					option.setAttribute("selected", "true");
 				}
 				return option;
@@ -407,7 +409,7 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 
 		const stageSelection = document.getElementById("input_step_stage") as HTMLSelectElement;
 		stageSelection.value = item.Stage.toString();
-		stageSelection.querySelector(`option[value="${item.Stage}"]`).setAttribute("selected", "true");
+		stageSelection.querySelector(`option[value="${item.Stage}"]`)!.setAttribute("selected", "true");
 
 		if (item.IsAsync ?? false) {
 			const asyncSelection = document.getElementById("input_step_async") as HTMLInputElement;
@@ -453,13 +455,13 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 			row.append(checkBoxCell, displayNameCell, logicalNameCell);
 			attributeElement.append(row);
 		}
-		document.querySelector("#attribute_container tbody").append(attributeElement);
+		document.querySelector("#attribute_container tbody")!.append(attributeElement);
 	}
 
 	renderCreate(document: Document) {
-		document.getElementById("heading_step_name").textContent = "New Step";
-		document.getElementById("attribute_column").style.display = "none";
-		const messageNameList = document.getElementById("messages");
+		document.getElementById("heading_step_name")!.textContent = "New Step";
+		document.getElementById("attribute_column")!.style.display = "none";
+		const messageNameList = document.getElementById("messages")!;
 		messageNameList.append(
 			...this.messages.map((message) => {
 				const option = document.createElement("option");
@@ -532,24 +534,24 @@ class AssemblyEditor implements IEditor<AssemblyItem, Assembly, Organization> {
 		return item;
 	}
 
-	async getDetailsCreate(data: Organization): Promise<AssemblyItem> {
-		return null;
+	async getDetailsCreate(data: Organization) {
+		return undefined;
 	}
 
 	renderUpdate(document: Document, item: AssemblyItem): void {
-		document.getElementById("heading_assembly_name").textContent = item.Name;
-		document.getElementById("input_assembly_name").setAttribute("value", item.Name);
+		document.getElementById("heading_assembly_name")!.textContent = item.Name;
+		document.getElementById("input_assembly_name")!.setAttribute("value", item.Name);
 		if (item.FilePath) {
-			document.getElementById("input_assembly_file_location").setAttribute("value", item.FilePath);
+			document.getElementById("input_assembly_file_location")!.setAttribute("value", item.FilePath);
 		}
 		if (item.IsSandboxed) {
-			document.getElementById("input_assembly_sandboxed").setAttribute("checked", "true");
+			document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
 		}
-		document.getElementById("input_assembly_deployment").setAttribute("value", item.DeploymentMode.toString());
-		document.getElementById("input_assembly_metadata_name").setAttribute("value", item.Metadata?.AssemblyName);
-		document.getElementById("input_assembly_metadata_version").setAttribute("value", item.Metadata?.Version);
-		document.getElementById("input_assembly_metadata_culture").setAttribute("value", item.Metadata?.Culture);
-		document.getElementById("input_assembly_metadata_key").setAttribute("value", item.Metadata?.PublicKeyToken);
+		document.getElementById("input_assembly_deployment")!.setAttribute("value", item.DeploymentMode.toString());
+		document.getElementById("input_assembly_metadata_name")!.setAttribute("value", item.Metadata?.AssemblyName);
+		document.getElementById("input_assembly_metadata_version")!.setAttribute("value", item.Metadata?.Version);
+		document.getElementById("input_assembly_metadata_culture")!.setAttribute("value", item.Metadata?.Culture);
+		document.getElementById("input_assembly_metadata_key")!.setAttribute("value", item.Metadata?.PublicKeyToken);
 		const pluginTypes = item.Metadata?.DetectedPluginTypes?.map((pt) => {
 			const element = document.createElement("p");
 			element.textContent = pt.Name;
@@ -557,21 +559,17 @@ class AssemblyEditor implements IEditor<AssemblyItem, Assembly, Organization> {
 			element.title = pt.FullName;
 			return element;
 		});
-		document.getElementById("plugin_types").append(...pluginTypes);
+		document.getElementById("plugin_types")!.append(...pluginTypes);
 	}
 
 	renderCreate(document: Document): void {
-		document.getElementById("heading_assembly_name").textContent = "New Assembly";
-		document.getElementById("input_assembly_sandboxed").setAttribute("checked", "true");
+		document.getElementById("heading_assembly_name")!.textContent = "New Assembly";
+		document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
 	}
 
 	constructor(context: vsc.ExtensionContext) {
 		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "assembly.svg"));
-		this.htmlPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "HTML", "assembly-form.html")
-		);
-		this.scriptPath = vsc.Uri.file(
-			path.join(context.extensionPath, "dist", "static", "JS", "assembly_script.js")
-		);
+		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "assembly-form.html"));
+		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "assembly_script.js"));
 	}
 }
