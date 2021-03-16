@@ -3,7 +3,7 @@ import * as path from "path";
 import * as vsc from "vscode";
 import { Api } from "./Api";
 import { getConnectionState } from "./Utils/connection";
-export type TreeDataType = "organization" | "assembly" | "plugin" | "step" | "image";
+export type TreeDataType = "organization" | "assembly" | "plugin" | "step" | "image" | "root";
 
 export abstract class TreeData extends vsc.TreeItem {
 	constructor(public name: string, public id: string, public type: TreeDataType) {
@@ -20,6 +20,15 @@ export abstract class TreeData extends vsc.TreeItem {
 		);
 		this.contextValue = type;
 		this.id = id;
+	}
+}
+
+export class Root extends TreeData {
+	/**
+	 *
+	 */
+	constructor() {
+		super("", "root", "root");
 	}
 }
 
@@ -204,13 +213,13 @@ class ImageTreeDataProvider extends TreeDataProvider<Image, TreeData, Step> {
 	}
 }
 
-class RootTreeDataProvider extends TreeDataProvider<TreeData, TreeData, TreeData> {
-	constructor(data?: Organization) {
-		super(data);
+class RootTreeDataProvider extends TreeDataProvider<Root, TreeData, TreeData> {
+	constructor(private org?: Organization) {
+		super(new Root());
 	}
 
 	async getChildren(): Promise<TreeData[]> {
-		return this.treeElement ? [this.treeElement] : [];
+		return this.org ? [this.org] : [];
 	}
 	getElement(): vsc.TreeItem | undefined {
 		return undefined;
@@ -240,11 +249,12 @@ class TreeDataProviderFactory {
 				return new StepTreeDataProvider(data as Step);
 			case "image":
 				return new ImageTreeDataProvider(data as Image);
+			case "root":
+				return new RootTreeDataProvider(undefined);
 		}
 	}
 }
 
-// TODO: Fix config and api created in every method
 export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 	readonly onDidChangeTreeData?: vsc.Event<TreeData | undefined>;
 	private dataProviderFactory: TreeDataProviderFactory;
@@ -259,8 +269,8 @@ export class DataProvider implements vsc.TreeDataProvider<TreeData> {
 			if (connectionState?.activeOrganization?.UniqueName === this.rootElement?.id) {
 				return;
 			}
-			this._onDidChangeTreeData.fire(null);
-		}, 10000);
+			this._onDidChangeTreeData.fire(undefined);
+		}, 7500);
 	}
 
 	async getTreeItem(element?: TreeData): Promise<vsc.TreeItem> {

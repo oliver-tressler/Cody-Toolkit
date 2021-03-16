@@ -339,7 +339,6 @@ export class PluginEditorProvider {
 						}
 
 						this.refresh();
-						// TODO: Return value in server response
 						return { AssemblyName: response.data.AssemblyName, Id: response.data.Id };
 					}
 				);
