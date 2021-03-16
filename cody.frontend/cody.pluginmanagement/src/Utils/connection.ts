@@ -13,11 +13,19 @@ export type AuthorizedConnectionState = {
 /**
  * Get the connection state from cody core to determine the active instance and organization
  */
-export async function getConnectionState() {
+export async function getConnectionState(): Promise<ConnectionState> {
 	if ((await vscode.commands.getCommands(true)).includes("cody.toolkit.core.getConnectionState")) {
-		return vscode.commands.executeCommand<ConnectionState>("cody.toolkit.core.getConnectionState");
+		return (
+			(await vscode.commands.executeCommand<ConnectionState>("cody.toolkit.core.getConnectionState")) ?? {
+				activeInstance: undefined,
+				activeOrganization: undefined,
+			}
+		);
 	}
-	throw new Error("Unauthorized - Cody Core is still loading");
+	return {
+		activeInstance: undefined,
+		activeOrganization: undefined,
+	};
 }
 
 export async function withAuthentication<T>(delegate: (connectionState: AuthorizedConnectionState) => T) {
