@@ -1,7 +1,10 @@
 import { WebviewPanel } from "vscode";
 
+/**
+ * Basically a wrapper around VS Codes Webview <-> Extension Interface to
+ * easily do request/response and message sending
+ */
 export class WebviewExtensionInterface {
-	private pendingRequests: { [id: string]: AsyncCompletionSource<any> };
 	private messageHandlers: {
 		[command: string]: {
 			id: string;
@@ -9,13 +12,9 @@ export class WebviewExtensionInterface {
 		}[];
 	};
 	constructor(private panel: WebviewPanel) {
-		this.pendingRequests = {};
 		this.messageHandlers = {};
 		this.panel.webview.onDidReceiveMessage((message) => {
-			if (this.pendingRequests[message.id] != null) {
-				const completionSource = this.pendingRequests[message.id];
-				completionSource.setResult(message);
-			} else if (message.command && this.messageHandlers[message.command] != null) {
+			if (message.command && this.messageHandlers[message.command] != null) {
 				for (const handler of this.messageHandlers[message.command]) {
 					handler.handler({ command: message.comand, id: message.id, payload: message.payload });
 				}
@@ -23,26 +22,18 @@ export class WebviewExtensionInterface {
 		});
 	}
 
-	sendRequest(request: WebviewRequest) {
-		const requestObject = { id: request.id, command: request.command, payload: request.payload };
-		this.panel.webview.postMessage(requestObject);
-		const completionSource = new AsyncCompletionSource();
-		this.pendingRequests[requestObject.id] = completionSource;
-		return completionSource.awaiter;
-	}
-
-	sendMessage(command: string, id: string, payload: any) {
+	sendMessage<T>(command: string, id: string, payload: T) {
 		this.panel.webview.postMessage({ command, id, payload: payload });
 	}
 
-	on(command: string, handlerId: string, handler: (message: WebviewRequest) => Promise<any>) {
+	on<T extends WebviewRequest>(command: string, handlerId: string, handler: (message: T) => Promise<any>) {
 		if (this.messageHandlers[command] == null) {
 			this.messageHandlers[command] = [];
 		}
 		this.messageHandlers[command].push({
 			id: handlerId,
 			handler: (message) => {
-				handler(message)
+				handler(message as T)
 					.then((response) => {
 						this.panel.webview.postMessage({
 							id: message.id,
