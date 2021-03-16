@@ -1,0 +1,78 @@
+{
+	"name": "cody-toolkit-core",
+	"author": {
+		"name": "Oliver Tressler",
+		"email": "oliver.tressler@protonmail.com"
+	},
+	"repository": {
+		"url": "https://github.com/otressler/cody-toolkit.git",
+		"type": "github"
+	},
+	"publisher": "otressler",
+	"icon": "assets/d365-icon.png",
+	"license": "GPLv3",
+	"displayName": "Cody Toolkit (Core)",
+	"description": "Connect to your Dynamics CRM 2016 On-Premise Instances directly from VS Code. Required for other Cody Toolkit extensions.",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.53.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "cody.toolkit.core.connect.changeInstance",
+				"title": "Change the currently active instance",
+				"category": "Cody Connect"
+			},
+			{
+				"command": "cody.toolkit.core.connect.removeInstance",
+				"title": "Remove existing instance",
+				"category": "Cody Connect"
+			}
+		],
+		"configuration": {
+			"title": "Cody Toolkit",
+			"properties": {
+				"cody.toolkit.core.backendServerLocation": {
+					"description": "Path to the backend server executable.",
+					"type": "string",
+					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*cody.backend.api.exe)?$",
+					"scope": "machine"
+				},
+				"cody.toolkit.core.backendServerPort": {
+					"description": "Port used for launching the backend server.",
+					"type": "number",
+					"scope": "machine",
+					"default": 8080
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"devDependencies": {
+		"@types/node": "^10.17.54",
+		"@types/vscode": "^1.53.0",
+		"ts-loader": "^8.0.17",
+		"tslint": "^5.12.1",
+		"typescript": "^3.9.9",
+		"webpack": "^5.24.2",
+		"webpack-cli": "^4.5.0"
+	},
+	"dependencies": {
+		"@types/uuid": "^8.3.0",
+		"axios": "^0.21.1",
+		"uuid": "^8.3.2"
+	}
+}

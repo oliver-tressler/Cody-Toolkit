@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Web.Http;
-using cody.backend.api.Cache;
 using crmconnector;
 using Microsoft.Xrm.Sdk.Discovery;
 using Newtonsoft.Json;
@@ -16,30 +14,21 @@ namespace cody.backend.api.Controllers
         [Route("api/connections/{organization}")]
         public IHttpActionResult OrganizationHasAuthorizedOrganizationService(string organization)
         {
-            try
-            {
-                return Ok(ConnectionCache.Instance.Value.GetOrganizationService(organization)?.IsAuthenticated());
-            }
-            catch (HttpResponseException e)
-            {
-                if (e.Response.StatusCode == HttpStatusCode.Unauthorized)
-                    return Ok(false);
-                throw;
-            }
+            return Ok(ConnectionCache.Instance.Value.GetOrganizationService(organization)?.IsAuthenticated());
         }
 
         [HttpPost]
         [Route("api/connections/establish")]
         public IHttpActionResult Connect([FromBody] EstablishConnectionToOrganizationViaUserNameAndPasswordRequest request)
         {
-            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CrmConnectionDefaultAuthenticationDetailsProvider(request.DiscoveryServiceUrl, request.UserName, request.Password)));
+            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CrmConnectionDefaultAuthenticationDetailsProvider(request.UserName, request.Password, request.DiscoveryServiceUrl)));
         }
 
         [HttpPost]
         [Route("api/connections/establish/useCredentialsFile")]
         public IHttpActionResult Connect([FromBody]EstablishConnectionToOrganizationViaCredentialsFileRequest request)
         {
-            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CrmConnectionCredentialsFileBasedAuthenticationDetailsProvider(request.CredentialsFilePath)));
+            return Ok(ConnectionCache.Instance.Value.AddAuthorizedOrganization(request.Organization, new CredentialsFileManager().DecryptCredentialsFile(request.CredentialsFilePath, request.Key)));
         }
 
         [HttpPost]
@@ -56,7 +45,7 @@ namespace cody.backend.api.Controllers
         [Route("api/connections/available/useCredentialsFile")]
         public IHttpActionResult GetAvailableOrganizationsForInstance([FromBody]EstablishConnectionToInstanceViaCredentialsFileRequest request)
         {
-            var connectionDetailsProvider = new CrmConnectionCredentialsFileBasedAuthenticationDetailsProvider(request.CredentialsFilePath);
+            var connectionDetailsProvider = new CredentialsFileManager().DecryptCredentialsFile(request.CredentialsFilePath, request.Key);
             var disco = ConnectionCache.Instance.Value.GetTemporarayDiscoveryServiceProxy(connectionDetailsProvider);
             return Ok(GetOrganizationInfoFromInstance(disco));
         }
@@ -90,7 +79,7 @@ namespace cody.backend.api.Controllers
         {
             try
             {
-                var configurationDetailsProvider =  new CrmConnectionCredentialsFileBasedAuthenticationDetailsProvider(request.CredentialsFilePath);
+                var configurationDetailsProvider =  new CredentialsFileManager().DecryptCredentialsFile(request.CredentialsFilePath, request.Key);
                 ConnectionCache.Instance.Value.GetTemporarayDiscoveryServiceProxy(configurationDetailsProvider);
                 return Ok(true);
             }
@@ -100,6 +89,15 @@ namespace cody.backend.api.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("api/connections/createCredentialsFile")]
+        public IHttpActionResult CreateCredentialsFile(CreateCredentialsFileRequest request)
+        {
+            var cfm = new CredentialsFileManager();
+            cfm.CreateEncryptedFile(request.CredentialsFilePath, request.UserName, request.Password, request.DiscoveryServiceUrl, request.Key);
+            return Ok();
+        }
+        
         private IEnumerable<OrganizationInfo> GetOrganizationInfoFromInstance(IDiscoveryService discoveryService)
         {
             var response = discoveryService.Execute(new RetrieveOrganizationsRequest());
@@ -139,6 +137,7 @@ namespace cody.backend.api.Controllers
         public class EstablishConnectionToInstanceViaCredentialsFileRequest
         {
             public string CredentialsFilePath { get; set; }
+            public string Key { get; set; }
         }
 
         [JsonObject(MemberSerialization.OptOut)]
@@ -149,5 +148,14 @@ namespace cody.backend.api.Controllers
             public string Password { get; set; }
         }
 
+        [JsonObject(MemberSerialization.OptOut)]
+        public class CreateCredentialsFileRequest
+        {
+            public string DiscoveryServiceUrl { get; set; }
+            public string UserName { get; set; }
+            public string Password { get; set; }
+            public string CredentialsFilePath { get; set; }
+            public string Key { get; set; }
+        }
     }
 }

@@ -1,12 +1,17 @@
 ﻿namespace proxygenerator
 {
-    public class ProxyGenerationOptions
+    public class EntityProxyGenerationOptions
     {
-        public string Organization { get; set; }
         public string[] EntityLogicalNames { get; set; }
         public string Path { get; set; }
         public string ProxyNamespace { get; set; }
-        public eLanguage Language { get; set; }
         public bool GlobalEnums { get; set; }
+    }
+    
+    public class ActionProxyGenerationOptions
+    {
+        public string[] ActionNames { get; set; }
+        public string Path { get; set; }
+        public string ProxyNamespace { get; set; }
     }
 }

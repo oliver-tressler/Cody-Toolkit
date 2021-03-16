@@ -1,0 +1,97 @@
+{
+	"name": "cody-toolkit-solutionmanagement",
+	"author": {
+		"name": "Oliver Tressler",
+		"email": "oliver.tressler@protonmail.com"
+	},
+	"repository": {
+		"url": "https://github.com/otressler/cody-toolkit.git",
+		"type": "github"
+	},
+	"publisher": "otressler",
+	"icon": "assets/d365-icon.png",
+	"license": "GPLv3",
+	"displayName": "Cody Toolkit (Solution Management)",
+	"description": "Create new solutions in Dynamics CRM 2016 On-Premise directly from VS Code or add WebResources, Assemblies and Steps to existing solutions.",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.53.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:cody.toolkit.solutionmanagement.addassemblytosolution",
+		"onCommand:cody.toolkit.solutionmanagement.addwebresourcetosolution",
+		"onCommand:cody.toolkit.solutionmanagement.createnewsolution"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"configuration": {
+			"title": "Cody Toolkit",
+			"properties": {
+				"cody.toolkit.solutionmanagement.suggestDateBasedSolutionVersions": {
+					"markdownDescription": "Suggest date-based solution versions when creating solutions. Date based versions should not be used when working on managed solutions, since it will not be possible to patches. This setting defaults to `false` to avoid bad practices.",
+					"type": "boolean",
+					"scope": "window",
+					"default": false
+				},
+				"cody.toolkit.solutionmanagement.suggestSolutionNameBasedOnGitBranch": {
+					"markdownDescription": "Suggest a solution name based on the git branch you have currently checked out. This will take the name of the branch, replace all `/` characters with `_` and strips all non-numeric and non-alphabetic characters. All words that were previously separated by these characters will have their first letter characterized. This setting defaults to `false` to avoid accidental bad practices.",
+					"type": "boolean",
+					"scope": "window",
+					"default": false
+				},
+				"cody.toolkit.solutionmanagement.ignoreTheseBranchNamesForSolutionNameSuggestions": {
+					"markdownDescription": "Enter a string that can be parsed via the JS `RegExp` constructor. All branch names that are matched by this expression will be ignored for solution name suggestions. If `cody.toolkit.core.suggestSolutionNameBasedOnGitBranch` is set to `false`, this setting will be ignored.",
+					"type": "string",
+					"scope": "window",
+					"default": "^(main|master|dev|develop|development)$"
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "cody.toolkit.solutionmanagement.addassemblytosolution",
+				"title": "Add Assembly To Solution",
+				"category": "Cody Solution Management"
+			},
+			{
+				"command": "cody.toolkit.solutionmanagement.addwebresourcetosolution",
+				"title": "Add Web Resource To Solution",
+				"category": "Cody Solution Management"
+			},
+			{
+				"command": "cody.toolkit.solutionmanagement.createnewsolution",
+				"title": "Create Solution",
+				"category": "Cody Solution Management"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"extensionDependencies": [
+		"otressler.cody-toolkit-core"
+	],
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^5.2.6",
+		"@types/node": "^10.17.54",
+		"@types/vscode": "^1.53.0",
+		"glob": "^7.1.4",
+		"mocha": "^6.1.4",
+		"ts-loader": "^8.0.17",
+		"tslint": "^5.12.1",
+		"typescript": "^3.9.9",
+		"vscode-test": "^1.2.0",
+		"webpack": "^5.24.2",
+		"webpack-cli": "^4.5.0"
+	},
+	"dependencies": {
+		"axios": "^0.21.1"
+	}
+}

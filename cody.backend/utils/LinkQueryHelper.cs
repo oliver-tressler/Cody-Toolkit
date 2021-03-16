@@ -6,7 +6,8 @@ namespace utils
 {
     public static class LinkQueryHelper
     {
-        public static bool TryGetLinkedEntity<T>(this Entity entity, out T linkedEntity, string alias, string idAttribute) where T: Entity
+        public static bool TryGetLinkedEntity<T>(this Entity entity, out T linkedEntity, string alias,
+            string idAttribute) where T : Entity
         {
             var links = entity.Attributes.Keys
                 .Where(key => key.StartsWith(alias))
@@ -18,15 +19,14 @@ namespace utils
                 linkedEntity = default;
                 return false;
             }
+
             var rawEntity = new Entity(logicalName);
             foreach (var aliasedValue in links)
             {
                 rawEntity.Attributes[aliasedValue.AttributeLogicalName] = aliasedValue.Value;
-                if (aliasedValue.AttributeLogicalName == idAttribute)
-                {
-                    rawEntity.Id = (Guid)aliasedValue.Value;
-                }
+                if (aliasedValue.AttributeLogicalName == idAttribute) rawEntity.Id = (Guid) aliasedValue.Value;
             }
+
             linkedEntity = rawEntity.ToEntity<T>();
             return true;
         }

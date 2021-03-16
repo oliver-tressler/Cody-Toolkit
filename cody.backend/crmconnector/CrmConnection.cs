@@ -57,12 +57,12 @@ namespace crmconnector
     {
         public static bool IsAuthenticated(this OrganizationServiceProxy proxy)
         {
-            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires < DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
+            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires > DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
         }
 
         public static bool IsAuthenticated(this DiscoveryServiceProxy proxy)
         {
-            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires < DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
+            return proxy.IsAuthenticated && proxy.SecurityTokenResponse.Response.Lifetime.Expires > DateTime.Now.Subtract(new TimeSpan(0, 2, 30));
         }
     }
 
@@ -78,27 +78,16 @@ namespace crmconnector
         private readonly string _password;
         private readonly string _username;
         private readonly string _discoveryServiceUrl;
-        public CrmConnectionCredentialsFileBasedAuthenticationDetailsProvider(string filePath)
+        public CrmConnectionCredentialsFileBasedAuthenticationDetailsProvider(Stream stream)
         {
-            var path = string.IsNullOrWhiteSpace(filePath) ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "CrmConnector", "Credentials.xml") : filePath;
-            FileStream fs;
-            try
-            {
-                fs = new FileStream(path, FileMode.Open);
-            }
-            catch (FileNotFoundException ex)
-            {
-                throw new Exception($"Please create the credentials.xml in the following folder: {path}", ex);
-            }
-            var xml = new XPathDocument(fs);
+            var xml = new XPathDocument(stream);
             var xmlNavigator = xml.CreateNavigator();
             _password = xmlNavigator.SelectSingleNode("/AuthenticationDetails/Credentials/Password")?.Value;
-            _username = xmlNavigator.SelectSingleNode("/AuthenticationDetails/Credentials/Username")?.Value;
+            _username = xmlNavigator.SelectSingleNode("/AuthenticationDetails/Credentials/UserName")?.Value;
             _discoveryServiceUrl = xmlNavigator.SelectSingleNode("/AuthenticationDetails/DiscoveryServiceUrl")?.Value;
             if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
                 throw new Exception(
-                    "Username or Password not specified in the credentials file. Please use the Username (/AuthenticationDetails/Credentials/Username) and Password (/AuthenticationDetails/Credentials/Password) elements .");
+                    "Username or Password not specified in the credentials file. Please use the UserName (/AuthenticationDetails/Credentials/Username) and Password (/AuthenticationDetails/Credentials/Password) elements .");
             if (string.IsNullOrWhiteSpace(_discoveryServiceUrl)) throw new Exception("Discovery Service URL not specified in the credentials file. Please use the (/AuthenticationDetails/DiscoveryServiceUrl) element.");
             if (!IsValidUrl(_discoveryServiceUrl))
             {

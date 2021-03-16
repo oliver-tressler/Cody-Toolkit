@@ -5,11 +5,10 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
-using Newtonsoft.Json;
+using solutionmanagement.Model;
 using utils;
 using utils.proxies;
-using PluginType = utils.proxies.PluginType;
-using SdkMessageProcessingStep = utils.proxies.SdkMessageProcessingStep;
+using WebResourceInfo = solutionmanagement.Model.WebResourceInfo;
 
 namespace solutionmanagement
 {
@@ -17,46 +16,30 @@ namespace solutionmanagement
     {
         public SolutionInfo CreateSolution(IOrganizationService service, SolutionInfo info)
         {
-
             var id = service.Create(new Solution
             {
                 UniqueName = info.UniqueName,
                 Description = info.Description,
                 FriendlyName = info.Name,
                 Version = info.Version,
-                PublisherId = new EntityReference(Publisher.EntityLogicalName, info.Publisher.Id),
+                PublisherId = new EntityReference(Publisher.EntityLogicalName, info.Publisher.Id)
             });
             info.Id = id;
             return info;
         }
 
-        //public void DeleteSolution(IOrganizationService service, Guid solutionId)
-        //{
-        //    service.Delete(Solution.EntityLogicalName, solutionId);
-        //}
-
-        public void AddWebResourceToSolution(IOrganizationService service, string solutionUniqueName, Guid webResourceId)
+        public void AddWebResourceToSolution(IOrganizationService service, string solutionUniqueName,
+            Guid webResourceId)
         {
             var req = new AddSolutionComponentRequest
             {
                 AddRequiredComponents = false,
                 SolutionUniqueName = solutionUniqueName,
-                ComponentType = (int)ComponentType.WebResource,
+                ComponentType = (int) ComponentType.WebResource,
                 ComponentId = webResourceId
             };
             service.Execute(req);
         }
-
-        //public void RemoveWebResourceFromSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
-        //{
-        //    var req = new RemoveSolutionComponentRequest
-        //    {
-        //        SolutionUniqueName = solutionUniqueName,
-        //        ComponentType = (int)ComponentType.PluginAssembly,
-        //        ComponentId = assemblyId
-        //    };
-        //    service.Execute(req);
-        //}
 
         public void AddAssemblyToSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
         {
@@ -64,22 +47,11 @@ namespace solutionmanagement
             {
                 AddRequiredComponents = false,
                 SolutionUniqueName = solutionUniqueName,
-                ComponentType = (int)ComponentType.PluginAssembly,
+                ComponentType = (int) ComponentType.PluginAssembly,
                 ComponentId = assemblyId
             };
             service.Execute(req);
         }
-
-        //public void RemoveAssemblyFromSolution(IOrganizationService service, string solutionUniqueName, Guid assemblyId)
-        //{
-        //    var req = new RemoveSolutionComponentRequest
-        //    {
-        //        SolutionUniqueName = solutionUniqueName,
-        //        ComponentType = (int)ComponentType.PluginAssembly,
-        //        ComponentId = assemblyId
-        //    };
-        //    service.Execute(req);
-        //}
 
         public void AddStepToSolution(IOrganizationService service, string solutionUniqueName, Guid stepId)
         {
@@ -87,133 +59,84 @@ namespace solutionmanagement
             {
                 AddRequiredComponents = false,
                 SolutionUniqueName = solutionUniqueName,
-                ComponentType = (int)ComponentType.SDKMessageProcessingStep,
+                ComponentType = (int) ComponentType.SDKMessageProcessingStep,
                 ComponentId = stepId
             };
             service.Execute(req);
         }
 
-        #region Utility
-        public IEnumerable<PublisherInfo> GetPublishers(OrganizationServiceContext serviceContext) =>
-            (from pub in serviceContext.CreateQuery<Publisher>()
-             orderby pub.FriendlyName
-             select new
-             {
-                 pub.FriendlyName,
-                 pub.UniqueName,
-                 pub.Id,
-                 pub.Description,
-                 pub.CustomizationPrefix
-             }).ToList().Select(pub => new PublisherInfo
-             {
-                 Name = pub.FriendlyName,
-                 UniqueName = pub.UniqueName,
-                 Id = pub.Id,
-                 Description = pub.Description,
-                 Prefix = pub.CustomizationPrefix
-             });
-
-        public IEnumerable<SolutionInfo> GetSolutions(OrganizationServiceContext serviceContext) =>
-            (from sol in serviceContext.CreateQuery<Solution>()
-             orderby sol.CreatedOn descending
-             select new
-             {
-                 sol.FriendlyName,
-                 sol.UniqueName,
-                 sol.PublisherId,
-                 sol.Version,
-                 sol.Description,
-                 sol.Id
-             }).ToList().Select(sol => new SolutionInfo
-             {
-                 Name = sol.FriendlyName,
-                 UniqueName = sol.UniqueName,
-                 Publisher = new PublisherInfo
-                 {
-                     Name = sol.PublisherId.Name,
-                     Id = sol.PublisherId.Id
-                 },
-                 Description = sol.Description,
-                 Version = sol.Version,
-                 Id = sol.Id
-             });
-
-        public List<PluginInfo> GetAssemblySteps(IOrganizationService service, Guid assemblyId, Guid solutionId)
+        public IEnumerable<PublisherInfo> GetPublishers(OrganizationServiceContext serviceContext)
         {
-            var ctx = new OrganizationServiceContext(service);
-            var components = (from sol in ctx.CreateQuery<SolutionComponent>()
-                              where sol.ComponentType == ComponentType.SDKMessageProcessingStep &&
-                                    sol.SolutionId.Id == solutionId
-                              select sol).ToList();
+            return (from publisher in serviceContext.CreateQuery<Publisher>()
+                orderby publisher.FriendlyName
+                select new
+                {
+                    publisher.FriendlyName,
+                    publisher.UniqueName,
+                    publisher.Id,
+                    publisher.Description,
+                    publisher.CustomizationPrefix
+                }).ToList().Select(pub => new PublisherInfo
+            {
+                Name = pub.FriendlyName,
+                UniqueName = pub.UniqueName,
+                Id = pub.Id,
+                Description = pub.Description,
+                Prefix = pub.CustomizationPrefix
+            });
+        }
+
+        public IEnumerable<SolutionInfo> GetSolutions(OrganizationServiceContext serviceContext)
+        {
+            return (from solution in serviceContext.CreateQuery<Solution>()
+                orderby solution.CreatedOn descending
+                select new
+                {
+                    solution.FriendlyName,
+                    solution.UniqueName,
+                    solution.PublisherId,
+                    solution.Version,
+                    solution.Description,
+                    solution.Id
+                }).ToList().Select(sol => new SolutionInfo
+            {
+                Name = sol.FriendlyName,
+                UniqueName = sol.UniqueName,
+                Publisher = new PublisherInfo
+                {
+                    Name = sol.PublisherId.Name,
+                    Id = sol.PublisherId.Id
+                },
+                Description = sol.Description,
+                Version = sol.Version,
+                Id = sol.Id
+            });
+        }
+
+        public IEnumerable<PluginInfo> GetAssemblySteps(IOrganizationService service, Guid assemblyId)
+        {
             var queryExpression = new QueryExpression
             {
                 EntityName = PluginType.EntityLogicalName,
-                ColumnSet = { AllColumns = true }
+                ColumnSet = {AllColumns = true}
             };
-            queryExpression.Criteria.Conditions.Add(new ConditionExpression(PluginType.Fields.PluginAssemblyId, ConditionOperator.Equal, assemblyId));
+            queryExpression.Criteria.Conditions.Add(new ConditionExpression(PluginType.Fields.PluginAssemblyId,
+                ConditionOperator.Equal, assemblyId));
             var stepLink = queryExpression.AddLink(SdkMessageProcessingStep.EntityLogicalName,
                 SdkMessageProcessingStep.Fields.PluginTypeId, PluginType.PrimaryIdAttribute);
-            stepLink.Columns.AllColumns = true;
+            stepLink.Columns = new ColumnSet(SdkMessageProcessingStep.Fields.Name,
+                SdkMessageProcessingStep.PrimaryIdAttribute, SdkMessageProcessingStep.Fields.Description,
+                SdkMessageProcessingStep.Fields.Stage);
             stepLink.EntityAlias = "step";
-            var filterLink = stepLink.AddLink(SdkMessageFilter.EntityLogicalName, SdkMessageProcessingStep.Fields.SdkMessageFilterId,
+            // Use filter to get the entity name
+            var filterLink = stepLink.AddLink(SdkMessageFilter.EntityLogicalName,
+                SdkMessageProcessingStep.Fields.SdkMessageFilterId,
                 SdkMessageFilter.PrimaryIdAttribute);
-            filterLink.Columns.AllColumns = true;
+            filterLink.Columns = new ColumnSet(SdkMessageFilter.Fields.PrimaryObjectTypeCode);
             filterLink.EntityAlias = "filter";
             var retrievedEntities = service.RetrieveMultiple(queryExpression);
-            var processedResponse = new List<PluginInfo>();
-            foreach (var resultEntityGroup in retrievedEntities.Entities.GroupBy(entity => entity.Id))
-            {
-                var pluginType = resultEntityGroup.First().ToEntity<PluginType>();
-                var pluginInfo = new PluginInfo
-                {
-                    Name = pluginType.Name,
-                    Id = pluginType.Id,
-                    Steps = new List<StepInfo>()
-                };
-                foreach (var result in resultEntityGroup)
-                {
-                    if (!result.TryGetLinkedEntity(out SdkMessageProcessingStep step, "step",
-                        SdkMessageProcessingStep.PrimaryIdAttribute)) continue;
-                    var stepInfo = new StepInfo
-                    {
-                        MessageName = step.SdkMessageId?.Name,
-                        Name = step.Name,
-                        Id = step.Id
-                    };
-                    // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-                    if (step.Stage != null)
-                    {
-                        switch (step.Stage)
-                        {
-                            case SdkMessageProcessingStep_Stage.Postoperation:
-                                stepInfo.Stage = "Post-operation";
-                                break;
-                            case SdkMessageProcessingStep_Stage.Preoperation:
-                                stepInfo.Stage = "Pre-operation";
-                                break;
-                            case SdkMessageProcessingStep_Stage.Prevalidation:
-                                stepInfo.Stage = "Pre-validation";
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-                    }
-
-                    stepInfo.AddedToSolution = components.Any(c => c.Id == step.Id);
-
-                    if (result.TryGetLinkedEntity(out SdkMessageFilter filter, "filter",
-                        SdkMessageFilter.PrimaryIdAttribute))
-                    {
-                        stepInfo.EntityName = filter.PrimaryObjectTypeCode;
-                    }
-                    pluginInfo.Steps.Add(stepInfo);
-                }
-                processedResponse.Add(pluginInfo);
-            }
-            return processedResponse;
+            return retrievedEntities.Entities.GroupBy(entity => entity.Id).Select(ConstructPluginInfo);
         }
-
-        #endregion
 
         public IEnumerable<WebResourceInfo> GetWebResources(OrganizationServiceContext serviceContext)
         {
@@ -232,59 +155,71 @@ namespace solutionmanagement
                 Name = wr.Name,
                 Description = wr.Description,
                 DisplayName = wr.DisplayName,
-                Type = wr.WebResourceType != null ? Enum.GetName(typeof(WebResource_WebResourceType), wr.WebResourceType) : null
+                Type = wr.WebResourceType != null
+                    ? Enum.GetName(typeof(WebResource_WebResourceType), wr.WebResourceType)
+                    : null
             });
         }
-    }
 
-    [JsonObject]
-    public class WebResourceInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-        public string Type { get; set; }
-    }
+        public IEnumerable<AssemblyInfo> GetAssemblies(OrganizationServiceContext serviceContext)
+        {
+            var assemblies = (from assembly in serviceContext.CreateQuery<PluginAssembly>()
+                    where assembly.IsHidden.Value == false
+                    select new {assembly.Name, assembly.PluginAssemblyId}).ToList()
+                .Select(temp => new AssemblyInfo {Id = temp.PluginAssemblyId, Name = temp.Name})
+                .Where(assemblyInfo => !assemblyInfo.Name.StartsWith("Microsoft"));
+            return assemblies;
+        }
 
+        /**
+         * Constructs a plugin info object from a group where the key is the Id of the plugin and the entities are
+         * plugins which have the steps and filters as link attributes. The plugin info object will have the
+         * steps attached.
+         */
+        private PluginInfo ConstructPluginInfo(IGrouping<Guid, Entity> pluginAndStepData)
+        {
+            var pluginType = pluginAndStepData.First().ToEntity<PluginType>();
+            var pluginInfo = new PluginInfo
+            {
+                Name = pluginType.Name,
+                Id = pluginType.Id,
+                Steps = new List<StepInfo>()
+            };
+            foreach (var result in pluginAndStepData)
+            {
+                if (!result.TryGetLinkedEntity(out SdkMessageProcessingStep step, "step",
+                    SdkMessageProcessingStep.PrimaryIdAttribute)) continue;
+                var stepInfo = new StepInfo
+                {
+                    MessageName = step.SdkMessageId?.Name,
+                    Name = step.Name,
+                    Id = step.Id
+                };
+                // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+                if (step.Stage != null)
+                    switch (step.Stage)
+                    {
+                        case SdkMessageProcessingStep_Stage.Postoperation:
+                            stepInfo.Stage = "Post-operation";
+                            break;
+                        case SdkMessageProcessingStep_Stage.Preoperation:
+                            stepInfo.Stage = "Pre-operation";
+                            break;
+                        case SdkMessageProcessingStep_Stage.Prevalidation:
+                            stepInfo.Stage = "Pre-validation";
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
 
-    [JsonObject]
-    public class PublisherInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string UniqueName { get; set; }
-        public string Prefix { get; set; }
-        public string Description { get; set; }
-    }
+                if (result.TryGetLinkedEntity(out SdkMessageFilter filter, "filter",
+                    SdkMessageFilter.PrimaryIdAttribute))
+                    stepInfo.EntityName = filter.PrimaryObjectTypeCode;
 
-    [JsonObject]
-    public class SolutionInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string UniqueName { get; set; }
-        public string Version { get; set; }
-        public string Description { get; set; }
-        public PublisherInfo Publisher { get; set; }
-    }
+                pluginInfo.Steps.Add(stepInfo);
+            }
 
-    [JsonObject]
-    public class PluginInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public List<StepInfo> Steps { get; set; }
-    }
-
-    [JsonObject]
-    public class StepInfo
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string MessageName { get; set; }
-        public string Stage { get; set; }
-        public string EntityName { get; set; }
-        public bool? AddedToSolution { get; set; }
+            return pluginInfo;
+        }
     }
 }

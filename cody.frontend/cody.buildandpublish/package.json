@@ -1,0 +1,141 @@
+{
+	"name": "cody-toolkit-buildandpublish",
+	"author": {
+		"name": "Oliver Tressler",
+		"email": "oliver.tressler@protonmail.com"
+	},
+	"repository": {
+		"url": "https://github.com/otressler/cody-toolkit.git",
+		"type": "github"
+	},
+	"publisher": "otressler",
+	"icon": "assets/d365-icon.png",
+	"license": "GPLv3",
+	"displayName": "Cody Toolkit (Build & Publish)",
+	"description": "Publish WebResources from within VS Code to Dynamics CRM 2016 On-Premise.",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.53.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"taskDefinitions": [
+			{
+				"type": "cody.toolkit.buildtasks.build",
+				"properties": {}
+			},
+			{
+				"type": "cody.toolkit.buildtasks.buildpublish",
+				"properties": {}
+			},
+			{
+				"type": "cody.toolkit.buildtasks.publish",
+				"properties": {}
+			}
+		],
+		"commands": [
+			{
+				"command": "cody.toolkit.buildandpublish.build",
+				"title": "Build",
+				"category": "Cody Build & Publish"
+			},
+			{
+				"command": "cody.toolkit.buildandpublish.buildpublish",
+				"title": "Build & Publish",
+				"category": "Cody Build & Publish"
+			},
+			{
+				"command": "cody.toolkit.buildandpublish.publish",
+				"title": "Publish",
+				"category": "Cody Build & Publish"
+			},
+			{
+				"command": "cody.toolkit.buildandpublish.removeBuildFileConfiguration",
+				"title": "Remove Build File Configuration",
+				"category": "Cody Build & Publish"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "cody.toolkit.buildandpublish.build",
+					"when": "false"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.buildpublish",
+					"when": "false"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.publish",
+					"when": "false"
+				}
+			],
+			"explorer/context": [
+				{
+					"command": "cody.toolkit.buildandpublish.build",
+					"group": "buildandpublish@1",
+					"when": "resourceExtname in cody:supportedBuildExtensions"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.buildpublish",
+					"group": "buildandpublish@2",
+					"when": "resourceExtname in cody:supportedBuildExtensions"
+				},
+				{
+					"command": "cody.toolkit.buildandpublish.publish",
+					"group": "buildandpublish@3",
+					"when": "resourceExtname in cody:supportedPublishExtensions"
+				}
+			]
+		},
+		"configuration": {
+			"title": "",
+			"properties": {
+				"cody.toolkit.buildAndPublish.createFiddlerRulesWhenBuildingScripts": {
+					"type": "boolean",
+					"description": "Create Fiddler rules to facilitate debugging.",
+					"scope": "window",
+					"default": true
+				},
+				"cody.toolkit.buildAndPublish.fiddlerRuleFolder": {
+					"type": "string",
+					"markdownDescription": "If this is empty, fiddler rules will be placed next to their corresponding `.js` files. If you want to store them in another folder instead, this can be used as an override for this behavior. Remember to make sure that there are no name clashes if you use this option!",
+					"scope": "window"
+				}
+			}
+		}
+	},
+	"extensionDependencies": [
+		"otressler.cody-toolkit-core"
+	],
+	"scripts": {
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.53.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
+		"eslint": "^7.19.0",
+		"glob": "^7.1.6",
+		"webpack-cli": "^4.4.0"
+	},
+	"dependencies": {
+		"axios": "^0.21.1",
+		"ts-loader": "^8.0.14",
+		"tsconfig-paths-webpack-plugin": "^3.3.0",
+		"typescript": "^4.2.2",
+		"webpack": "^5.24.4"
+	}
+}

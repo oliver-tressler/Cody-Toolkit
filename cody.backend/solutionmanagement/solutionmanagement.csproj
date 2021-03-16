@@ -53,6 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Model\AssemblyInfo.cs" />
+    <Compile Include="Model\PluginInfo.cs" />
+    <Compile Include="Model\PublisherInfo.cs" />
+    <Compile Include="Model\SolutionInfo.cs" />
+    <Compile Include="Model\StepInfo.cs" />
+    <Compile Include="Model\WebResourceInfo.cs" />
     <Compile Include="SolutionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
