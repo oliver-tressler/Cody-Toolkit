@@ -176,7 +176,7 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"icon": "./assets/d365-icon.png",
+					"icon": "./assets/dynamics-icon.svg",
 					"id": "crmtooling",
 					"title": "Dynamics CRM"
 				}
@@ -199,7 +199,7 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "webpack --mode production",
-		"webpack": "webpack --mode development",
+		"webpack": "webpack --mode development & webpack -c ./src/static/webpack.config.step.js & webpack -c ./src/static/webpack.config.image.js & webpack -c ./src/static/webpack.config.assembly.js",
 		"webpack-dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./"
 	},
