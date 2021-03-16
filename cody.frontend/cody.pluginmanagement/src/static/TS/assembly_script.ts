@@ -1,6 +1,10 @@
-import { ExtensionInterface } from "./ExtensionInterface";
+import { api, sendRequest } from "./ExtensionInterface";
 
-declare const acquireVsCodeApi: () => any;
+type AssemblyFileUpdateRequest = {
+	fileType: string;
+	path: string;
+};
+
 type AssemblyFileUpdateResponse = {
 	path: string;
 	metadata: {
@@ -11,6 +15,14 @@ type AssemblyFileUpdateResponse = {
 		DetectedPluginTypes: { Name: string; FullName: string }[];
 	};
 };
+
+type PostAssemblyRequest = {
+	IsSandboxed: boolean;
+	DeploymentMode: number;
+	FilePath: string;
+};
+type PostAssemblyResponse = { AssemblyName: string; Id: string };
+
 type State = {
 	name: string;
 	sandboxed: boolean;
@@ -24,11 +36,9 @@ type State = {
 	};
 };
 
-const api = acquireVsCodeApi();
-const extensionInterface = new ExtensionInterface(api);
-
 const form = document.getElementById("assembly_form") as HTMLFormElement;
-const assemblyHeading = document.getElementById("heading_assembly_name");
+const assemblyHeading = document.getElementById("heading_assembly_name") as HTMLElement;
+const assemblyFileChooser = document.getElementById("input_assembly_file_chooser") as HTMLInputElement;
 const assemblyNameElement = document.getElementById("input_assembly_name") as HTMLInputElement;
 const assemblyMetadataNameElement = document.getElementById("input_assembly_metadata_name") as HTMLInputElement;
 const assemblyMetadataVersionElement = document.getElementById("input_assembly_metadata_version") as HTMLInputElement;
@@ -52,13 +62,10 @@ if (state) {
 	assemblyHeading.textContent = state.name;
 }
 
-export async function updateFileName();
-export async function updateFileName(path: string);
 export async function updateFileName(path: string = "") {
-	const response = await extensionInterface.sendRequest<AssemblyFileUpdateResponse>({
-		command: "plugineditor_pickfile",
-		id: "assemblyfilechooser",
-		payload: { fileType: "dll", path: path || null },
+	const response = await sendRequest<AssemblyFileUpdateRequest, AssemblyFileUpdateResponse>("plugineditor_pickfile", {
+		fileType: "dll",
+		path: path,
 	});
 	assemblyLocationElement.value = response.path ?? "";
 	if (!response.path) {
@@ -101,16 +108,18 @@ export async function updateFileName(path: string = "") {
 	persistState();
 	const remotePlugins = Array.from(document.querySelectorAll<HTMLParagraphElement>("#plugin_types p"));
 	remotePlugins.forEach((plugin) => {
-		if (plugin.classList.contains("added")) plugin.remove();
+		if (plugin.classList.contains("added")) {
+			plugin.remove();
+		}
 		plugin.classList.remove("deleted");
 	});
 	const localPlugins = response.metadata.DetectedPluginTypes;
 	// Check which are missing
 	remotePlugins
-		.filter((node) => !localPlugins.some((plugin) => plugin.Name == node.textContent.trim()))
+		.filter((node) => !localPlugins.some((plugin) => plugin.Name && plugin.Name === node.textContent?.trim()))
 		.forEach((node) => {
 			for (let i = 0; i < node.childNodes.length; i++) {
-				if (node.childNodes[i].nodeType != Node.TEXT_NODE) {
+				if (node.childNodes[i].nodeType !== Node.TEXT_NODE) {
 					node.removeChild(node.childNodes[i--]);
 				}
 			}
@@ -119,37 +128,35 @@ export async function updateFileName(path: string = "") {
 		});
 	// Check which will be added
 	localPlugins
-		.filter((plugin) => !remotePlugins.some((node) => node.textContent.trim() == plugin.Name))
+		.filter((plugin) => !remotePlugins.some((node) => plugin.Name && node.textContent?.trim() === plugin.Name))
 		.sort()
 		.forEach((missingPlugin) => {
 			const p = document.createElement("p");
 			p.textContent = missingPlugin.Name;
 			p.classList.add("added");
-			document.getElementById("plugin_types").prepend(p);
+			document.getElementById("plugin_types")?.prepend(p);
 		});
 }
 
 export async function postData() {
-	if (!form.reportValidity()) return;
+	if (!form.reportValidity()) {
+		return;
+	}
 	try {
-		submitButton.setAttribute("disabled", "true");
-		const response = await extensionInterface.sendRequest<{ AssemblyName: string; Id: string }>({
-			command: "plugineditor_saveassembly",
-			id: "assemblysave",
-			payload: {
-				IsSandboxed: isSandboxedElement.checked,
-				DeploymentMode: parseInt(deploymentModeElement.value),
-				FilePath: assemblyLocationElement.value,
-			},
+		submitButton?.setAttribute("disabled", "true");
+		const response = await sendRequest<PostAssemblyRequest, PostAssemblyResponse>("plugineditor_saveassembly", {
+			IsSandboxed: isSandboxedElement.checked,
+			DeploymentMode: parseInt(deploymentModeElement.value),
+			FilePath: assemblyLocationElement.value,
 		});
 		assemblyHeading.textContent = response.AssemblyName;
 	} finally {
-		submitButton.removeAttribute("disabled");
+		submitButton?.removeAttribute("disabled");
 	}
 }
 
-document.getElementById("input_assembly_file_chooser").onclick = () => updateFileName();
-submitButton.onclick = () => postData();
+assemblyFileChooser && (assemblyFileChooser.onclick = () => updateFileName());
+submitButton && (submitButton.onclick = () => postData());
 if (!!assemblyLocationElement?.value) {
 	updateFileName(assemblyLocationElement?.value);
 }

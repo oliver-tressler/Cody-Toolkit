@@ -1,7 +1,28 @@
-import { ExtensionInterface } from "./ExtensionInterface";
+import { api, sendRequest } from "./ExtensionInterface";
+
+type StepAttributeData = {
+	LogicalName: string;
+	DisplayName?: string;
+	Available: boolean;
+};
+
+type PostStepRequest = {
+	Name: string;
+	MessageName: string;
+	EntityName: string;
+	UserId: string;
+	ExecutionOrder: number;
+	Stage: string;
+	IsAsync: boolean;
+	IsDeployedOnServer: boolean;
+	IsDeployedOffline: boolean;
+	StepAttributes: StepAttributeData[];
+};
+
 const form = document.getElementById("step_form") as HTMLFormElement;
-const attributeContainerElement = document.getElementById("attribute_container");
-const attributeColumnElement = document.getElementById("attribute_column");
+const headingStepNameElement = document.getElementById("heading_step_name") as HTMLElement;
+const attributeContainerElement = document.getElementById("attribute_container") as HTMLDivElement;
+const attributeColumnElement = document.getElementById("attribute_column") as HTMLDivElement;
 const stepNameElement = document.getElementById("input_step_name") as HTMLInputElement;
 const entityNameElement = document.getElementById("input_step_entity_name") as HTMLInputElement;
 const messageNameElement = document.getElementById("input_step_message_name") as HTMLInputElement;
@@ -29,7 +50,9 @@ function createCheckbox(
 	input.type = "checkbox";
 	input.name = name;
 	input.id = id;
-	if (state) input.setAttribute("checked", "true");
+	if (state) {
+		input.setAttribute("checked", "true");
+	}
 	for (const key in attributes) {
 		if (attributes.hasOwnProperty(key)) {
 			input.setAttribute(key, attributes[key]);
@@ -43,12 +66,11 @@ function createCheckbox(
 	return control;
 }
 
-declare const acquireVsCodeApi: () => any;
-const api = acquireVsCodeApi();
-const extension = new ExtensionInterface(api);
 const state: State = api.getState();
 if (state) {
-	document.getElementById("heading_step_name").textContent = state.name;
+	if (state.name) {
+		headingStepNameElement.textContent = state.name;
+	}
 	stepNameElement.value = state.name;
 	messageNameElement.value = state.messageName;
 	userElement.value = state.user;
@@ -59,27 +81,29 @@ if (state) {
 	deployOfflineElement.checked = state.offline;
 	const updateAttributeCbs = () => {
 		document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
-			cb.checked = state.attributes[cb.getAttribute("data-logicalname")];
+			const logicalName = cb.getAttribute("data-logicalname");
+			logicalName && (cb.checked = state.attributes[logicalName]);
 		});
 	};
-	if (entityNameElement.value != state.entityName) {
+	if (entityNameElement.value !== state.entityName) {
 		entityNameElement.value = state.entityName;
 		requestAttributes().then(() => updateAttributeCbs());
 	} else {
 		updateAttributeCbs();
 	}
 }
-export function selectAttributes(select: boolean) {
+
+function selectAttributes(select: boolean) {
 	document
 		.getElementById("attribute_container")
-		.querySelectorAll<HTMLInputElement>("tr:not(.hidden) input[type=checkbox]")
-		.forEach((cb) => {
+		?.querySelectorAll<HTMLInputElement>("tr:not(.hidden) input[type=checkbox]")
+		.forEach((cb: HTMLInputElement) => {
 			cb.checked = select;
 		});
 }
 
-export function searchAttributes(value) {
-	if (value == null || value == "") {
+function searchAttributes(value: string) {
+	if (!value) {
 		attributeContainerElement.querySelectorAll("tr.hidden").forEach((row) => {
 			row.classList.remove("hidden");
 		});
@@ -99,38 +123,34 @@ export function searchAttributes(value) {
 	});
 }
 
-export async function postData() {
+async function postData() {
 	validateDeploymentOptions();
 	if (!form.reportValidity()) {
 		return;
 	}
-	const selectedAttributes = [];
+	const selectedAttributes: StepAttributeData[] = [];
 	document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((el) => {
 		selectedAttributes.push({
-			LogicalName: el.getAttribute("data-logicalname"),
-			DisplayName: el.getAttribute("data-displayname"),
+			LogicalName: el.getAttribute("data-logicalname")!,
+			DisplayName: el.getAttribute("data-displayname") ?? undefined,
 			Available: el.checked,
 		});
 	});
 	try {
 		submitElement.setAttribute("disabled", "true");
-		const response = await extension.sendRequest<{ StepName: string }>({
-			command: "plugineditor_savestep",
-			id: "stepsave",
-			payload: {
-				Name: stepNameElement.value,
-				MessageName: messageNameElement.value,
-				EntityName: entityNameElement.value,
-				UserId: userElement.value,
-				ExecutionOrder: executionOrderElement.valueAsNumber,
-				Stage: stageElement.value,
-				IsAsync: asyncElement.checked,
-				IsDeployedOnServer: deployServerElement.checked,
-				IsDeployedOffline: deployOfflineElement.checked,
-				StepAttributes: selectedAttributes,
-			},
+		const response = await sendRequest<PostStepRequest, { StepName: string }>("plugineditor_savestep", {
+			Name: stepNameElement.value,
+			MessageName: messageNameElement.value,
+			EntityName: entityNameElement.value,
+			UserId: userElement.value,
+			ExecutionOrder: executionOrderElement.valueAsNumber,
+			Stage: stageElement.value,
+			IsAsync: asyncElement.checked,
+			IsDeployedOnServer: deployServerElement.checked,
+			IsDeployedOffline: deployOfflineElement.checked,
+			StepAttributes: selectedAttributes,
 		});
-		document.getElementById("heading_step_name").textContent = response.StepName;
+		headingStepNameElement.textContent = response.StepName;
 	} finally {
 		submitElement.removeAttribute("disabled");
 	}
@@ -138,7 +158,7 @@ export async function postData() {
 
 export async function requestAttributes() {
 	const messageName = messageNameElement.value;
-	if (!messageName || messageName != "Update") {
+	if (!messageName || messageName !== "Update") {
 		attributeColumnElement.style.display = "none";
 		return;
 	}
@@ -147,15 +167,13 @@ export async function requestAttributes() {
 		attributeColumnElement.style.display = "none";
 		return;
 	}
-	let attributes = [];
+	let attributes: StepAttributeData[] = [];
 	try {
-		attributes = (await extension.sendRequest({
-			command: "plugineditor_requeststepattributes",
-			id: "stepattributes",
-			payload: { EntityName: entityName },
-		})) as { Available: boolean; DisplayName: string; LogicalName: string }[];
+		attributes = (await sendRequest("plugineditor_requeststepattributes", {
+			EntityName: entityName,
+		})) as StepAttributeData[];
 	} catch (e) {}
-	for (const child of Array.from(document.querySelector("#attribute_container tbody").children)) {
+	for (const child of Array.from(document.querySelector("#attribute_container tbody")?.children ?? [])) {
 		child.remove();
 	}
 	const attributeElement = document.createDocumentFragment();
@@ -186,22 +204,20 @@ export async function requestAttributes() {
 
 		const row = document.createElement("tr");
 		row.setAttribute("data-logicalname", LogicalName);
-		row.setAttribute("data-displayname", DisplayName);
+		row.setAttribute("data-displayname", DisplayName ?? "");
 		row.append(checkBoxCell, displayNameCell, logicalNameCell);
 		attributeElement.append(row);
 	}
-	document.querySelector("#attribute_container tbody").append(attributeElement);
+	document.querySelector("#attribute_container tbody")?.append(attributeElement);
 	attributeColumnElement.style.display = "block";
 }
 
-export async function requestAvailableEntities(selectedOption: HTMLOptionElement) {
+async function requestAvailableEntities(selectedOption: HTMLOptionElement) {
 	if (selectedOption == null) {
 		return;
 	}
-	const response = (await extension.sendRequest({
-		command: "plugineditor_requeststepentities",
-		id: "stepentities",
-		payload: { MessageId: selectedOption.getAttribute("data-message-id") },
+	const response = (await sendRequest("plugineditor_requeststepentities", {
+		MessageId: selectedOption.getAttribute("data-message-id"),
 	})) as { DisplayName: string; LogicalName: string }[];
 	const entityList = document.getElementById("entitynames") as HTMLDataListElement;
 	entityList.innerHTML = "";
@@ -214,35 +230,38 @@ export async function requestAvailableEntities(selectedOption: HTMLOptionElement
 			return option;
 		})
 	);
-	if (response.length == 0) {
-		entityNameElement.closest<HTMLElement>(".setting").style.display = "none";
-		entityNameElement.value = null;
+	const setting = entityNameElement.closest<HTMLElement>(".setting");
+	if (setting == null) {
+		return;
+	} else if (response.length === 0) {
+		setting.style.display = "none";
+		entityNameElement.value = "";
 		entityNameElement.required = false;
 		const evt = new Event("change");
 		entityNameElement.dispatchEvent(evt);
-	} else if (response.length == 1) {
+	} else if (response.length === 1) {
 		entityNameElement.value = response[0].LogicalName;
 		const evt = new Event("change");
 		entityNameElement.dispatchEvent(evt);
-		entityNameElement.closest<HTMLElement>(".setting").style.display = "block";
+		setting.style.display = "block";
 		entityNameElement.required = true;
 	} else if (response.length > 1) {
-		if (
-			entityNameElement.value != "" &&
-			!response.some((entity) => entity.LogicalName == entityNameElement.value)
-		) {
-			entityNameElement.value = null;
+		if (entityNameElement.value && !response.some((entity) => entity.LogicalName === entityNameElement.value)) {
+			entityNameElement.value = "";
 			const evt = new Event("change");
 			entityNameElement.dispatchEvent(evt);
 		}
-		entityNameElement.closest<HTMLElement>(".setting").style.display = "block";
+		setting.style.display = "block";
 		entityNameElement.required = true;
 	}
 }
 
-document.querySelector<HTMLInputElement>("button[type=submit]").onclick = postData;
-document.getElementById("select_all_attributes").onclick = () => selectAttributes(true);
-document.getElementById("deselect_all_attributes").onclick = () => selectAttributes(false);
+const submitButton = document.querySelector<HTMLInputElement>("button[type=submit]");
+submitButton && (submitButton.onclick = postData);
+const selectAllAttributesButton = document.getElementById("select_all_attributes");
+selectAllAttributesButton && (selectAllAttributesButton.onclick = () => selectAttributes(true));
+const deselectAllAttributes = document.getElementById("deselect_all_attributes");
+deselectAllAttributes && (deselectAllAttributes.onclick = () => selectAttributes(false));
 searchAttributesElement.oninput = function (event) {
 	searchAttributes((event.target as HTMLInputElement).value);
 };
@@ -250,20 +269,24 @@ entityNameElement.onchange = () => {
 	requestAttributes();
 };
 if (!messageNameElement.value || !entityNameElement.value) {
-	entityNameElement.closest<HTMLElement>(".setting").style.display = "none";
+	const setting = entityNameElement.closest<HTMLElement>(".setting");
+	setting && (setting.style.display = "none");
 	entityNameElement.required = false;
 }
 messageNameElement.onblur = async function () {
 	const handle = this as HTMLInputElement;
 	attributeColumnElement.style.display =
-		messageNameElement.value == "Update" && entityNameElement.value ? "block" : "none";
+		messageNameElement.value === "Update" && entityNameElement.value ? "block" : "none";
 	if (!handle.value) {
-		entityNameElement.closest<HTMLElement>(".setting").style.display = "none";
+		const setting = entityNameElement.closest<HTMLElement>(".setting");
+		setting && (setting.style.display = "none");
 		handle.required = false;
 		return;
 	}
-	const selectedOption = handle.list.querySelector<HTMLOptionElement>(`option[value=${handle.value}]`);
-	await requestAvailableEntities(selectedOption);
+	const selectedOption = handle.list?.querySelector<HTMLOptionElement>(`option[value=${handle.value}]`);
+	if (selectedOption) {
+		await requestAvailableEntities(selectedOption);
+	}
 };
 
 deployServerElement.onchange = validateDeploymentOptions;
@@ -303,8 +326,9 @@ function persistState() {
 		offline: deployOfflineElement.checked,
 		attributes: Array.from(
 			document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]")
-		).reduce((agg, curr) => {
-			agg[curr.getAttribute("data-logicalname")] = curr.checked;
+		).reduce<{ [key: string]: boolean }>((agg, curr) => {
+			const logicalName = curr.getAttribute("data-logicalname");
+			logicalName && (agg[logicalName] = curr.checked);
 			return agg;
 		}, {}),
 	};
@@ -324,4 +348,4 @@ document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalna
 	cb.onchange = persistState;
 });
 
-attributeColumnElement.style.display = messageNameElement.value == "Update" ? "block" : "none";
+attributeColumnElement.style.display = messageNameElement.value === "Update" ? "block" : "none";
