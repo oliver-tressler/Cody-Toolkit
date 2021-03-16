@@ -224,10 +224,8 @@
 		"webpack-node-externals": "^2.5.2"
 	},
 	"dependencies": {
-		"@types/jsdom": "^16.2.7",
 		"@types/uuid": "^8.3.0",
 		"axios": "^0.21.1",
-		"jsdom": "^16.5.1",
 		"uuid": "^3.4.0"
 	}
 }

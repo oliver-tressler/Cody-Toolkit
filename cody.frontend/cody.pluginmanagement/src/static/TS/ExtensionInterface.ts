@@ -32,30 +32,13 @@ export function sendRequest<RequestData, Response>(command: string, payload: Req
 	return completionSource.awaiter;
 }
 
-export function onMessage(
-	command: string,
-	handler: (message: { command: string; id: string; payload: any }) => Promise<any>
-) {
+export function onMessage<T>(command: string, handler: (message: T) => void | Promise<void>) {
 	if (messageHandlers[command] == null) {
 		messageHandlers[command] = [];
 	}
 	messageHandlers[command].push({
 		handler: (message) => {
-			handler(message)
-				.then((response) => {
-					api.postMessage({
-						id: message.id,
-						success: true,
-						payload: response,
-					});
-				})
-				.catch((error) => {
-					api.postMessage({
-						id: message.id,
-						success: false,
-						payload: error,
-					});
-				});
+			handler(message.payload);
 		},
 	});
 }

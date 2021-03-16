@@ -1,4 +1,4 @@
-import { api, sendRequest } from "./ExtensionInterface";
+import { api, onMessage, sendRequest } from "./ExtensionInterface";
 
 type StepAttributeData = {
 	LogicalName: string;
@@ -19,21 +19,50 @@ type PostStepRequest = {
 	StepAttributes: StepAttributeData[];
 };
 
-const form = document.getElementById("step_form") as HTMLFormElement;
-const headingStepNameElement = document.getElementById("heading_step_name") as HTMLElement;
-const attributeContainerElement = document.getElementById("attribute_container") as HTMLDivElement;
-const attributeColumnElement = document.getElementById("attribute_column") as HTMLDivElement;
-const stepNameElement = document.getElementById("input_step_name") as HTMLInputElement;
-const entityNameElement = document.getElementById("input_step_entity_name") as HTMLInputElement;
-const messageNameElement = document.getElementById("input_step_message_name") as HTMLInputElement;
-const userElement = document.getElementById("input_step_user_context") as HTMLInputElement;
-const executionOrderElement = document.getElementById("input_step_execution_order") as HTMLInputElement;
-const stageElement = document.getElementById("input_step_stage") as HTMLSelectElement;
-const asyncElement = document.getElementById("input_step_async") as HTMLInputElement;
-const submitElement = document.getElementById("input_step_submit") as HTMLInputElement;
-const searchAttributesElement = document.getElementById("search_attributes") as HTMLInputElement;
-const deployServerElement = document.getElementById("input_step_deploy_server") as HTMLInputElement;
-const deployOfflineElement = document.getElementById("input_step_deploy_offline") as HTMLInputElement;
+type StepItem = {
+	Id: string;
+	Name: string;
+	MessageName: string;
+	MessageId: string;
+	EntityName: string;
+	Stage: number;
+	ExecutionOrder: number;
+	UserId: string;
+	IsDeployedOnServer: boolean;
+	IsDeployedOffline: boolean;
+	IsAsync: boolean;
+	StepAttributes: {
+		LogicalName: string;
+		DisplayName: string;
+		Available: boolean;
+	}[];
+};
+
+type SdkMessage = {
+	MessageName: string;
+	MessageId: string;
+};
+type Entity = {
+	DisplayName: string;
+	LogicalName: string;
+};
+type User = {
+	UserName: string;
+	UserId: string;
+};
+
+type State = {
+	name: string;
+	messageName: string;
+	entityName: string;
+	user: string;
+	executionOrder: string;
+	stage: string;
+	async: boolean;
+	server: boolean;
+	offline: boolean;
+	attributes: { [logicalName: string]: boolean };
+};
 
 function createCheckbox(
 	document: Document,
@@ -64,33 +93,6 @@ function createCheckbox(
 	label.append(input, span);
 	control.append(label);
 	return control;
-}
-
-const state: State = api.getState();
-if (state) {
-	if (state.name) {
-		headingStepNameElement.textContent = state.name;
-	}
-	stepNameElement.value = state.name;
-	messageNameElement.value = state.messageName;
-	userElement.value = state.user;
-	executionOrderElement.value = state.executionOrder;
-	stageElement.value = state.stage;
-	asyncElement.checked = state.async;
-	deployServerElement.checked = state.server;
-	deployOfflineElement.checked = state.offline;
-	const updateAttributeCbs = () => {
-		document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
-			const logicalName = cb.getAttribute("data-logicalname");
-			logicalName && (cb.checked = state.attributes[logicalName]);
-		});
-	};
-	if (entityNameElement.value !== state.entityName) {
-		entityNameElement.value = state.entityName;
-		requestAttributes().then(() => updateAttributeCbs());
-	} else {
-		updateAttributeCbs();
-	}
 }
 
 function selectAttributes(select: boolean) {
@@ -156,7 +158,7 @@ async function postData() {
 	}
 }
 
-export async function requestAttributes() {
+async function requestAttributes() {
 	const messageName = messageNameElement.value;
 	if (!messageName || messageName !== "Update") {
 		attributeColumnElement.style.display = "none";
@@ -256,42 +258,6 @@ async function requestAvailableEntities(selectedOption: HTMLOptionElement) {
 	}
 }
 
-const submitButton = document.querySelector<HTMLInputElement>("button[type=submit]");
-submitButton && (submitButton.onclick = postData);
-const selectAllAttributesButton = document.getElementById("select_all_attributes");
-selectAllAttributesButton && (selectAllAttributesButton.onclick = () => selectAttributes(true));
-const deselectAllAttributes = document.getElementById("deselect_all_attributes");
-deselectAllAttributes && (deselectAllAttributes.onclick = () => selectAttributes(false));
-searchAttributesElement.oninput = function (event) {
-	searchAttributes((event.target as HTMLInputElement).value);
-};
-entityNameElement.onchange = () => {
-	requestAttributes();
-};
-if (!messageNameElement.value || !entityNameElement.value) {
-	const setting = entityNameElement.closest<HTMLElement>(".setting");
-	setting && (setting.style.display = "none");
-	entityNameElement.required = false;
-}
-messageNameElement.onblur = async function () {
-	const handle = this as HTMLInputElement;
-	attributeColumnElement.style.display =
-		messageNameElement.value === "Update" && entityNameElement.value ? "block" : "none";
-	if (!handle.value) {
-		const setting = entityNameElement.closest<HTMLElement>(".setting");
-		setting && (setting.style.display = "none");
-		handle.required = false;
-		return;
-	}
-	const selectedOption = handle.list?.querySelector<HTMLOptionElement>(`option[value=${handle.value}]`);
-	if (selectedOption) {
-		await requestAvailableEntities(selectedOption);
-	}
-};
-
-deployServerElement.onchange = validateDeploymentOptions;
-deployOfflineElement.onchange = validateDeploymentOptions;
-
 function validateDeploymentOptions() {
 	if (!deployServerElement.checked && !deployOfflineElement.checked) {
 		deployServerElement.setCustomValidity("At least one of the deployment actions must be selected.");
@@ -299,19 +265,6 @@ function validateDeploymentOptions() {
 		deployServerElement.setCustomValidity("");
 	}
 }
-
-type State = {
-	name: string;
-	messageName: string;
-	entityName: string;
-	user: string;
-	executionOrder: string;
-	stage: string;
-	async: boolean;
-	server: boolean;
-	offline: boolean;
-	attributes: { [logicalName: string]: boolean };
-};
 
 function persistState() {
 	const state: State = {
@@ -335,6 +288,256 @@ function persistState() {
 	api.setState(state);
 }
 
+function renderUpdate({
+	item,
+	messages,
+	entities,
+	users,
+}: {
+	item: StepItem;
+	messages: SdkMessage[];
+	entities: Entity[];
+	users: User[];
+}): void {
+	document.getElementById("heading_step_name")!.textContent = item.Name;
+	document.getElementById("input_step_name")!.setAttribute("value", item.Name);
+	document.getElementById("input_step_message_name")!.setAttribute("value", item.MessageName);
+	if (item.EntityName && item.EntityName !== "none") {
+		document.getElementById("input_step_entity_name")!.setAttribute("value", item.EntityName);
+	}
+	document.getElementById("input_step_execution_order")!.setAttribute("value", item.ExecutionOrder.toString());
+	const messageNameList = document.getElementById("messages")!;
+	messageNameList.append(
+		...messages.map((message) => {
+			const option = document.createElement("option");
+			option.id = "message_" + message.MessageId;
+			option.value = message.MessageName;
+			option.setAttribute("data-message-id", message.MessageId);
+			return option;
+		})
+	);
+	const entityNameList = document.getElementById("entitynames")!;
+	entityNameList.append(
+		...entities.map((entity) => {
+			const option = document.createElement("option");
+			option.id = "entity_" + entity.LogicalName;
+			option.value = entity.LogicalName;
+			option.label = entity.DisplayName;
+			return option;
+		})
+	);
+	const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
+	const callingUser = document.createElement("option");
+	callingUser.value = "";
+	callingUser.textContent = callingUser.label = "Calling User";
+	callingUser.selected = true;
+	userNameList.append(
+		callingUser,
+		...users.map((user) => {
+			const option = document.createElement("option");
+			option.id = "user_" + user.UserId;
+			option.value = user.UserId;
+			option.label = option.textContent = user.UserName;
+			if (user.UserId === item.UserId) {
+				option.setAttribute("selected", "true");
+			}
+			return option;
+		})
+	);
+
+	const stageSelection = document.getElementById("input_step_stage") as HTMLSelectElement;
+	stageSelection.value = item.Stage.toString();
+	stageSelection.querySelector(`option[value="${item.Stage}"]`)!.setAttribute("selected", "true");
+
+	if (item.IsAsync ?? false) {
+		const asyncSelection = document.getElementById("input_step_async") as HTMLInputElement;
+		asyncSelection.setAttribute("checked", "true");
+	}
+	if (item.IsDeployedOnServer ?? false) {
+		const deploymentServerSelection = document.getElementById("input_step_deploy_server") as HTMLInputElement;
+		deploymentServerSelection.setAttribute("checked", "true");
+	}
+	if (item.IsDeployedOffline ?? false) {
+		const deploymentOfflineSelection = document.getElementById("input_step_deploy_offline") as HTMLInputElement;
+		deploymentOfflineSelection.setAttribute("checked", "true");
+	}
+	const attributes = item.StepAttributes;
+	const attributeElement = document.createDocumentFragment();
+	for (const { Available, DisplayName, LogicalName } of attributes) {
+		// Construct Checkbox
+		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
+			"data-logicalname": LogicalName,
+		});
+		const checkBoxCell = document.createElement("td");
+		checkBoxCell.append(control);
+
+		const displayName = document.createElement("div");
+		displayName.classList.add("description");
+		const displayNameText = document.createElement("p");
+		displayNameText.textContent = `${DisplayName}`;
+		const displayNameCell = document.createElement("td");
+		displayName.append(displayNameText);
+		displayNameCell.append(displayName);
+
+		const logicalName = document.createElement("div");
+		logicalName.classList.add("description");
+		const logicalNameText = document.createElement("p");
+		logicalNameText.textContent = `${LogicalName}`;
+		const logicalNameCell = document.createElement("td");
+		logicalName.append(logicalNameText);
+		logicalNameCell.append(logicalName);
+
+		const row = document.createElement("tr");
+		row.setAttribute("data-logicalname", LogicalName);
+		row.setAttribute("data-displayname", DisplayName);
+		row.append(checkBoxCell, displayNameCell, logicalNameCell);
+		attributeElement.append(row);
+	}
+	document.querySelector("#attribute_container tbody")!.append(attributeElement);
+	persistState();
+	renderBase();
+}
+
+function renderCreate({ messages, users }: { messages: SdkMessage[]; users: User[] }) {
+	document.getElementById("heading_step_name")!.textContent = "New Step";
+	document.getElementById("attribute_column")!.style.display = "none";
+	const messageNameList = document.getElementById("messages")!;
+	messageNameList.append(
+		...messages.map((message) => {
+			const option = document.createElement("option");
+			option.id = "message_" + message.MessageId;
+			option.value = message.MessageName;
+			option.setAttribute("data-message-id", message.MessageId);
+			return option;
+		})
+	);
+	// const entityNameList = document.getElementById("entitynames");
+	// entityNameList.append(
+	// 	...this.entities.map((entity) => {
+	// 		const option = document.createElement("option");
+	// 		option.id = "entity_" + entity.LogicalName;
+	// 		option.value = entity.LogicalName;
+	// 		option.label = entity.DisplayName;
+	// 		return option;
+	// 	})
+	// );
+	const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
+	const callingUser = document.createElement("option");
+	callingUser.value = "";
+	callingUser.textContent = callingUser.label = "Calling User";
+	callingUser.selected = true;
+	userNameList.append(
+		callingUser,
+		...users.map((user) => {
+			const option = document.createElement("option");
+			option.id = "user_" + user.UserId;
+			option.value = user.UserId;
+			option.label = option.textContent = user.UserName;
+			return option;
+		})
+	);
+	(document.getElementById("input_step_execution_order") as HTMLInputElement).setAttribute("value", "1");
+	(document.getElementById("input_step_deploy_server") as HTMLInputElement).setAttribute("checked", "true");
+	persistState();
+	renderBase();
+}
+
+function renderFromState(state: State) {
+	if (state.name) {
+		headingStepNameElement.textContent = state.name;
+	}
+	stepNameElement.value = state.name;
+	messageNameElement.value = state.messageName;
+	userElement.value = state.user;
+	executionOrderElement.value = state.executionOrder;
+	stageElement.value = state.stage;
+	asyncElement.checked = state.async;
+	deployServerElement.checked = state.server;
+	deployOfflineElement.checked = state.offline;
+	const updateAttributeCbs = () => {
+		document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
+			const logicalName = cb.getAttribute("data-logicalname");
+			logicalName && (cb.checked = state.attributes[logicalName]);
+		});
+	};
+	if (entityNameElement.value !== state.entityName) {
+		entityNameElement.value = state.entityName;
+		requestAttributes().then(() => updateAttributeCbs());
+	} else {
+		updateAttributeCbs();
+	}
+	renderBase();
+}
+
+function renderBase() {
+	if (!messageNameElement.value || !entityNameElement.value) {
+		const setting = entityNameElement.closest<HTMLElement>(".setting");
+		setting && (setting.style.display = "none");
+		entityNameElement.required = false;
+	}
+	document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
+		cb.onchange = persistState;
+	});
+}
+
+const form = document.getElementById("step_form") as HTMLFormElement;
+const headingStepNameElement = document.getElementById("heading_step_name") as HTMLElement;
+const attributeContainerElement = document.getElementById("attribute_container") as HTMLDivElement;
+const attributeColumnElement = document.getElementById("attribute_column") as HTMLDivElement;
+const stepNameElement = document.getElementById("input_step_name") as HTMLInputElement;
+const entityNameElement = document.getElementById("input_step_entity_name") as HTMLInputElement;
+const messageNameElement = document.getElementById("input_step_message_name") as HTMLInputElement;
+const userElement = document.getElementById("input_step_user_context") as HTMLInputElement;
+const executionOrderElement = document.getElementById("input_step_execution_order") as HTMLInputElement;
+const stageElement = document.getElementById("input_step_stage") as HTMLSelectElement;
+const asyncElement = document.getElementById("input_step_async") as HTMLInputElement;
+const submitElement = document.getElementById("input_step_submit") as HTMLInputElement;
+const searchAttributesElement = document.getElementById("search_attributes") as HTMLInputElement;
+const deployServerElement = document.getElementById("input_step_deploy_server") as HTMLInputElement;
+const deployOfflineElement = document.getElementById("input_step_deploy_offline") as HTMLInputElement;
+
+const state: State = api.getState();
+if (state) {
+	renderFromState(state);
+} else {
+	onMessage<{ messages: SdkMessage[]; users: User[] }>("step_renderCreate", renderCreate);
+	onMessage<{ messages: SdkMessage[]; users: User[]; entities: Entity[]; item: StepItem }>(
+		"step_renderUpdate",
+		renderUpdate
+	);
+}
+
+const submitButton = document.querySelector<HTMLInputElement>("button[type=submit]");
+submitButton && (submitButton.onclick = postData);
+const selectAllAttributesButton = document.getElementById("select_all_attributes");
+selectAllAttributesButton && (selectAllAttributesButton.onclick = () => selectAttributes(true));
+const deselectAllAttributes = document.getElementById("deselect_all_attributes");
+deselectAllAttributes && (deselectAllAttributes.onclick = () => selectAttributes(false));
+searchAttributesElement.oninput = function (event) {
+	searchAttributes((event.target as HTMLInputElement).value);
+};
+entityNameElement.onchange = () => {
+	requestAttributes();
+};
+
+messageNameElement.onblur = async function () {
+	const handle = this as HTMLInputElement;
+	attributeColumnElement.style.display =
+		messageNameElement.value === "Update" && entityNameElement.value ? "block" : "none";
+	if (!handle.value) {
+		const setting = entityNameElement.closest<HTMLElement>(".setting");
+		setting && (setting.style.display = "none");
+		handle.required = false;
+		return;
+	}
+	const selectedOption = handle.list?.querySelector<HTMLOptionElement>(`option[value=${handle.value}]`);
+	if (selectedOption) {
+		await requestAvailableEntities(selectedOption);
+	}
+};
+
+deployServerElement.onchange = validateDeploymentOptions;
+deployOfflineElement.onchange = validateDeploymentOptions;
 stepNameElement.onchange = persistState;
 messageNameElement.onchange = persistState;
 entityNameElement.onchange = persistState;
@@ -344,8 +547,5 @@ stageElement.onchange = persistState;
 asyncElement.onchange = persistState;
 deployServerElement.onchange = persistState;
 deployOfflineElement.onchange = persistState;
-document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
-	cb.onchange = persistState;
-});
 
 attributeColumnElement.style.display = messageNameElement.value === "Update" ? "block" : "none";

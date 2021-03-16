@@ -1,10 +1,11 @@
+import { v4 } from "uuid";
 import { WebviewPanel } from "vscode";
 
 /**
  * Basically a wrapper around VS Codes Webview <-> Extension Interface to
  * easily do request/response and message sending
  */
-export class WebviewExtensionInterface {
+export class WebviewInterface {
 	private messageHandlers: {
 		[command: string]: {
 			id: string;
@@ -22,20 +23,21 @@ export class WebviewExtensionInterface {
 		});
 	}
 
-	sendMessage<T>(command: string, id: string, payload: T) {
-		this.panel.webview.postMessage({ command, id, payload: payload });
+	sendMessage<T>(command: string, payload: T) {
+		this.panel.webview.postMessage({ command, id: v4(), payload: payload });
 	}
 
-	on<T extends WebviewRequest>(command: string, handlerId: string, handler: (message: T) => Promise<any>) {
+	on<T>(command: string, handlerId: string, handler: (message: T) => Promise<any>) {
 		if (this.messageHandlers[command] == null) {
 			this.messageHandlers[command] = [];
 		}
 		this.messageHandlers[command].push({
 			id: handlerId,
 			handler: (message) => {
-				handler(message as T)
+				handler(message.payload as T)
 					.then((response) => {
 						this.panel.webview.postMessage({
+							command: message.command,
 							id: message.id,
 							success: true,
 							payload: response,
@@ -43,6 +45,7 @@ export class WebviewExtensionInterface {
 					})
 					.catch((error) => {
 						this.panel.webview.postMessage({
+							command: message.command,
 							id: message.id,
 							success: false,
 							payload: error,

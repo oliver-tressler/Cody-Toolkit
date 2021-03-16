@@ -1,4 +1,19 @@
-import { api, sendRequest } from "./ExtensionInterface";
+import { api, onMessage, sendRequest } from "./ExtensionInterface";
+
+type AssemblyItem = {
+	Id: string;
+	Name: string;
+	IsSandboxed: boolean;
+	DeploymentMode: number;
+	FilePath: string;
+	Metadata: {
+		Version: string;
+		Culture: string;
+		AssemblyName: string;
+		PublicKeyToken: string;
+		DetectedPluginTypes: { Name: string; FullName: string }[];
+	};
+};
 
 type AssemblyFileUpdateRequest = {
 	fileType: string;
@@ -36,33 +51,7 @@ type State = {
 	};
 };
 
-const form = document.getElementById("assembly_form") as HTMLFormElement;
-const assemblyHeading = document.getElementById("heading_assembly_name") as HTMLElement;
-const assemblyFileChooser = document.getElementById("input_assembly_file_chooser") as HTMLInputElement;
-const assemblyNameElement = document.getElementById("input_assembly_name") as HTMLInputElement;
-const assemblyMetadataNameElement = document.getElementById("input_assembly_metadata_name") as HTMLInputElement;
-const assemblyMetadataVersionElement = document.getElementById("input_assembly_metadata_version") as HTMLInputElement;
-const assemblyMetadataCultureElement = document.getElementById("input_assembly_metadata_culture") as HTMLInputElement;
-const assemblyMetadataKeyElement = document.getElementById("input_assembly_metadata_key") as HTMLInputElement;
-const isSandboxedElement = document.getElementById("input_assembly_sandboxed") as HTMLInputElement;
-const deploymentModeElement = document.getElementById("input_assembly_deployment") as HTMLSelectElement;
-const assemblyLocationElement = document.getElementById("input_assembly_file_location") as HTMLInputElement;
-const submitButton = document.getElementById("input_assembly_submit");
-
-const state: State = api.getState();
-if (state) {
-	assemblyLocationElement.value = state.location;
-	assemblyNameElement.value = state.name;
-	isSandboxedElement.checked = state.sandboxed;
-	deploymentModeElement.value = state.deployment;
-	assemblyMetadataNameElement.value = state.metadata.name;
-	assemblyMetadataVersionElement.value = state.metadata.version;
-	assemblyMetadataCultureElement.value = state.metadata.culture;
-	assemblyMetadataKeyElement.value = state.metadata.key;
-	assemblyHeading.textContent = state.name;
-}
-
-export async function updateFileName(path: string = "") {
+async function updateFileName(path: string = "") {
 	const response = await sendRequest<AssemblyFileUpdateRequest, AssemblyFileUpdateResponse>("plugineditor_pickfile", {
 		fileType: "dll",
 		path: path,
@@ -138,7 +127,7 @@ export async function updateFileName(path: string = "") {
 		});
 }
 
-export async function postData() {
+async function postData() {
 	if (!form.reportValidity()) {
 		return;
 	}
@@ -155,20 +144,6 @@ export async function postData() {
 	}
 }
 
-assemblyFileChooser && (assemblyFileChooser.onclick = () => updateFileName());
-submitButton && (submitButton.onclick = () => postData());
-if (!!assemblyLocationElement?.value) {
-	updateFileName(assemblyLocationElement?.value);
-}
-assemblyNameElement.onchange = persistState;
-isSandboxedElement.onchange = persistState;
-deploymentModeElement.onchange = persistState;
-assemblyLocationElement.onchange = persistState;
-assemblyMetadataNameElement.onchange = persistState;
-assemblyMetadataVersionElement.onchange = persistState;
-assemblyMetadataKeyElement.onchange = persistState;
-assemblyMetadataCultureElement.onchange = persistState;
-
 function persistState() {
 	const state: State = {
 		name: assemblyNameElement.value,
@@ -183,4 +158,87 @@ function persistState() {
 		},
 	};
 	api.setState(state);
+}
+
+function renderCreate() {
+	document.getElementById("heading_assembly_name")!.textContent = "New Assembly";
+	document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
+	persistState();
+	renderBase();
+}
+
+function renderUpdate(item: AssemblyItem): void {
+	document.getElementById("heading_assembly_name")!.textContent = item.Name;
+	document.getElementById("input_assembly_name")!.setAttribute("value", item.Name);
+	if (item.FilePath) {
+		document.getElementById("input_assembly_file_location")!.setAttribute("value", item.FilePath);
+	}
+	if (item.IsSandboxed) {
+		document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
+	}
+	document.getElementById("input_assembly_deployment")!.setAttribute("value", item.DeploymentMode.toString());
+	document.getElementById("input_assembly_metadata_name")!.setAttribute("value", item.Metadata?.AssemblyName);
+	document.getElementById("input_assembly_metadata_version")!.setAttribute("value", item.Metadata?.Version);
+	document.getElementById("input_assembly_metadata_culture")!.setAttribute("value", item.Metadata?.Culture);
+	document.getElementById("input_assembly_metadata_key")!.setAttribute("value", item.Metadata?.PublicKeyToken);
+	const pluginTypes = item.Metadata?.DetectedPluginTypes?.map((pt) => {
+		const element = document.createElement("p");
+		element.textContent = pt.Name;
+		element.id = `assembly_pt_${pt}`;
+		element.title = pt.FullName;
+		return element;
+	});
+	document.getElementById("plugin_types")!.append(...pluginTypes);
+	persistState();
+	renderBase();
+}
+
+function renderFromState(state: State) {
+	assemblyLocationElement.value = state.location;
+	assemblyNameElement.value = state.name;
+	isSandboxedElement.checked = state.sandboxed;
+	deploymentModeElement.value = state.deployment;
+	assemblyMetadataNameElement.value = state.metadata.name;
+	assemblyMetadataVersionElement.value = state.metadata.version;
+	assemblyMetadataCultureElement.value = state.metadata.culture;
+	assemblyMetadataKeyElement.value = state.metadata.key;
+	assemblyHeading.textContent = state.name;
+	renderBase();
+}
+
+function renderBase() {
+	if (!!assemblyLocationElement?.value) {
+		updateFileName(assemblyLocationElement?.value);
+	}
+}
+
+const form = document.getElementById("assembly_form") as HTMLFormElement;
+const assemblyHeading = document.getElementById("heading_assembly_name") as HTMLElement;
+const assemblyFileChooser = document.getElementById("input_assembly_file_chooser") as HTMLInputElement;
+const assemblyNameElement = document.getElementById("input_assembly_name") as HTMLInputElement;
+const assemblyMetadataNameElement = document.getElementById("input_assembly_metadata_name") as HTMLInputElement;
+const assemblyMetadataVersionElement = document.getElementById("input_assembly_metadata_version") as HTMLInputElement;
+const assemblyMetadataCultureElement = document.getElementById("input_assembly_metadata_culture") as HTMLInputElement;
+const assemblyMetadataKeyElement = document.getElementById("input_assembly_metadata_key") as HTMLInputElement;
+const isSandboxedElement = document.getElementById("input_assembly_sandboxed") as HTMLInputElement;
+const deploymentModeElement = document.getElementById("input_assembly_deployment") as HTMLSelectElement;
+const assemblyLocationElement = document.getElementById("input_assembly_file_location") as HTMLInputElement;
+const submitButton = document.getElementById("input_assembly_submit") as HTMLButtonElement;
+
+assemblyNameElement.onchange = persistState;
+isSandboxedElement.onchange = persistState;
+deploymentModeElement.onchange = persistState;
+assemblyLocationElement.onchange = persistState;
+assemblyMetadataNameElement.onchange = persistState;
+assemblyMetadataVersionElement.onchange = persistState;
+assemblyMetadataKeyElement.onchange = persistState;
+assemblyMetadataCultureElement.onchange = persistState;
+assemblyFileChooser.onclick = () => updateFileName();
+submitButton.onclick = () => postData();
+const state: State = api.getState();
+if (state) {
+	renderFromState(state);
+} else {
+	onMessage<undefined>("assembly_renderCreate", renderCreate);
+	onMessage<AssemblyItem>("assembly_renderUpdate", renderUpdate);
 }

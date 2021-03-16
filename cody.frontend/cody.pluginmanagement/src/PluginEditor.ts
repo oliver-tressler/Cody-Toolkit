@@ -1,20 +1,20 @@
 import * as fs from "fs";
-import { JSDOM } from "jsdom";
 import * as path from "path";
 import { v4 } from "uuid";
-import * as vsc from "vscode";
+import * as vscode from "vscode";
 import { Api } from "./Api";
 import { PluginBrowserConfiguration } from "./Configuration/ConfigurationProxy";
 import { Assembly, Image, Organization, Plugin, Step, TreeData } from "./PluginTreeDataProvider";
 import { withAuthentication } from "./Utils/connection";
+import { WebviewInterface } from "./WebviewExtensionInterface";
 export class EditorProvider {
 	async run(
 		data: TreeData,
 		mode: "add" | "edit",
-		progress: vsc.Progress<{ message: string }>,
-		context: vsc.ExtensionContext,
-		existingPanel?: vsc.WebviewPanel
-	): Promise<{ panelId: string; panel: vsc.WebviewPanel }> {
+		progress: vscode.Progress<{ message: string }>,
+		context: vscode.ExtensionContext,
+		existingPanel?: vscode.WebviewPanel
+	): Promise<{ panelId: string; panel: vscode.WebviewPanel; webviewInterface: WebviewInterface }> {
 		try {
 			const factory = new EditorFactory();
 			const editor = factory.getEditor(context, data, mode);
@@ -25,29 +25,30 @@ export class EditorProvider {
 			const panelName = editor.getPanelName(item);
 			const panel =
 				existingPanel ??
-				vsc.window.createWebviewPanel(
+				vscode.window.createWebviewPanel(
 					panelId,
 					panelName,
-					vsc.window.activeTextEditor?.viewColumn ?? vsc.ViewColumn.One,
+					vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One,
 					{
 						enableScripts: true,
 						localResourceRoots: [
-							vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS")),
-							vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS")),
-							vsc.Uri.file(path.join(context.extensionPath, "assets")),
+							vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS")),
+							vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "JS")),
+							vscode.Uri.file(path.join(context.extensionPath, "assets")),
 						],
 					}
 				);
+			const webviewInterface = new WebviewInterface(panel);
 			panel.iconPath = editor.iconPath;
 			if (existingPanel != null) {
-				panel.reveal(vsc.ViewColumn.One, false);
+				panel.reveal(vscode.ViewColumn.One, false);
 			}
 
 			progress.report({ message: "Generating Editor" });
 			const htmlPath = editor.htmlPath;
 			const script = panel.webview.asWebviewUri(editor.scriptPath);
 			const style = panel.webview.asWebviewUri(
-				vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS", "style.css"))
+				vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "CSS", "style.css"))
 			);
 			const icon = panel.webview.asWebviewUri(editor.iconPath);
 			const content = fs
@@ -56,23 +57,26 @@ export class EditorProvider {
 				.replace("{{script}}", script.toString())
 				.replace("{{imageicon}}", icon.toString());
 
-			const dom = new JSDOM(content);
+			panel.webview.html = content;
 			if (mode === "add") {
-				editor.renderCreate(dom.window.document, item);
+				editor.renderCreate(webviewInterface, item);
 			} else {
-				editor.renderUpdate(dom.window.document, item);
+				editor.renderUpdate(webviewInterface, item);
 			}
-			panel.webview.html = dom.serialize();
-			return { panelId, panel };
+			return { panelId, panel, webviewInterface };
 		} catch (e) {
-			vsc.window.showErrorMessage(e.response?.data?.Message ?? e.message ?? "Unable to edit this element");
+			vscode.window.showErrorMessage(e.response?.data?.Message ?? e.message ?? "Unable to edit this element");
 			throw e;
 		}
 	}
 }
 
 class EditorFactory {
-	getEditor(context: vsc.ExtensionContext, data: TreeData, mode: "add" | "edit"): IEditor<any, TreeData, TreeData> {
+	getEditor(
+		context: vscode.ExtensionContext,
+		data: TreeData,
+		mode: "add" | "edit"
+	): IEditor<any, TreeData, TreeData> {
 		if (mode === "add" && data.contextValue) {
 			if (data.contextValue.indexOf("step") >= 0) {
 				return new ImageEditor(context);
@@ -100,46 +104,15 @@ class EditorFactory {
 }
 
 interface IEditor<I, T, P> {
-	iconPath: vsc.Uri;
-	htmlPath: vsc.Uri;
-	scriptPath: vsc.Uri;
+	iconPath: vscode.Uri;
+	htmlPath: vscode.Uri;
+	scriptPath: vscode.Uri;
 	getPanelId(item: I): string;
 	getPanelName(item: I): string;
 	getDetailsCreate(data: P): I | Promise<I | undefined>;
 	getDetailsUpdate(data: T): I | Promise<I>;
-	renderCreate(document: Document, item: I): void;
-	renderUpdate(document: Document, item: I): void;
-}
-
-function createCheckbox(
-	document: Document,
-	id: string,
-	name: string,
-	state: boolean,
-	attributes: { [key: string]: string }
-): HTMLDivElement {
-	const control = document.createElement("div");
-	control.classList.add("control", "inline");
-	const label = document.createElement("label");
-	label.classList.add("container", "checkbox");
-	const input = document.createElement("input");
-	input.type = "checkbox";
-	input.name = name;
-	input.id = id;
-	if (state) {
-		input.setAttribute("checked", "true");
-	}
-	for (const key in attributes) {
-		if (attributes.hasOwnProperty(key)) {
-			input.setAttribute(key, attributes[key]);
-		}
-	}
-	const span = document.createElement("span");
-	span.classList.add("checkmark");
-
-	label.append(input, span);
-	control.append(label);
-	return control;
+	renderCreate(webviewInterface: WebviewInterface, item: I): void;
+	renderUpdate(webviewInterface: WebviewInterface, item: I): void;
 }
 
 type ImageItem = {
@@ -158,13 +131,13 @@ type ImageItem = {
 };
 
 class ImageEditor implements IEditor<ImageItem, Image, Step> {
-	iconPath: vsc.Uri;
-	htmlPath: vsc.Uri;
-	scriptPath: vsc.Uri;
-	constructor(context: vsc.ExtensionContext) {
-		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "image.svg"));
-		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "image-form.html"));
-		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "image_script.js"));
+	iconPath: vscode.Uri;
+	htmlPath: vscode.Uri;
+	scriptPath: vscode.Uri;
+	constructor(context: vscode.ExtensionContext) {
+		this.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets", "image.svg"));
+		this.htmlPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "image-form.html"));
+		this.scriptPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "image_script.js"));
 	}
 
 	getPanelId(item: ImageItem): string {
@@ -191,109 +164,12 @@ class ImageEditor implements IEditor<ImageItem, Image, Step> {
 		});
 	}
 
-	renderUpdate(document: Document, item: ImageItem): void {
-		document.getElementById("heading_image_name")!.textContent = item.Name;
-		document.getElementById("input_image_name")!.setAttribute("value", item.Name);
-		document.getElementById("input_image_entity_alias")!.setAttribute("value", item.EntityAlias);
-
-		if (!item.AvailablePre) {
-			document.getElementById("input_container_pre_image")!.style.display = "none";
-		} else {
-			if (item.IsPre) {
-				document.getElementById("input_image_pre_image")!.setAttribute("checked", "true");
-			}
-		}
-
-		if (!item.AvailablePost) {
-			document.getElementById("input_container_post_image")!.style.display = "none";
-		} else {
-			if (item.IsPost) {
-				document.getElementById("input_image_post_image")!.setAttribute("checked", "true");
-			}
-		}
-		const attributes = item.ImageAttributes;
-		const attributeElement = document.createDocumentFragment();
-		for (const { Available, DisplayName, LogicalName } of attributes) {
-			// Construct Checkbox
-			const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-				"data-logicalname": LogicalName,
-			});
-			const checkBoxCell = document.createElement("td");
-			checkBoxCell.append(control);
-
-			const displayName = document.createElement("div");
-			displayName.classList.add("description");
-			const displayNameText = document.createElement("p");
-			displayNameText.textContent = `${DisplayName}`;
-			const displayNameCell = document.createElement("td");
-			displayName.append(displayNameText);
-			displayNameCell.append(displayName);
-
-			const logicalName = document.createElement("div");
-			logicalName.classList.add("description");
-			const logicalNameText = document.createElement("p");
-			logicalNameText.textContent = `${LogicalName}`;
-			const logicalNameCell = document.createElement("td");
-			logicalName.append(logicalNameText);
-			logicalNameCell.append(logicalName);
-
-			const row = document.createElement("tr");
-			row.setAttribute("data-logicalname", LogicalName);
-			row.setAttribute("data-displayname", DisplayName);
-			row.append(checkBoxCell, displayNameCell, logicalNameCell);
-			attributeElement.append(row);
-		}
-		document.querySelector("#attribute_container tbody")!.append(attributeElement);
+	renderUpdate(webviewInterface: WebviewInterface, item: ImageItem): void {
+		webviewInterface.sendMessage("image_renderUpdate", item);
 	}
 
-	renderCreate(document: Document, item: ImageItem): void {
-		document.getElementById("heading_image_name")!.textContent = "New Image";
-		document.getElementById("input_image_name")!.setAttribute("value", "Image");
-		document.getElementById("input_image_entity_alias")!.setAttribute("value", "EntityAlias");
-		if (!item.AvailablePre) {
-			document.getElementById("input_container_pre_image")!.style.display = "none";
-		} else {
-			document.getElementById("input_image_pre_image")!.setAttribute("checked", "true");
-		}
-
-		if (!item.AvailablePost) {
-			document.getElementById("input_container_post_image")!.style.display = "none";
-		} else {
-			document.getElementById("input_image_post_image")!.setAttribute("checked", "true");
-		}
-		const attributes = item.ImageAttributes;
-		const attributeElement = document.createDocumentFragment();
-		for (const { Available, DisplayName, LogicalName } of attributes) {
-			// Construct Checkbox
-			const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-				"data-logicalname": LogicalName,
-			});
-			const checkBoxCell = document.createElement("td");
-			checkBoxCell.append(control);
-
-			const displayName = document.createElement("div");
-			displayName.classList.add("description");
-			const displayNameText = document.createElement("p");
-			displayNameText.textContent = `${DisplayName}`;
-			const displayNameCell = document.createElement("td");
-			displayName.append(displayNameText);
-			displayNameCell.append(displayName);
-
-			const logicalName = document.createElement("div");
-			logicalName.classList.add("description");
-			const logicalNameText = document.createElement("p");
-			logicalNameText.textContent = `${LogicalName}`;
-			const logicalNameCell = document.createElement("td");
-			logicalName.append(logicalNameText);
-			logicalNameCell.append(logicalName);
-
-			const row = document.createElement("tr");
-			row.setAttribute("data-logicalname", LogicalName);
-			row.setAttribute("data-displayname", DisplayName);
-			row.append(checkBoxCell, displayNameCell, logicalNameCell);
-			attributeElement.append(row);
-		}
-		document.querySelector("#attribute_container tbody")!.append(attributeElement);
+	renderCreate(webviewInterface: WebviewInterface, item: ImageItem): void {
+		webviewInterface.sendMessage("image_renderCreate", item);
 	}
 }
 
@@ -317,19 +193,19 @@ type StepItem = {
 };
 
 class StepEditor implements IEditor<StepItem, Step, Plugin> {
-	iconPath: vsc.Uri;
-	htmlPath: vsc.Uri;
-	scriptPath: vsc.Uri;
+	iconPath: vscode.Uri;
+	htmlPath: vscode.Uri;
+	scriptPath: vscode.Uri;
 	private messages: { MessageName: string; MessageId: string }[];
 	private entities: { DisplayName: string; LogicalName: string }[];
 	private users: { UserName: string; UserId: string }[];
-	constructor(context: vsc.ExtensionContext) {
+	constructor(context: vscode.ExtensionContext) {
 		this.messages = [];
 		this.entities = [];
 		this.users = [];
-		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "step.svg"));
-		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "step-form.html"));
-		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "step_script.js"));
+		this.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets", "step.svg"));
+		this.htmlPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "step-form.html"));
+		this.scriptPath = vscode.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "step_script.js"));
 	}
 
 	getPanelId(item: StepItem): string {
@@ -360,144 +236,20 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 		return undefined;
 	}
 
-	renderUpdate(document: Document, item: StepItem): void {
-		document.getElementById("heading_step_name")!.textContent = item.Name;
-		document.getElementById("input_step_name")!.setAttribute("value", item.Name);
-		document.getElementById("input_step_message_name")!.setAttribute("value", item.MessageName);
-		if (item.EntityName && item.EntityName !== "none") {
-			document.getElementById("input_step_entity_name")!.setAttribute("value", item.EntityName);
-		}
-		document.getElementById("input_step_execution_order")!.setAttribute("value", item.ExecutionOrder.toString());
-		const messageNameList = document.getElementById("messages")!;
-		messageNameList.append(
-			...this.messages.map((message) => {
-				const option = document.createElement("option");
-				option.id = "message_" + message.MessageId;
-				option.value = message.MessageName;
-				option.setAttribute("data-message-id", message.MessageId);
-				return option;
-			})
-		);
-		const entityNameList = document.getElementById("entitynames")!;
-		entityNameList.append(
-			...this.entities.map((entity) => {
-				const option = document.createElement("option");
-				option.id = "entity_" + entity.LogicalName;
-				option.value = entity.LogicalName;
-				option.label = entity.DisplayName;
-				return option;
-			})
-		);
-		const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
-		const callingUser = document.createElement("option");
-		callingUser.value = "";
-		callingUser.textContent = callingUser.label = "Calling User";
-		callingUser.selected = true;
-		userNameList.append(
-			callingUser,
-			...this.users.map((user) => {
-				const option = document.createElement("option");
-				option.id = "user_" + user.UserId;
-				option.value = user.UserId;
-				option.label = option.textContent = user.UserName;
-				if (user.UserId === item.UserId) {
-					option.setAttribute("selected", "true");
-				}
-				return option;
-			})
-		);
-
-		const stageSelection = document.getElementById("input_step_stage") as HTMLSelectElement;
-		stageSelection.value = item.Stage.toString();
-		stageSelection.querySelector(`option[value="${item.Stage}"]`)!.setAttribute("selected", "true");
-
-		if (item.IsAsync ?? false) {
-			const asyncSelection = document.getElementById("input_step_async") as HTMLInputElement;
-			asyncSelection.setAttribute("checked", "true");
-		}
-		if (item.IsDeployedOnServer ?? false) {
-			const deploymentServerSelection = document.getElementById("input_step_deploy_server") as HTMLInputElement;
-			deploymentServerSelection.setAttribute("checked", "true");
-		}
-		if (item.IsDeployedOffline ?? false) {
-			const deploymentOfflineSelection = document.getElementById("input_step_deploy_offline") as HTMLInputElement;
-			deploymentOfflineSelection.setAttribute("checked", "true");
-		}
-		const attributes = item.StepAttributes;
-		const attributeElement = document.createDocumentFragment();
-		for (const { Available, DisplayName, LogicalName } of attributes) {
-			// Construct Checkbox
-			const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-				"data-logicalname": LogicalName,
-			});
-			const checkBoxCell = document.createElement("td");
-			checkBoxCell.append(control);
-
-			const displayName = document.createElement("div");
-			displayName.classList.add("description");
-			const displayNameText = document.createElement("p");
-			displayNameText.textContent = `${DisplayName}`;
-			const displayNameCell = document.createElement("td");
-			displayName.append(displayNameText);
-			displayNameCell.append(displayName);
-
-			const logicalName = document.createElement("div");
-			logicalName.classList.add("description");
-			const logicalNameText = document.createElement("p");
-			logicalNameText.textContent = `${LogicalName}`;
-			const logicalNameCell = document.createElement("td");
-			logicalName.append(logicalNameText);
-			logicalNameCell.append(logicalName);
-
-			const row = document.createElement("tr");
-			row.setAttribute("data-logicalname", LogicalName);
-			row.setAttribute("data-displayname", DisplayName);
-			row.append(checkBoxCell, displayNameCell, logicalNameCell);
-			attributeElement.append(row);
-		}
-		document.querySelector("#attribute_container tbody")!.append(attributeElement);
+	renderUpdate(webviewInterface: WebviewInterface, item: StepItem): void {
+		webviewInterface.sendMessage("step_renderUpdate", {
+			item,
+			messages: this.messages,
+			entities: this.entities,
+			users: this.users,
+		});
 	}
 
-	renderCreate(document: Document) {
-		document.getElementById("heading_step_name")!.textContent = "New Step";
-		document.getElementById("attribute_column")!.style.display = "none";
-		const messageNameList = document.getElementById("messages")!;
-		messageNameList.append(
-			...this.messages.map((message) => {
-				const option = document.createElement("option");
-				option.id = "message_" + message.MessageId;
-				option.value = message.MessageName;
-				option.setAttribute("data-message-id", message.MessageId);
-				return option;
-			})
-		);
-		// const entityNameList = document.getElementById("entitynames");
-		// entityNameList.append(
-		// 	...this.entities.map((entity) => {
-		// 		const option = document.createElement("option");
-		// 		option.id = "entity_" + entity.LogicalName;
-		// 		option.value = entity.LogicalName;
-		// 		option.label = entity.DisplayName;
-		// 		return option;
-		// 	})
-		// );
-		const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
-		const callingUser = document.createElement("option");
-		callingUser.value = "";
-		callingUser.textContent = callingUser.label = "Calling User";
-		callingUser.selected = true;
-		userNameList.append(
-			callingUser,
-			...this.users.map((user) => {
-				const option = document.createElement("option");
-				option.id = "user_" + user.UserId;
-				option.value = user.UserId;
-				option.label = option.textContent = user.UserName;
-				return option;
-			})
-		);
-		(document.getElementById("input_step_execution_order") as HTMLInputElement).setAttribute("value", "1");
-		(document.getElementById("input_step_deploy_server") as HTMLInputElement).setAttribute("checked", "true");
+	renderCreate(webviewInterface: WebviewInterface) {
+		webviewInterface.sendMessage("step_renderUpdate", {
+			messages: this.messages,
+			users: this.users,
+		});
 	}
 }
 
@@ -517,9 +269,9 @@ type AssemblyItem = {
 };
 
 class AssemblyEditor implements IEditor<AssemblyItem, Assembly, Organization> {
-	iconPath: vsc.Uri;
-	htmlPath: vsc.Uri;
-	scriptPath: vsc.Uri;
+	iconPath: vscode.Uri;
+	htmlPath: vscode.Uri;
+	scriptPath: vscode.Uri;
 
 	getPanelId(item: AssemblyItem): string {
 		return item?.Id ?? v4();
@@ -538,38 +290,21 @@ class AssemblyEditor implements IEditor<AssemblyItem, Assembly, Organization> {
 		return undefined;
 	}
 
-	renderUpdate(document: Document, item: AssemblyItem): void {
-		document.getElementById("heading_assembly_name")!.textContent = item.Name;
-		document.getElementById("input_assembly_name")!.setAttribute("value", item.Name);
-		if (item.FilePath) {
-			document.getElementById("input_assembly_file_location")!.setAttribute("value", item.FilePath);
-		}
-		if (item.IsSandboxed) {
-			document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
-		}
-		document.getElementById("input_assembly_deployment")!.setAttribute("value", item.DeploymentMode.toString());
-		document.getElementById("input_assembly_metadata_name")!.setAttribute("value", item.Metadata?.AssemblyName);
-		document.getElementById("input_assembly_metadata_version")!.setAttribute("value", item.Metadata?.Version);
-		document.getElementById("input_assembly_metadata_culture")!.setAttribute("value", item.Metadata?.Culture);
-		document.getElementById("input_assembly_metadata_key")!.setAttribute("value", item.Metadata?.PublicKeyToken);
-		const pluginTypes = item.Metadata?.DetectedPluginTypes?.map((pt) => {
-			const element = document.createElement("p");
-			element.textContent = pt.Name;
-			element.id = `assembly_pt_${pt}`;
-			element.title = pt.FullName;
-			return element;
-		});
-		document.getElementById("plugin_types")!.append(...pluginTypes);
+	renderUpdate(webviewInterface: WebviewInterface, item: AssemblyItem): void {
+		webviewInterface.sendMessage("assembly_renderUpdate", item);
 	}
 
-	renderCreate(document: Document): void {
-		document.getElementById("heading_assembly_name")!.textContent = "New Assembly";
-		document.getElementById("input_assembly_sandboxed")!.setAttribute("checked", "true");
+	renderCreate(webviewInterface: WebviewInterface): void {
+		webviewInterface.sendMessage("assembly_renderCreate", undefined);
 	}
 
-	constructor(context: vsc.ExtensionContext) {
-		this.iconPath = vsc.Uri.file(path.join(context.extensionPath, "assets", "assembly.svg"));
-		this.htmlPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "HTML", "assembly-form.html"));
-		this.scriptPath = vsc.Uri.file(path.join(context.extensionPath, "dist", "static", "JS", "assembly_script.js"));
+	constructor(context: vscode.ExtensionContext) {
+		this.iconPath = vscode.Uri.file(path.join(context.extensionPath, "assets", "assembly.svg"));
+		this.htmlPath = vscode.Uri.file(
+			path.join(context.extensionPath, "dist", "static", "HTML", "assembly-form.html")
+		);
+		this.scriptPath = vscode.Uri.file(
+			path.join(context.extensionPath, "dist", "static", "JS", "assembly_script.js")
+		);
 	}
 }
