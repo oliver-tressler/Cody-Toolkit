@@ -58,11 +58,14 @@ export class EditorProvider {
 				.replace("{{imageicon}}", icon.toString());
 
 			panel.webview.html = content;
-			if (mode === "add") {
-				editor.renderCreate(webviewInterface, item);
-			} else {
-				editor.renderUpdate(webviewInterface, item);
-			}
+			setTimeout(() => {
+				if (mode === "add") {
+					editor.renderCreate(webviewInterface, item);
+				} else {
+					editor.renderUpdate(webviewInterface, item);
+				}
+			}, 1000);
+
 			return { panelId, panel, webviewInterface };
 		} catch (e) {
 			vscode.window.showErrorMessage(e.response?.data?.Message ?? e.message ?? "Unable to edit this element");
@@ -246,7 +249,7 @@ class StepEditor implements IEditor<StepItem, Step, Plugin> {
 	}
 
 	renderCreate(webviewInterface: WebviewInterface) {
-		webviewInterface.sendMessage("step_renderUpdate", {
+		webviewInterface.sendMessage("step_renderCreate", {
 			messages: this.messages,
 			users: this.users,
 		});

@@ -21,7 +21,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onView:crmtooling.pluginsandsteps"
+		"onView:cody-toolkit.pluginsandsteps"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
@@ -134,42 +134,42 @@
 				{
 					"command": "cody.toolkit.pluginmanagement.reload",
 					"group": "inline@1",
-					"when": "view == crmtooling.pluginsandsteps && viewItem == organization"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == organization"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.edit",
 					"group": "inline@9",
-					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.add",
 					"group": "inline@8",
-					"when": "view == crmtooling.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.delete",
 					"group": "inline@10",
-					"when": "view == crmtooling.pluginsandsteps && viewItem != organization && viewItem != plugin"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.disable",
 					"group": "inline@1",
-					"when": "view == crmtooling.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.enable",
 					"group": "inline@1",
-					"when": "view == crmtooling.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.watch",
 					"group": "inline@1",
-					"when": "view == crmtooling.pluginsandsteps && viewItem == assembly"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == assembly"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.unwatch",
 					"group": "inline@1",
-					"when": "view == crmtooling.pluginsandsteps && viewItem == assemblyWatched"
+					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == assemblyWatched"
 				}
 			]
 		},
@@ -177,22 +177,23 @@
 			"activitybar": [
 				{
 					"icon": "./assets/dynamics-icon.svg",
-					"id": "crmtooling",
-					"title": "Dynamics CRM"
+					"id": "cody-toolkit",
+					"title": "Cody Toolkit"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "crmtooling.pluginsandsteps",
+				"view": "cody-toolkit.pluginsandsteps",
 				"contents": "It looks like you are not connected to a Dynamics CRM Instance yet.\n Click the button below to connect to one. It might take a couple seconds for this window to refresh after the authentication process has been completed.\n[Connect](command:cody.toolkit.core.connect.switchInstance)"
 			}
 		],
 		"views": {
-			"crmtooling": [
+			"cody-pluginmanagement": [
 				{
-					"id": "crmtooling.pluginsandsteps",
-					"name": "Plugin Browser"
+					"id": "cody-toolkit.pluginsandsteps",
+					"name": "Plugin Manager",
+					"icon": "./assets/dynamics-icon.svg"
 				}
 			]
 		}

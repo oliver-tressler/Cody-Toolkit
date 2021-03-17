@@ -12,7 +12,7 @@ export class PluginBrowserProvider implements vsc.Disposable {
 	private dataProvider: DataProvider;
 	constructor({ subscriptions }: vsc.ExtensionContext) {
 		this.dataProvider = new DataProvider();
-		const treeView: vsc.TreeView<TreeData | undefined> = vsc.window.createTreeView("crmtooling.pluginsandsteps", {
+		const treeView: vsc.TreeView<TreeData | undefined> = vsc.window.createTreeView("cody-toolkit.pluginsandsteps", {
 			treeDataProvider: this.dataProvider,
 			canSelectMany: false,
 			showCollapseAll: true,
