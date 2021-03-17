@@ -134,42 +134,42 @@
 				{
 					"command": "cody.toolkit.pluginmanagement.reload",
 					"group": "inline@1",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == organization"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem == organization"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.edit",
 					"group": "inline@9",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != organization && viewItem != plugin"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.add",
 					"group": "inline@8",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem != assembly && viewItem != assemblyWatched && viewItem != image && viewItem != stepNoImage && viewItem != stepDisabledNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.delete",
 					"group": "inline@10",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem != organization && viewItem != plugin"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem != organization && viewItem != plugin"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.disable",
 					"group": "inline@1",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem == step || viewItem == stepNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.enable",
 					"group": "inline@1",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem == stepDisabled || viewItem == stepDisabledNoImage"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.watch",
 					"group": "inline@1",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == assembly"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem == assembly"
 				},
 				{
 					"command": "cody.toolkit.pluginmanagement.unwatch",
 					"group": "inline@1",
-					"when": "view == cody-pluginmanagement.pluginsandsteps && viewItem == assemblyWatched"
+					"when": "view == cody-toolkit.pluginsandsteps && viewItem == assemblyWatched"
 				}
 			]
 		},
@@ -189,7 +189,7 @@
 			}
 		],
 		"views": {
-			"cody-pluginmanagement": [
+			"cody-toolkit": [
 				{
 					"id": "cody-toolkit.pluginsandsteps",
 					"name": "Plugin Manager",
