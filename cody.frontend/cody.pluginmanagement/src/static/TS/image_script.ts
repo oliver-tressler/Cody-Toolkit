@@ -4,7 +4,7 @@ type State = {
 	post: boolean;
 	name: string;
 	alias: string;
-	attributes: { [key: string]: boolean };
+	attributes: { [logicalName: string]: ImageAttribute };
 };
 type ImageAttribute = { LogicalName: string; DisplayName?: string; Available: boolean };
 type ImageItem = {
@@ -107,19 +107,22 @@ function validatePreAndPostImage() {
 }
 
 function persistState() {
-	const attributes = Array.from(
-		document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]")
-	);
+	const attributeRows = Array.from(document.querySelectorAll<HTMLTableRowElement>("#attribute_container tbody tr"));
 	const state = {
 		name: nameElement.value,
 		alias: entityAliasElement.value,
 		pre: availablePre.checked,
 		post: availablePost.checked,
-		attributes: attributes.reduce((agg, curr) => {
-			const logicalName = curr.getAttribute("data-logicalname");
-			logicalName && (agg[logicalName] = curr.checked);
+		attributes: attributeRows.reduce((agg, currentRow) => {
+			const logicalName = currentRow.getAttribute("data-logicalname");
+			logicalName &&
+				(agg[logicalName] = {
+					Available: currentRow.querySelector("input")?.checked ?? false,
+					LogicalName: logicalName,
+					DisplayName: currentRow.getAttribute("data-displayname") ?? undefined,
+				});
 			return agg;
-		}, {} as { [key: string]: boolean }),
+		}, {} as { [key: string]: ImageAttribute }),
 	};
 	api.setState(state);
 }
@@ -155,6 +158,41 @@ function createCheckbox(
 	return control;
 }
 
+function renderAttributes(attributes: ImageAttribute[]) {
+	const attributeElement = document.createDocumentFragment();
+	for (const { Available, DisplayName, LogicalName } of attributes) {
+		// Construct Checkbox
+		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
+			"data-logicalname": LogicalName,
+		});
+		const checkBoxCell = document.createElement("td");
+		checkBoxCell.append(control);
+
+		const displayName = document.createElement("div");
+		displayName.classList.add("description");
+		const displayNameText = document.createElement("p");
+		displayNameText.textContent = `${DisplayName}`;
+		const displayNameCell = document.createElement("td");
+		displayName.append(displayNameText);
+		displayNameCell.append(displayName);
+
+		const logicalName = document.createElement("div");
+		logicalName.classList.add("description");
+		const logicalNameText = document.createElement("p");
+		logicalNameText.textContent = `${LogicalName}`;
+		const logicalNameCell = document.createElement("td");
+		logicalName.append(logicalNameText);
+		logicalNameCell.append(logicalName);
+
+		const row = document.createElement("tr");
+		row.setAttribute("data-logicalname", LogicalName);
+		DisplayName && row.setAttribute("data-displayname", DisplayName);
+		row.append(checkBoxCell, displayNameCell, logicalNameCell);
+		attributeElement.append(row);
+	}
+	return attributeElement;
+}
+
 function renderUpdate(item: ImageItem): void {
 	document.getElementById("heading_image_name")!.textContent = item.Name;
 	document.getElementById("input_image_name")?.setAttribute("value", item.Name);
@@ -176,38 +214,7 @@ function renderUpdate(item: ImageItem): void {
 		}
 	}
 	const attributes = item.ImageAttributes;
-	const attributeElement = document.createDocumentFragment();
-	for (const { Available, DisplayName, LogicalName } of attributes) {
-		// Construct Checkbox
-		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-			"data-logicalname": LogicalName,
-		});
-		const checkBoxCell = document.createElement("td");
-		checkBoxCell.append(control);
-
-		const displayName = document.createElement("div");
-		displayName.classList.add("description");
-		const displayNameText = document.createElement("p");
-		displayNameText.textContent = `${DisplayName}`;
-		const displayNameCell = document.createElement("td");
-		displayName.append(displayNameText);
-		displayNameCell.append(displayName);
-
-		const logicalName = document.createElement("div");
-		logicalName.classList.add("description");
-		const logicalNameText = document.createElement("p");
-		logicalNameText.textContent = `${LogicalName}`;
-		const logicalNameCell = document.createElement("td");
-		logicalName.append(logicalNameText);
-		logicalNameCell.append(logicalName);
-
-		const row = document.createElement("tr");
-		row.setAttribute("data-logicalname", LogicalName);
-		DisplayName && row.setAttribute("data-displayname", DisplayName);
-		row.append(checkBoxCell, displayNameCell, logicalNameCell);
-		attributeElement.append(row);
-	}
-	document.querySelector("#attribute_container tbody")?.append(attributeElement);
+	document.querySelector("#attribute_container tbody")?.append(renderAttributes(attributes));
 	persistState();
 	renderBase();
 }
@@ -227,39 +234,7 @@ function renderCreate(item: ImageItem): void {
 	} else {
 		document.getElementById("input_image_post_image")!.setAttribute("checked", "true");
 	}
-	const attributes = item.ImageAttributes;
-	const attributeElement = document.createDocumentFragment();
-	for (const { Available, DisplayName, LogicalName } of attributes) {
-		// Construct Checkbox
-		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-			"data-logicalname": LogicalName,
-		});
-		const checkBoxCell = document.createElement("td");
-		checkBoxCell.append(control);
-
-		const displayName = document.createElement("div");
-		displayName.classList.add("description");
-		const displayNameText = document.createElement("p");
-		displayNameText.textContent = `${DisplayName}`;
-		const displayNameCell = document.createElement("td");
-		displayName.append(displayNameText);
-		displayNameCell.append(displayName);
-
-		const logicalName = document.createElement("div");
-		logicalName.classList.add("description");
-		const logicalNameText = document.createElement("p");
-		logicalNameText.textContent = `${LogicalName}`;
-		const logicalNameCell = document.createElement("td");
-		logicalName.append(logicalNameText);
-		logicalNameCell.append(logicalName);
-
-		const row = document.createElement("tr");
-		row.setAttribute("data-logicalname", LogicalName);
-		DisplayName && row.setAttribute("data-displayname", DisplayName);
-		row.append(checkBoxCell, displayNameCell, logicalNameCell);
-		attributeElement.append(row);
-	}
-	document.querySelector("#attribute_container tbody")?.append(attributeElement);
+	document.querySelector("#attribute_container tbody")?.append(renderAttributes(item.ImageAttributes));
 	persistState();
 	renderBase();
 }
@@ -271,9 +246,10 @@ function renderFromState(state: State) {
 	entityAliasElement.value = state.alias;
 	const headingElement = document.getElementById("heading_image_name");
 	headingElement && (headingElement.textContent = state.name);
+	document.querySelector("#attribute_container tbody")?.append(renderAttributes(Object.values(state.attributes)));
 	document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
 		const logicalName = cb.getAttribute("data-logicalname");
-		logicalName && (cb.checked = state.attributes[logicalName]);
+		logicalName && (cb.checked = state.attributes[logicalName].Available);
 	});
 	renderBase();
 }
