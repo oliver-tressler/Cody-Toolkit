@@ -27,6 +27,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Known Issues
 
+-   Code is still very raw. Refactoring with the next updates.
 -   Unable to deal with workflows yet
 -   Not well-adjusted to theming
 
