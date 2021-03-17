@@ -31,11 +31,7 @@ type StepItem = {
 	IsDeployedOnServer: boolean;
 	IsDeployedOffline: boolean;
 	IsAsync: boolean;
-	StepAttributes: {
-		LogicalName: string;
-		DisplayName: string;
-		Available: boolean;
-	}[];
+	StepAttributes: StepAttributeData[];
 };
 
 type SdkMessage = {
@@ -61,7 +57,10 @@ type State = {
 	async: boolean;
 	server: boolean;
 	offline: boolean;
-	attributes: { [logicalName: string]: boolean };
+	attributes: { [logicalName: string]: StepAttributeData };
+	messages: SdkMessage[];
+	entities: Entity[];
+	users: User[];
 };
 
 function createCheckbox(
@@ -178,40 +177,9 @@ async function requestAttributes() {
 	for (const child of Array.from(document.querySelector("#attribute_container tbody")?.children ?? [])) {
 		child.remove();
 	}
-	const attributeElement = document.createDocumentFragment();
-	for (const { Available, DisplayName, LogicalName } of attributes) {
-		// Construct Checkbox
-		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-			"data-logicalname": LogicalName,
-		});
-		control.onchange = persistState;
-		const checkBoxCell = document.createElement("td");
-		checkBoxCell.append(control);
-
-		const displayName = document.createElement("div");
-		displayName.classList.add("description");
-		const displayNameText = document.createElement("p");
-		displayNameText.textContent = `${DisplayName}`;
-		const displayNameCell = document.createElement("td");
-		displayName.append(displayNameText);
-		displayNameCell.append(displayName);
-
-		const logicalName = document.createElement("div");
-		logicalName.classList.add("description");
-		const logicalNameText = document.createElement("p");
-		logicalNameText.textContent = `${LogicalName}`;
-		const logicalNameCell = document.createElement("td");
-		logicalName.append(logicalNameText);
-		logicalNameCell.append(logicalName);
-
-		const row = document.createElement("tr");
-		row.setAttribute("data-logicalname", LogicalName);
-		row.setAttribute("data-displayname", DisplayName ?? "");
-		row.append(checkBoxCell, displayNameCell, logicalNameCell);
-		attributeElement.append(row);
-	}
-	document.querySelector("#attribute_container tbody")?.append(attributeElement);
+	document.querySelector("#attribute_container tbody")?.append(renderAttributes(attributes));
 	attributeColumnElement.style.display = "block";
+	persistState();
 }
 
 async function requestAvailableEntities(selectedOption: HTMLOptionElement) {
@@ -256,6 +224,7 @@ async function requestAvailableEntities(selectedOption: HTMLOptionElement) {
 		setting.style.display = "block";
 		entityNameElement.required = true;
 	}
+	persistState();
 }
 
 function validateDeploymentOptions() {
@@ -267,6 +236,10 @@ function validateDeploymentOptions() {
 }
 
 function persistState() {
+	const attributeRows = Array.from(document.querySelectorAll<HTMLTableRowElement>("#attribute_container tbody tr"));
+	const messages = Array.from(document.querySelectorAll<HTMLOptionElement>("#input_step_message_name + div option"));
+	const entities = Array.from(document.querySelectorAll<HTMLOptionElement>("#input_step_entity_name + div option"));
+	const users = Array.from(document.querySelectorAll<HTMLOptionElement>("#input_step_user_context option"));
 	const state: State = {
 		name: stepNameElement.value,
 		messageName: messageNameElement.value,
@@ -277,15 +250,65 @@ function persistState() {
 		async: asyncElement.checked,
 		server: deployServerElement.checked,
 		offline: deployOfflineElement.checked,
-		attributes: Array.from(
-			document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]")
-		).reduce<{ [key: string]: boolean }>((agg, curr) => {
-			const logicalName = curr.getAttribute("data-logicalname");
-			logicalName && (agg[logicalName] = curr.checked);
+		attributes: attributeRows.reduce((agg, currentRow) => {
+			const logicalName = currentRow.getAttribute("data-logicalname");
+			logicalName &&
+				(agg[logicalName] = {
+					Available: currentRow.querySelector("input")?.checked ?? false,
+					LogicalName: logicalName,
+					DisplayName: currentRow.getAttribute("data-displayname") ?? undefined,
+				});
 			return agg;
-		}, {}),
+		}, {} as { [key: string]: StepAttributeData }),
+		messages: messages.map<SdkMessage>((msgOption) => ({
+			MessageId: msgOption.getAttribute("data-message-id")!,
+			MessageName: msgOption.value,
+		})),
+		entities: entities.map<Entity>((entityOption) => ({
+			DisplayName: entityOption.label,
+			LogicalName: entityOption.value,
+		})),
+		users: users.map<User>((userOption) => ({
+			UserName: userOption.label,
+			UserId: userOption.value,
+		})),
 	};
 	api.setState(state);
+}
+
+function renderAttributes(attributes: StepAttributeData[]) {
+	const attributeElement = document.createDocumentFragment();
+	for (const { Available, DisplayName, LogicalName } of attributes) {
+		// Construct Checkbox
+		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
+			"data-logicalname": LogicalName,
+		});
+		const checkBoxCell = document.createElement("td");
+		checkBoxCell.append(control);
+
+		const displayName = document.createElement("div");
+		displayName.classList.add("description");
+		const displayNameText = document.createElement("p");
+		displayNameText.textContent = `${DisplayName}`;
+		const displayNameCell = document.createElement("td");
+		displayName.append(displayNameText);
+		displayNameCell.append(displayName);
+
+		const logicalName = document.createElement("div");
+		logicalName.classList.add("description");
+		const logicalNameText = document.createElement("p");
+		logicalNameText.textContent = `${LogicalName}`;
+		const logicalNameCell = document.createElement("td");
+		logicalName.append(logicalNameText);
+		logicalNameCell.append(logicalName);
+
+		const row = document.createElement("tr");
+		row.setAttribute("data-logicalname", LogicalName);
+		DisplayName && row.setAttribute("data-displayname", DisplayName);
+		row.append(checkBoxCell, displayNameCell, logicalNameCell);
+		attributeElement.append(row);
+	}
+	return attributeElement;
 }
 
 function renderUpdate({
@@ -298,7 +321,7 @@ function renderUpdate({
 	messages: SdkMessage[];
 	entities: Entity[];
 	users: User[];
-}): void {
+}) {
 	document.getElementById("heading_step_name")!.textContent = item.Name;
 	document.getElementById("input_step_name")!.setAttribute("value", item.Name);
 	document.getElementById("input_step_message_name")!.setAttribute("value", item.MessageName);
@@ -326,6 +349,8 @@ function renderUpdate({
 			return option;
 		})
 	);
+	entityNameElement.closest<HTMLElement>(".setting")!.style.display = entities.length > 0 ? "block" : "none";
+	entityNameElement.required = entities.length > 0;
 	const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
 	const callingUser = document.createElement("option");
 	callingUser.value = "";
@@ -362,38 +387,9 @@ function renderUpdate({
 		deploymentOfflineSelection.setAttribute("checked", "true");
 	}
 	const attributes = item.StepAttributes;
-	const attributeElement = document.createDocumentFragment();
-	for (const { Available, DisplayName, LogicalName } of attributes) {
-		// Construct Checkbox
-		const control = createCheckbox(document, LogicalName, LogicalName, Available, {
-			"data-logicalname": LogicalName,
-		});
-		const checkBoxCell = document.createElement("td");
-		checkBoxCell.append(control);
-
-		const displayName = document.createElement("div");
-		displayName.classList.add("description");
-		const displayNameText = document.createElement("p");
-		displayNameText.textContent = `${DisplayName}`;
-		const displayNameCell = document.createElement("td");
-		displayName.append(displayNameText);
-		displayNameCell.append(displayName);
-
-		const logicalName = document.createElement("div");
-		logicalName.classList.add("description");
-		const logicalNameText = document.createElement("p");
-		logicalNameText.textContent = `${LogicalName}`;
-		const logicalNameCell = document.createElement("td");
-		logicalName.append(logicalNameText);
-		logicalNameCell.append(logicalName);
-
-		const row = document.createElement("tr");
-		row.setAttribute("data-logicalname", LogicalName);
-		row.setAttribute("data-displayname", DisplayName);
-		row.append(checkBoxCell, displayNameCell, logicalNameCell);
-		attributeElement.append(row);
-	}
-	document.querySelector("#attribute_container tbody")!.append(attributeElement);
+	document.querySelector("#attribute_container tbody")?.append(renderAttributes(attributes));
+	attributeColumnElement.style.display =
+		item.MessageName === "Update" && item.StepAttributes.length > 0 ? "block" : "none";
 	persistState();
 	renderBase();
 }
@@ -421,6 +417,8 @@ function renderCreate({ messages, users }: { messages: SdkMessage[]; users: User
 	// 		return option;
 	// 	})
 	// );
+	entityNameElement.closest<HTMLDivElement>(".setting")!.style.display = "none";
+	entityNameElement.required = false;
 	const userNameList = document.getElementById("input_step_user_context") as HTMLSelectElement;
 	const callingUser = document.createElement("option");
 	callingUser.value = "";
@@ -446,35 +444,64 @@ function renderFromState(state: State) {
 	if (state.name) {
 		headingStepNameElement.textContent = state.name;
 	}
-	stepNameElement.value = state.name;
 	messageNameElement.value = state.messageName;
+	const messageNameList = document.getElementById("messages")!;
+	messageNameList.append(
+		...state.messages.map((message) => {
+			const option = document.createElement("option");
+			option.id = "message_" + message.MessageId;
+			option.value = message.MessageName;
+			option.setAttribute("data-message-id", message.MessageId);
+			return option;
+		})
+	);
+	entityNameElement.value = state.entityName;
+	const entityNameList = document.getElementById("entitynames")!;
+	entityNameList.append(
+		...state.entities.map((entity) => {
+			const option = document.createElement("option");
+			option.id = "entity_" + entity.LogicalName;
+			option.value = entity.LogicalName;
+			option.label = entity.DisplayName;
+			return option;
+		})
+	);
 	userElement.value = state.user;
+	const callingUser = document.createElement("option");
+	callingUser.value = "";
+	callingUser.textContent = callingUser.label = "Calling User";
+	callingUser.selected = true;
+	userElement.append(
+		callingUser,
+		...state.users.map((user) => {
+			const option = document.createElement("option");
+			option.id = "user_" + user.UserId;
+			option.value = user.UserId;
+			option.label = option.textContent = user.UserName;
+			if (user.UserId === state.user) {
+				option.setAttribute("selected", "true");
+			}
+			return option;
+		})
+	);
 	executionOrderElement.value = state.executionOrder;
 	stageElement.value = state.stage;
 	asyncElement.checked = state.async;
 	deployServerElement.checked = state.server;
 	deployOfflineElement.checked = state.offline;
-	const updateAttributeCbs = () => {
-		document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
-			const logicalName = cb.getAttribute("data-logicalname");
-			logicalName && (cb.checked = state.attributes[logicalName]);
-		});
-	};
-	if (entityNameElement.value !== state.entityName) {
-		entityNameElement.value = state.entityName;
-		requestAttributes().then(() => updateAttributeCbs());
-	} else {
-		updateAttributeCbs();
-	}
+	stepNameElement.value = state.name;
+	document.querySelector("#attribute_container tbody")!.append(renderAttributes(Object.values(state.attributes)));
+	document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
+		const logicalName = cb.getAttribute("data-logicalname");
+		logicalName && (cb.checked = state.attributes[logicalName].Available);
+	});
+	const setting = entityNameElement.closest<HTMLElement>(".setting");
+	setting && (setting.style.display = !state.messageName || state.entities.length === 0 ? "none" : "block");
+	entityNameElement.required = !state.messageName || state.entities.length === 0;
 	renderBase();
 }
 
 function renderBase() {
-	if (!messageNameElement.value || !entityNameElement.value) {
-		const setting = entityNameElement.closest<HTMLElement>(".setting");
-		setting && (setting.style.display = "none");
-		entityNameElement.required = false;
-	}
 	document.querySelectorAll<HTMLInputElement>("input[type=checkbox][data-logicalname]").forEach((cb) => {
 		cb.onchange = persistState;
 	});
@@ -520,20 +547,25 @@ entityNameElement.onchange = () => {
 	requestAttributes();
 };
 
-messageNameElement.onblur = async function () {
-	const handle = this as HTMLInputElement;
+async function onUpdateMessageName() {
 	attributeColumnElement.style.display =
 		messageNameElement.value === "Update" && entityNameElement.value ? "block" : "none";
-	if (!handle.value) {
+	if (!messageNameElement.value) {
 		const setting = entityNameElement.closest<HTMLElement>(".setting");
 		setting && (setting.style.display = "none");
-		handle.required = false;
+		messageNameElement.required = false;
 		return;
 	}
-	const selectedOption = handle.list?.querySelector<HTMLOptionElement>(`option[value=${handle.value}]`);
+	const selectedOption = messageNameElement.list?.querySelector<HTMLOptionElement>(
+		`option[value=${messageNameElement.value}]`
+	);
 	if (selectedOption) {
 		await requestAvailableEntities(selectedOption);
 	}
+}
+
+messageNameElement.onblur = async function () {
+	onUpdateMessageName();
 };
 
 deployServerElement.onchange = validateDeploymentOptions;
