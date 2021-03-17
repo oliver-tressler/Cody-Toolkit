@@ -19,9 +19,11 @@ const messageHandlers: {
 } = {};
 
 function randomString() {
-	return Math.floor(Math.random() * Math.pow(10, 16))
-		.toString(36)
-		.substring(0, 10);
+	// taken from https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/UUIDGeneratorBrowser.md
+	return [1e7, 1e3, 4e3, 8e3, 1e11].join("-").replace(/[018]/g, (c: string) => {
+		const val = parseInt(c);
+		return (val ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (val / 4)))).toString(16);
+	});
 }
 
 export function sendRequest<RequestData, Response>(command: string, payload: RequestData): Promise<Response> {
