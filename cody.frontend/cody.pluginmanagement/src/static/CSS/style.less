@@ -1,0 +1,537 @@
+@iconSize: 60px;
+@iconOffset: 20px;
+@large-fontsize: 35px;
+@medium-fontsize: 22px;
+@small-fontsize: 15px;
+
+* {
+	font-family: var(--vscode-font-family);
+}
+
+body {
+	padding-left: 25px;
+	overflow-x: auto;
+	overflow-y: auto;
+}
+
+.heading-container {
+	display: flex;
+	align-items: center;
+
+	h1 {
+		margin-left: @iconOffset;
+		font-size: @large-fontsize;
+		font-weight: bold;
+	}
+}
+
+.data-container {
+	display: flex;
+	margin-left: @iconSize + @iconOffset;
+
+	h2 {
+		font-size: @medium-fontsize;
+		font-weight: bold;
+		margin-top: 0;
+		margin-bottom: @small-fontsize / 2;
+	}
+
+	.data-column:nth-child(1) {
+		width: 435px;
+		min-width: 435px;
+		padding-right: 100px;
+	}
+
+	.setting {
+		.heading {
+			display: flex;
+
+			p {
+				font-size: @small-fontsize;
+				font-weight: bold;
+				margin: 0;
+			}
+
+			.breadcrumb {
+				margin-right: 5px;
+			}
+
+			margin-bottom: @small-fontsize / 3;
+		}
+
+		.description {
+			p {
+				font-size: @small-fontsize;
+				margin: 0;
+				max-width: 550px;
+			}
+
+			display: flex;
+		}
+
+		.control {
+			&.inline {
+				display: flex;
+
+				&.baseline {
+					align-items: baseline;
+				}
+			}
+
+			input[type="submit"],
+			button {
+				font-weight: bold;
+				min-width: 120px;
+				border: none;
+				padding: 5px 15px;
+				margin: 10px 3px;
+				cursor: pointer;
+
+				&:disabled .submit-btn-content-wrapper .spinner {
+					display: block;
+				}
+
+				&.save {
+					float: right;
+				}
+			}
+
+			select,
+			textarea,
+			input[type="text"],
+			input[type="number"],
+			input[type="file"]+label {
+				resize: vertical;
+				height: @small-fontsize * 1.6;
+				border: 0 solid;
+				border-radius: 3px;
+				width: 98%;
+				margin-top: @small-fontsize / 2;
+				padding-left: 10px;
+				margin-left: 3px;
+
+				&:focus {
+					outline-style: solid;
+					outline-width: 1px;
+					outline-offset: 1px;
+					box-shadow: 0 0 0;
+				}
+			}
+
+			input[type="file"] {
+				&+label {
+					display: inline-flex;
+					align-items: center;
+					height: 26px;
+				}
+
+				cursor: pointer;
+
+				z-index: -1;
+				height: 0.1px;
+				width: 0.1px;
+				opacity: 0;
+				overflow: hidden;
+				position: absolute;
+			}
+
+			select {
+				width: 100%;
+				height: 28px;
+			}
+
+			label.checkbox {
+				display: block;
+				position: relative;
+				padding-left: 35px;
+				margin-bottom: 12px;
+				font-size: 22px;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+
+				input {
+					position: absolute;
+					opacity: 0;
+				}
+
+				.checkmark {
+					position: absolute;
+					top: 0;
+					left: 0;
+					height: @small-fontsize * 1.4;
+					width: @small-fontsize * 1.4;
+					border-radius: 3px;
+
+					&:after {
+						content: "";
+						position: absolute;
+						display: none;
+					}
+
+					&:hover {
+						outline-style: solid;
+						outline-width: 1px;
+					}
+				}
+
+				& input:checked~.checkmark:after {
+					display: block;
+				}
+
+				& .checkmark:after {
+					left: 7px;
+					top: 2px;
+					width: 5px;
+					height: @small-fontsize * 0.8;
+					border-style: solid;
+					border-width: 0 2px 2px 0;
+					-webkit-transform: rotate(45deg);
+					-ms-transform: rotate(45deg);
+					transform: rotate(45deg);
+				}
+
+				&:focus-within .checkmark {
+					outline-style: solid;
+					outline-width: 1px;
+				}
+			}
+		}
+
+		#attribute_container.control {
+			margin-bottom: 10px;
+		}
+
+		&.less-margin {
+			margin-bottom: 6px;
+		}
+
+		table {
+			th p {
+				float: left;
+			}
+
+			tbody {
+				tr {
+					td:first-child {
+						float: right;
+					}
+
+					td:nth-child(2) {
+						padding-right: 50px;
+					}
+
+					&.hidden {
+						display: none;
+					}
+				}
+			}
+		}
+
+		margin-bottom: @small-fontsize;
+	}
+}
+
+.image-column {
+	width: @iconSize;
+
+	img {
+		width: 100%;
+	}
+}
+
+#plugin_types {
+	padding-left: 5px;
+	padding-top: 5px;
+}
+
+span,
+#plugin_types p {
+	font-weight: bold;
+	margin: 0;
+
+	&.deleted {
+		&::after {
+			content: "D";
+			/* · as separator */
+			// letter-spacing: 3px;
+			padding-left: 5px;
+		}
+	}
+
+	&.added {
+		&::after {
+			content: "A";
+			// letter-spacing: 3px;
+			padding-left: 5px;
+		}
+	}
+}
+
+/**
+ * Loading
+ */
+.submit-btn-content-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation-duration: 0.1s;
+}
+
+.spinner {
+	width: 35px;
+	height: 15px;
+	text-align: center;
+	font-size: 10px;
+	display: none;
+
+	.rect2 {
+		-webkit-animation-delay: -1.1s;
+		animation-delay: -1.1s;
+	}
+
+	.rect3 {
+		-webkit-animation-delay: -1s;
+		animation-delay: -1s;
+	}
+
+	.rect4 {
+		-webkit-animation-delay: -0.9s;
+		animation-delay: -0.9s;
+	}
+
+	.rect5 {
+		-webkit-animation-delay: -0.8s;
+		animation-delay: -0.8s;
+	}
+}
+
+.spinner>div {
+	height: 100%;
+	width: 6px;
+	display: inline-block;
+	animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+
+@keyframes sk-stretchdelay {
+
+	0%,
+	40%,
+	100% {
+		transform: scaleY(0.4);
+	}
+
+	20% {
+		transform: scaleY(1);
+	}
+}
+
+/** Colors */
+@highlight: var(--vscode-foreground, --vscode-editor-foreground);
+@regular: var(--vscode-descriptionForeground);
+@disabled-dark: #858585;
+@disabled-light: #a5a5a5;
+@interact: var(--vscode-button-background);
+@darken-dark: rgba(0, 0, 0, 0.25);
+@darken-light: rgba(0, 0, 0, 0.1);
+
+body.vscode-dark {
+	background: var(--vscode-editor-background, --vscode-background);
+
+	.heading-container h1 {
+		color: @regular;
+	}
+
+	.data-container {
+		h2 {
+			color: @highlight;
+		}
+
+		.setting {
+			.heading {
+				.breadcrumb {
+					color: @regular;
+				}
+
+				.text {
+					color: @highlight;
+				}
+			}
+
+			.description {
+				p {
+					color: @regular;
+				}
+			}
+
+			.control {
+
+				input[type="submit"],
+				button {
+					background-color: var(--vscode-button-background);
+					color: var(--vscode-button-foreground);
+
+					&:disabled {
+						background-color: @disabled-dark;
+					}
+
+					&:hover:not(disabled) {
+						background-color: var(--vscode-button-hoverBackground);
+						color: var(--vscode-button-hoverForeground);
+					}
+				}
+
+				select,
+				textarea,
+				input[type="text"],
+				input[type="number"],
+				input[type="file"]+label {
+					background-color: @darken-dark;
+					color: @highlight;
+
+					&:focus {
+						outline: var(--vscode-focusBorder) solid 1px;
+					}
+
+					&:disabled {
+						color: @disabled-dark;
+					}
+				}
+
+				label.checkbox {
+					.checkmark {
+						background-color: @darken-dark;
+
+						&:hover {
+							outline-color: @regular;
+						}
+
+						&:after {
+							border-color: @regular;
+						}
+					}
+
+					&:focus-within .checkmark {
+						outline-color: var(--vscode-focusBorder);
+					}
+				}
+			}
+		}
+	}
+
+	span,
+	#plugin_types p {
+		&.deleted::after {
+			color: #913a3a;
+		}
+
+		&.added::after {
+			color: #297e4c;
+		}
+	}
+
+	.spinner>div {
+		background-color: @regular;
+	}
+}
+
+body.vscode-light {
+	background: var(--vscode-editor-background, --vscode-background);
+
+	.heading-container h1 {
+		color: @regular;
+	}
+
+	.data-container {
+		h2 {
+			color: @highlight;
+		}
+
+		.setting {
+			.heading {
+				.breadcrumb {
+					color: @regular;
+				}
+
+				.text {
+					color: @highlight;
+				}
+			}
+
+			.description {
+				p {
+					color: @regular;
+				}
+			}
+
+			.control {
+
+				input[type="submit"],
+				button {
+					background-color: var(--vscode-button-background);
+					color: var(--vscode-button-foreground);
+
+					&:disabled {
+						background-color: @disabled-light;
+					}
+
+					&:hover:not(disabled) {
+						background-color: var(--vscode-button-hoverBackground);
+						color: var(--vscode-button-hoverForeground);
+					}
+				}
+
+				select,
+				textarea,
+				input[type="text"],
+				input[type="number"],
+				input[type="file"]+label {
+					background-color: @darken-light;
+					color: @highlight;
+
+					&:focus {
+						outline-color: var(--vscode-focusBorder);
+					}
+
+					&:disabled {
+						color: @disabled-light;
+					}
+				}
+
+				label.checkbox {
+					.checkmark {
+						background-color: @darken-light;
+
+						&:hover {
+							outline-color: @regular;
+						}
+
+						&:after {
+							border-color: @regular;
+						}
+					}
+
+					&:focus-within .checkmark {
+						outline-color: var(--vscode-focusBorder);
+					}
+				}
+			}
+		}
+	}
+
+	span,
+	#plugin_types p {
+		&.deleted::after {
+			color: #913a3a;
+		}
+
+		&.added::after {
+			color: #297e4c;
+		}
+	}
+
+	.spinner>div {
+		background-color: @regular;
+	}
+}

@@ -27,7 +27,7 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "cody.toolkit.core.connect.changeInstance",
+				"command": "cody.toolkit.core.connect.switchInstance",
 				"title": "Change the currently active instance",
 				"category": "Cody Connect"
 			},

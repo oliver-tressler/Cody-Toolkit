@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="{{style}}" />
+		<!-- <link rel="stylesheet" href="../CSS/style.css"> -->
+		<title>Image</title>
+	</head>
+
+	<body>
+		<div class="heading-container">
+			<div class="image-column">
+				<img src="{{imageicon}}" alt="Image Icon" type="image/svg+xml" />
+				<!-- <img src="../../../../assets/image.svg" alt="Image Icon" type="image/svg+xml"> -->
+			</div>
+			<h1 class="heading"><span id="heading_image_name">Image.Name</span></h1>
+		</div>
+		<form class="data-container" action="javascript:void(0);" id="image_form">
+			<div class="data-column">
+				<h2>Image Properties</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Name</p>
+					</div>
+					<div class="description">
+						<p>Name of the entity image. Primarily used for distinguishing multiple images.</p>
+					</div>
+					<div class="control">
+						<input type="text" id="input_image_name" name="ImageName" required pattern="\w{1,256}" />
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Entity Alias</p>
+					</div>
+					<div class="description">
+						<p>
+							The entity alias is used to identify the image among others within the
+							EntityImageCollections of the Plugin Execution Context.
+						</p>
+					</div>
+					<div class="control">
+						<input
+							type="text"
+							id="input_image_entity_alias"
+							name="EntityAlias"
+							required
+							pattern="\w{1,256}"
+						/>
+					</div>
+				</div>
+				<div class="setting less-margin">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Plugin Stage Availability</p>
+					</div>
+					<div class="description">
+						<p>
+							Control wether this image is available in plugin executions happening before and/or after
+							the database transaction. Not every step supports all availability types. At least one image
+							type must be selected.
+						</p>
+					</div>
+				</div>
+				<div class="setting less-margin" id="input_container_pre_image">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Pre-Image</p>
+					</div>
+					<div class="control inline">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_image_pre_image" name="PreImage" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>
+								The Image will contain the state of the entity as it was before the database transaction
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="setting less-margin" id="input_container_post_image">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Post-Image</p>
+					</div>
+					<div class="control inline">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_image_post_image" name="PostImage" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>
+								The image will contain the state of the entity as it was after the transaction, when
+								updates through user-input, workflows and plugins have been applied
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="control">
+						<button type="submit" value="Save" class="save" id="input_image_submit">
+							<div class="submit-btn-content-wrapper">
+								<div class="spinner">
+									<div class="rect1"></div>
+									<div class="rect2"></div>
+									<div class="rect3"></div>
+								</div>
+								Save
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="data-column">
+				<h2>Image Attributes</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Image:</p>
+						<p class="text">Attributes</p>
+					</div>
+					<div class="description">
+						<p>
+							Control which attributes will show up in plugins. If no attribute is selected in this list,
+							the image will contain all attributes of this entity.
+						</p>
+					</div>
+					<div class="control inline baseline">
+						<button type="button" id="deselect_all_attributes">Deselect All</button>
+						<button type="button" id="select_all_attributes">Select All</button>
+						<input type="text" name="search_attributes" id="search_attributes" placeholder="Search ..." />
+					</div>
+					<table id="attribute_container">
+						<thead>
+							<tr>
+								<th>
+									<div>
+										<p></p>
+									</div>
+								</th>
+								<th>
+									<div>
+										<p>DisplayName</p>
+									</div>
+								</th>
+								<th>
+									<div>
+										<p>LogicalName</p>
+									</div>
+								</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+
+		<script src="{{script}}"></script>
+	</body>
+</html>

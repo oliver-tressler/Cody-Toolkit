@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<link rel="stylesheet" href="{{style}}" />
+		<!-- <link rel="stylesheet" href="../CSS/style.css" /> -->
+
+		<title>Assembly</title>
+	</head>
+
+	<body>
+		<div class="heading-container">
+			<div class="image-column">
+				<img src="{{imageicon}}" alt="Image Icon" type="image/svg+xml" />
+				<!-- <img
+					src="../../../../assets/assembly.svg"
+					alt="Image Icon"
+					type="image/svg+xml"
+				/> -->
+			</div>
+			<h1 class="heading">
+				<span id="heading_assembly_name">Assembly.Name</span>
+			</h1>
+		</div>
+		<form class="data-container" action="javascript:void(0)" id="assembly_form">
+			<div class="data-column">
+				<h2>Assembly Properties</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Name</p>
+					</div>
+					<div class="description">
+						<p>
+							Name of the assembly. Primarily used for distinguishing between multiple assemblies. The
+							name is chosen automatically based on the DLL specified in the Location field.
+						</p>
+					</div>
+					<div class="control">
+						<input
+							type="text"
+							id="input_assembly_name"
+							placeholder="Choose a local assembly"
+							name="AssemblyName"
+							disabled
+						/>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Sandboxed</p>
+					</div>
+					<div class="control inline">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_assembly_sandboxed" name="Sandboxed" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>
+								The assembly should run in a sandboxed context. This will limit the available
+								functionality for plugins but enables logging via the ITracingService as well as simpler
+								debugging.
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Deployment</p>
+					</div>
+					<div class="description">
+						<p>
+							Choose where the assembly will be deployed. It is recommended to choose values other than
+							Database only if you know what you're doing.
+						</p>
+					</div>
+					<div class="control">
+						<select type="text" id="input_assembly_deployment" name="AssemblyDeployment" required>
+							<option value="0">Database</option>
+							<option value="1">Disk</option>
+							<option value="2">Global Assembly Cache</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="setting">
+					<div class="control">
+						<button type="submit" value="Save" class="save" id="input_assembly_submit">
+							<div class="submit-btn-content-wrapper">
+								<div class="spinner">
+									<div class="rect1"></div>
+									<div class="rect2"></div>
+									<div class="rect3"></div>
+								</div>
+								Save
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="data-column">
+				<h2>Update Assembly</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Location</p>
+					</div>
+					<div class="description">
+						<p>
+							Specify the path to the merged DLL file that should be uploaded to the CRM. What plugin
+							types will be registered can be chosen below.
+						</p>
+					</div>
+					<div class="control inline">
+						<input
+							type="text"
+							name="input_assembly_file_location"
+							id="input_assembly_file_location"
+							placeholder="None selected ..."
+							disabled
+						/>
+						<button type="button" id="input_assembly_file_chooser">
+							<div class="file-picker">Choose</div>
+						</button>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Name</p>
+					</div>
+					<div class="description">
+						<p>The name of the assembly</p>
+					</div>
+					<div class="control">
+						<input id="input_assembly_metadata_name" name="AssemblyName" type="text" disabled />
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Version</p>
+					</div>
+					<div class="description">
+						<p>The version of the assembly</p>
+					</div>
+					<div class="control">
+						<input id="input_assembly_metadata_version" name="AssemblyVersion" type="text" disabled />
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Culture</p>
+					</div>
+					<div class="description">
+						<p>The culture of the assembly</p>
+					</div>
+					<div class="control">
+						<input id="input_assembly_metadata_culture" name="AssemblyCulture" type="text" disabled />
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Public Key Token</p>
+					</div>
+					<div class="description">
+						<p>The public key token of the assembly</p>
+					</div>
+					<div class="control">
+						<input id="input_assembly_metadata_key" name="AssemblyPublicKey" type="text" disabled />
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Assembly:</p>
+						<p class="text">Detected Plugins</p>
+					</div>
+					<div class="description">
+						<p>
+							These are the plugins that have been detected in the assembly. Items missing in your local
+							assembly will be marked with a<span class="deleted"></span>, while additional plugins that
+							will be registered will have an<span class="added"></span> next to them.
+						</p>
+					</div>
+					<div id="plugin_types"></div>
+				</div>
+			</div>
+		</form>
+
+		<script src="{{script}}"></script>
+		<!-- <script src="../JS/assembly_script.js"></script> -->
+	</body>
+</html>

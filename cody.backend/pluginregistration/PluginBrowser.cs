@@ -156,6 +156,11 @@ namespace pluginregistration
                 {
                     service.Delete(sdkMessageProcessingStepImage.LogicalName, sdkMessageProcessingStepImage.Id);
                 }
+
+                foreach (var sdkMessageProcessingStep in steps)
+                {
+                    service.Delete(sdkMessageProcessingStep.LogicalName, sdkMessageProcessingStep.Id);
+                }
                 service.Delete(matchingCrmPlugin.LogicalName, matchingCrmPlugin.Id);
             }
             var bytes = File.ReadAllBytes(localAssembly.FilePath.Replace("\"", string.Empty));

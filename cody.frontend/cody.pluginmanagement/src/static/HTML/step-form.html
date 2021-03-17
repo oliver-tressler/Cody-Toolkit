@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="{{style}}" />
+		<!-- <link rel="stylesheet" href="../CSS/style.css"> -->
+		<title>Image</title>
+	</head>
+
+	<body>
+		<div class="heading-container">
+			<div class="image-column">
+				<img src="{{imageicon}}" alt="Image Icon" type="image/svg+xml" />
+				<!-- <img src="../../../../assets/image.svg" alt="Image Icon" type="image/svg+xml"> -->
+			</div>
+			<h1 class="heading"><span id="heading_step_name">Step.Name</span></h1>
+		</div>
+		<form id="step_form" class="data-container" action="javascript:void(0);">
+			<div class="data-column">
+				<h2>Step Properties</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Name</p>
+					</div>
+					<div class="description">
+						<p>Name of the step. Primarily used for identification.</p>
+					</div>
+					<div class="control">
+						<input type="text" id="input_step_name" name="Name" required pattern=".{1,256}" />
+					</div>
+				</div>
+				<!-- <div class="setting">
+                <div class="heading">
+                    <p class="breadcrumb">Step: </p>
+                    <p class="text">Description</p>
+                </div>
+                <div class="description">
+                    <p>Placeholder Text.</p>
+                </div>
+                <div class="control">
+                    <textarea type="text" id="input_step_description" name="Description" rows="4"></textarea>
+                </div>
+            </div> -->
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Message Name</p>
+					</div>
+					<div class="description">
+						<p>Placeholder Text.</p>
+					</div>
+					<div class="control">
+						<input
+							type="text"
+							id="input_step_message_name"
+							name="MessageName"
+							required
+							pattern="\w{1,256}"
+							list="messages"
+						/>
+						<div style="overflow-y: auto; max-height: 350px">
+							<datalist id="messages"> </datalist>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Entity Name</p>
+					</div>
+					<div class="description">
+						<p>Placeholder Text.</p>
+					</div>
+					<div class="control">
+						<input
+							type="text"
+							id="input_step_entity_name"
+							name="EntityName"
+							required
+							pattern="\w{1,256}"
+							list="entitynames"
+						/>
+						<div style="overflow-y: auto; max-height: 350px">
+							<datalist id="entitynames"> </datalist>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Run as User</p>
+					</div>
+					<div class="description">
+						<p>Placeholder Text.</p>
+					</div>
+					<div class="control">
+						<select name="Users" id="input_step_user_context"></select>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Execution Order</p>
+					</div>
+					<div class="description">
+						<p>Placeholder Text.</p>
+					</div>
+					<div class="control">
+						<input
+							type="number"
+							min="1"
+							max="2147483647"
+							step="1"
+							id="input_step_execution_order"
+							required
+						/>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Stage</p>
+					</div>
+					<div class="description">
+						<p>Placeholder Text.</p>
+					</div>
+					<div class="control">
+						<select name="Stage" id="input_step_stage">
+							<option value="10">Pre-validation</option>
+							<option value="20">Pre-operation</option>
+							<option value="40">Post-operation</option>
+						</select>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Asynchronous</p>
+					</div>
+					<div class="control inline">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_step_async" name="Asynchronous" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>
+								The Step will be executed asynchronously and does not block user interaction while the
+								plugin is running.
+							</p>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Deployment</p>
+					</div>
+					<div class="control inline">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_step_deploy_server" name="DeploymentServer" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>This step will execute on the <b>Server</b></p>
+						</div>
+					</div>
+					<div class="control inline" style="margin-top: 15px">
+						<label class="container checkbox">
+							<input type="checkbox" id="input_step_deploy_offline" name="Deploymentoffline" />
+							<span class="checkmark"></span>
+						</label>
+						<div class="description">
+							<p>This step will execute <b>Offline</b></p>
+						</div>
+					</div>
+				</div>
+				<div class="setting">
+					<div class="control">
+						<button type="submit" id="input_step_submit" value="Save" class="save">
+							<div class="submit-btn-content-wrapper">
+								<div class="spinner">
+									<div class="rect1"></div>
+									<div class="rect2"></div>
+									<div class="rect3"></div>
+								</div>
+								Save
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="data-column" id="attribute_column">
+				<h2>Step Attributes</h2>
+				<div class="setting">
+					<div class="heading">
+						<p class="breadcrumb">Step:</p>
+						<p class="text">Attributes</p>
+					</div>
+					<div class="description">
+						<p>Control which fields will trigger this step. This is only available on Update requests.</p>
+					</div>
+					<div class="control inline baseline">
+						<button type="button" id="deselect_all_attributes">Deselect All</button>
+						<button type="button" id="select_all_attributes">Select All</button>
+						<input type="text" name="search_attributes" id="search_attributes" placeholder="Search ..." />
+					</div>
+					<table id="attribute_container">
+						<thead>
+							<tr>
+								<th>
+									<div>
+										<p></p>
+									</div>
+								</th>
+								<th>
+									<div>
+										<p>DisplayName</p>
+									</div>
+								</th>
+								<th>
+									<div>
+										<p>LogicalName</p>
+									</div>
+								</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+
+		<script src="{{script}}"></script>
+	</body>
+</html>

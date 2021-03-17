@@ -1,0 +1,417 @@
+* {
+  font-family: var(--vscode-font-family);
+}
+body {
+  padding-left: 25px;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+.heading-container {
+  display: flex;
+  align-items: center;
+}
+.heading-container h1 {
+  margin-left: 20px;
+  font-size: 35px;
+  font-weight: bold;
+}
+.data-container {
+  display: flex;
+  margin-left: 80px;
+}
+.data-container h2 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 7.5px;
+}
+.data-container .data-column:nth-child(1) {
+  width: 435px;
+  min-width: 435px;
+  padding-right: 100px;
+}
+.data-container .setting {
+  margin-bottom: 15px;
+}
+.data-container .setting .heading {
+  display: flex;
+  margin-bottom: 5px;
+}
+.data-container .setting .heading p {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+}
+.data-container .setting .heading .breadcrumb {
+  margin-right: 5px;
+}
+.data-container .setting .description {
+  display: flex;
+}
+.data-container .setting .description p {
+  font-size: 15px;
+  margin: 0;
+  max-width: 550px;
+}
+.data-container .setting .control.inline {
+  display: flex;
+}
+.data-container .setting .control.inline.baseline {
+  align-items: baseline;
+}
+.data-container .setting .control input[type="submit"],
+.data-container .setting .control button {
+  font-weight: bold;
+  min-width: 120px;
+  border: none;
+  padding: 5px 15px;
+  margin: 10px 3px;
+  cursor: pointer;
+}
+.data-container .setting .control input[type="submit"]:disabled .submit-btn-content-wrapper .spinner,
+.data-container .setting .control button:disabled .submit-btn-content-wrapper .spinner {
+  display: block;
+}
+.data-container .setting .control input[type="submit"].save,
+.data-container .setting .control button.save {
+  float: right;
+}
+.data-container .setting .control select,
+.data-container .setting .control textarea,
+.data-container .setting .control input[type="text"],
+.data-container .setting .control input[type="number"],
+.data-container .setting .control input[type="file"] + label {
+  resize: vertical;
+  height: 24px;
+  border: 0 solid;
+  border-radius: 3px;
+  width: 98%;
+  margin-top: 7.5px;
+  padding-left: 10px;
+  margin-left: 3px;
+}
+.data-container .setting .control select:focus,
+.data-container .setting .control textarea:focus,
+.data-container .setting .control input[type="text"]:focus,
+.data-container .setting .control input[type="number"]:focus,
+.data-container .setting .control input[type="file"] + label:focus {
+  outline-style: solid;
+  outline-width: 1px;
+  outline-offset: 1px;
+  box-shadow: 0 0 0;
+}
+.data-container .setting .control input[type="file"] {
+  cursor: pointer;
+  z-index: -1;
+  height: 0.1px;
+  width: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+}
+.data-container .setting .control input[type="file"] + label {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+}
+.data-container .setting .control select {
+  width: 100%;
+  height: 28px;
+}
+.data-container .setting .control label.checkbox {
+  display: block;
+  position: relative;
+  padding-left: 35px;
+  margin-bottom: 12px;
+  font-size: 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.data-container .setting .control label.checkbox input {
+  position: absolute;
+  opacity: 0;
+}
+.data-container .setting .control label.checkbox .checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 21px;
+  width: 21px;
+  border-radius: 3px;
+}
+.data-container .setting .control label.checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+.data-container .setting .control label.checkbox .checkmark:hover {
+  outline-style: solid;
+  outline-width: 1px;
+}
+.data-container .setting .control label.checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+.data-container .setting .control label.checkbox .checkmark:after {
+  left: 7px;
+  top: 2px;
+  width: 5px;
+  height: 12px;
+  border-style: solid;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.data-container .setting .control label.checkbox:focus-within .checkmark {
+  outline-style: solid;
+  outline-width: 1px;
+}
+.data-container .setting #attribute_container.control {
+  margin-bottom: 10px;
+}
+.data-container .setting.less-margin {
+  margin-bottom: 6px;
+}
+.data-container .setting table th p {
+  float: left;
+}
+.data-container .setting table tbody tr td:first-child {
+  float: right;
+}
+.data-container .setting table tbody tr td:nth-child(2) {
+  padding-right: 50px;
+}
+.data-container .setting table tbody tr.hidden {
+  display: none;
+}
+.image-column {
+  width: 60px;
+}
+.image-column img {
+  width: 100%;
+}
+#plugin_types {
+  padding-left: 5px;
+  padding-top: 5px;
+}
+span,
+#plugin_types p {
+  font-weight: bold;
+  margin: 0;
+}
+span.deleted::after,
+#plugin_types p.deleted::after {
+  content: "D";
+  /* · as separator */
+  padding-left: 5px;
+}
+span.added::after,
+#plugin_types p.added::after {
+  content: "A";
+  padding-left: 5px;
+}
+/**
+ * Loading
+ */
+.submit-btn-content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation-duration: 0.1s;
+}
+.spinner {
+  width: 35px;
+  height: 15px;
+  text-align: center;
+  font-size: 10px;
+  display: none;
+}
+.spinner .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+.spinner .rect3 {
+  -webkit-animation-delay: -1s;
+  animation-delay: -1s;
+}
+.spinner .rect4 {
+  -webkit-animation-delay: -0.9s;
+  animation-delay: -0.9s;
+}
+.spinner .rect5 {
+  -webkit-animation-delay: -0.8s;
+  animation-delay: -0.8s;
+}
+.spinner > div {
+  height: 100%;
+  width: 6px;
+  display: inline-block;
+  animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+@keyframes sk-stretchdelay {
+  0%,
+  40%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(1);
+  }
+}
+/** Colors */
+body.vscode-dark {
+  background: var(--vscode-editor-background, --vscode-background);
+}
+body.vscode-dark .heading-container h1 {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-dark .data-container h2 {
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-dark .data-container .setting .heading .breadcrumb {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-dark .data-container .setting .heading .text {
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-dark .data-container .setting .description p {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-dark .data-container .setting .control input[type="submit"],
+body.vscode-dark .data-container .setting .control button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+body.vscode-dark .data-container .setting .control input[type="submit"]:disabled,
+body.vscode-dark .data-container .setting .control button:disabled {
+  background-color: #858585;
+}
+body.vscode-dark .data-container .setting .control input[type="submit"]:hover:not(disabled),
+body.vscode-dark .data-container .setting .control button:hover:not(disabled) {
+  background-color: var(--vscode-button-hoverBackground);
+  color: var(--vscode-button-hoverForeground);
+}
+body.vscode-dark .data-container .setting .control select,
+body.vscode-dark .data-container .setting .control textarea,
+body.vscode-dark .data-container .setting .control input[type="text"],
+body.vscode-dark .data-container .setting .control input[type="number"],
+body.vscode-dark .data-container .setting .control input[type="file"] + label {
+  background-color: rgba(0, 0, 0, 0.25);
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-dark .data-container .setting .control select:focus,
+body.vscode-dark .data-container .setting .control textarea:focus,
+body.vscode-dark .data-container .setting .control input[type="text"]:focus,
+body.vscode-dark .data-container .setting .control input[type="number"]:focus,
+body.vscode-dark .data-container .setting .control input[type="file"] + label:focus {
+  outline: var(--vscode-focusBorder) solid 1px;
+}
+body.vscode-dark .data-container .setting .control select:disabled,
+body.vscode-dark .data-container .setting .control textarea:disabled,
+body.vscode-dark .data-container .setting .control input[type="text"]:disabled,
+body.vscode-dark .data-container .setting .control input[type="number"]:disabled,
+body.vscode-dark .data-container .setting .control input[type="file"] + label:disabled {
+  color: #858585;
+}
+body.vscode-dark .data-container .setting .control label.checkbox .checkmark {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+body.vscode-dark .data-container .setting .control label.checkbox .checkmark:hover {
+  outline-color: var(--vscode-descriptionForeground);
+}
+body.vscode-dark .data-container .setting .control label.checkbox .checkmark:after {
+  border-color: var(--vscode-descriptionForeground);
+}
+body.vscode-dark .data-container .setting .control label.checkbox:focus-within .checkmark {
+  outline-color: var(--vscode-focusBorder);
+}
+body.vscode-dark span.deleted::after,
+body.vscode-dark #plugin_types p.deleted::after {
+  color: #913a3a;
+}
+body.vscode-dark span.added::after,
+body.vscode-dark #plugin_types p.added::after {
+  color: #297e4c;
+}
+body.vscode-dark .spinner > div {
+  background-color: var(--vscode-descriptionForeground);
+}
+body.vscode-light {
+  background: var(--vscode-editor-background, --vscode-background);
+}
+body.vscode-light .heading-container h1 {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-light .data-container h2 {
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-light .data-container .setting .heading .breadcrumb {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-light .data-container .setting .heading .text {
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-light .data-container .setting .description p {
+  color: var(--vscode-descriptionForeground);
+}
+body.vscode-light .data-container .setting .control input[type="submit"],
+body.vscode-light .data-container .setting .control button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+body.vscode-light .data-container .setting .control input[type="submit"]:disabled,
+body.vscode-light .data-container .setting .control button:disabled {
+  background-color: #a5a5a5;
+}
+body.vscode-light .data-container .setting .control input[type="submit"]:hover:not(disabled),
+body.vscode-light .data-container .setting .control button:hover:not(disabled) {
+  background-color: var(--vscode-button-hoverBackground);
+  color: var(--vscode-button-hoverForeground);
+}
+body.vscode-light .data-container .setting .control select,
+body.vscode-light .data-container .setting .control textarea,
+body.vscode-light .data-container .setting .control input[type="text"],
+body.vscode-light .data-container .setting .control input[type="number"],
+body.vscode-light .data-container .setting .control input[type="file"] + label {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--vscode-foreground, --vscode-editor-foreground);
+}
+body.vscode-light .data-container .setting .control select:focus,
+body.vscode-light .data-container .setting .control textarea:focus,
+body.vscode-light .data-container .setting .control input[type="text"]:focus,
+body.vscode-light .data-container .setting .control input[type="number"]:focus,
+body.vscode-light .data-container .setting .control input[type="file"] + label:focus {
+  outline-color: var(--vscode-focusBorder);
+}
+body.vscode-light .data-container .setting .control select:disabled,
+body.vscode-light .data-container .setting .control textarea:disabled,
+body.vscode-light .data-container .setting .control input[type="text"]:disabled,
+body.vscode-light .data-container .setting .control input[type="number"]:disabled,
+body.vscode-light .data-container .setting .control input[type="file"] + label:disabled {
+  color: #a5a5a5;
+}
+body.vscode-light .data-container .setting .control label.checkbox .checkmark {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+body.vscode-light .data-container .setting .control label.checkbox .checkmark:hover {
+  outline-color: var(--vscode-descriptionForeground);
+}
+body.vscode-light .data-container .setting .control label.checkbox .checkmark:after {
+  border-color: var(--vscode-descriptionForeground);
+}
+body.vscode-light .data-container .setting .control label.checkbox:focus-within .checkmark {
+  outline-color: var(--vscode-focusBorder);
+}
+body.vscode-light span.deleted::after,
+body.vscode-light #plugin_types p.deleted::after {
+  color: #913a3a;
+}
+body.vscode-light span.added::after,
+body.vscode-light #plugin_types p.added::after {
+  color: #297e4c;
+}
+body.vscode-light .spinner > div {
+  background-color: var(--vscode-descriptionForeground);
+}
