@@ -15,12 +15,12 @@ type AssemblyItem = {
 	};
 };
 
-type AssemblyFileUpdateRequest = {
+type AssemblyMetadataRequest = {
 	fileType: string;
 	path: string;
 };
 
-type AssemblyFileUpdateResponse = {
+type AssemblyMetadataResponse = {
 	path: string;
 	metadata: {
 		AssemblyName: string;
@@ -48,11 +48,12 @@ type State = {
 		version: string;
 		culture: string;
 		key: string;
+		pluginTypes: { Name: string; FullName: string; State: string }[];
 	};
 };
 
-async function updateFileName(path: string = "") {
-	const response = await sendRequest<AssemblyFileUpdateRequest, AssemblyFileUpdateResponse>("plugineditor_pickfile", {
+async function queryAssemblyMetadata(path: string = "") {
+	const response = await sendRequest<AssemblyMetadataRequest, AssemblyMetadataResponse>("plugineditor_pickfile", {
 		fileType: "dll",
 		path: path,
 	});
@@ -94,7 +95,6 @@ async function updateFileName(path: string = "") {
 	]
 		.filter((val) => !!val)
 		.join(" 🡲 ");
-	persistState();
 	const remotePlugins = Array.from(document.querySelectorAll<HTMLParagraphElement>("#plugin_types p"));
 	remotePlugins.forEach((plugin) => {
 		if (plugin.classList.contains("added")) {
@@ -125,6 +125,7 @@ async function updateFileName(path: string = "") {
 			p.classList.add("added");
 			document.getElementById("plugin_types")?.prepend(p);
 		});
+	persistState();
 }
 
 async function postData() {
@@ -139,12 +140,21 @@ async function postData() {
 			FilePath: assemblyLocationElement.value,
 		});
 		assemblyHeading.textContent = response.AssemblyName;
+		document.querySelectorAll("#plugin_types p").forEach((el) => {
+			if (el.classList.contains("deleted")) {
+				el.remove();
+			} else {
+				el.classList.value = "";
+			}
+		});
 	} finally {
 		submitButton?.removeAttribute("disabled");
+		persistState();
 	}
 }
 
 function persistState() {
+	const pluginTypes = Array.from(document.querySelectorAll<HTMLParagraphElement>("#plugin_types p"));
 	const state: State = {
 		name: assemblyNameElement.value,
 		sandboxed: isSandboxedElement.checked,
@@ -155,6 +165,11 @@ function persistState() {
 			version: assemblyMetadataVersionElement.value,
 			culture: assemblyMetadataCultureElement.value,
 			key: assemblyMetadataKeyElement.value,
+			pluginTypes: pluginTypes.map((pluginTypeElement) => ({
+				Name: pluginTypeElement.textContent!,
+				FullName: pluginTypeElement.title,
+				State: pluginTypeElement.classList.toString(),
+			})),
 		},
 	};
 	api.setState(state);
@@ -189,8 +204,8 @@ function renderUpdate(item: AssemblyItem): void {
 		return element;
 	});
 	document.getElementById("plugin_types")!.append(...pluginTypes);
-	persistState();
 	renderBase();
+	persistState();
 }
 
 function renderFromState(state: State) {
@@ -203,12 +218,20 @@ function renderFromState(state: State) {
 	assemblyMetadataCultureElement.value = state.metadata.culture;
 	assemblyMetadataKeyElement.value = state.metadata.key;
 	assemblyHeading.textContent = state.name;
-	renderBase();
+	const pluginTypes = state.metadata.pluginTypes?.map((pt) => {
+		const element = document.createElement("p");
+		element.textContent = pt.Name;
+		element.id = `assembly_pt_${pt}`;
+		element.title = pt.FullName;
+		pt.State && element.classList.add(...pt.State.split(" ").filter(Boolean));
+		return element;
+	});
+	document.getElementById("plugin_types")!.append(...pluginTypes);
 }
 
 function renderBase() {
 	if (!!assemblyLocationElement?.value) {
-		updateFileName(assemblyLocationElement?.value);
+		queryAssemblyMetadata(assemblyLocationElement?.value);
 	}
 }
 
@@ -233,7 +256,7 @@ assemblyMetadataNameElement.onchange = persistState;
 assemblyMetadataVersionElement.onchange = persistState;
 assemblyMetadataKeyElement.onchange = persistState;
 assemblyMetadataCultureElement.onchange = persistState;
-assemblyFileChooser.onclick = () => updateFileName();
+assemblyFileChooser.onclick = () => queryAssemblyMetadata();
 submitButton.onclick = () => postData();
 const state: State = api.getState();
 if (state) {
