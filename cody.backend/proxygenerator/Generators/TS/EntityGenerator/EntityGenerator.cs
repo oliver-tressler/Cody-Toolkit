@@ -18,8 +18,7 @@ namespace proxygenerator.Generators.TS.EntityGenerator
 
         private readonly List<(string[] Classes, string From)> _imports = new List<(string[], string)>
         {
-            (new[] {"Guid"}, "guid-typescript"),
-            (new[] {"Attribute", "BaseEntityProxy", "LookupAttribute", "EntityReference", "DateTimeAttribute", "DateTimeBehaviour", "OData", "ODataEntityResult"},
+            (new[] {"Guid", "Attribute", "BaseEntityProxy", "LookupAttribute", "EntityReference", "DateTimeAttribute", "DateTimeBehaviour", "OData", "ODataEntityResult"},
                 "../core/BaseEntityProxy")
         };
 
@@ -34,7 +33,7 @@ namespace proxygenerator.Generators.TS.EntityGenerator
                     {
                         os.EnumName == os.InternalEnumName ? os.EnumName : $"{os.EnumName} as {os.InternalEnumName}"
                     },
-                    "../GlobalOptionSets/" + os.FileName);
+                    "../OptionSets/" + os.FileName);
             }));
         }
 
