@@ -41,7 +41,7 @@ namespace proxygenerator
             {
                 throw new DirectoryNotFoundException("Proxy directory not found");
             }
-
+            Directory.CreateDirectory(Path.Combine(proxyFolderPath, "Entities"));
             var proxiesToGenerate = new List<string>();
             // Regenerate all action proxies
             if (options.ActionNames.Length == 0)
@@ -68,13 +68,13 @@ namespace proxygenerator
             {
                 var fileContent = new ActionGenerator(action).GenerateActionCode();
                 if (!createdNewFiles && !File.Exists(
-                    Path.Combine($"{proxyFolderPath}", "Actions", $"{action.Name}.{language}")))
+                    Path.Combine(proxyFolderPath, "Actions", $"{action.Name}.{language}")))
                 {
                     createdNewFiles = true;
                 }
 
                 File.WriteAllText(
-                    Path.Combine($"{proxyFolderPath}", "Actions", $"{action.Name}.{language}"),
+                    Path.Combine(proxyFolderPath, "Actions", $"{action.Name}.{language}"),
                     fileContent);
             }
 
@@ -98,8 +98,9 @@ namespace proxygenerator
                 throw new DirectoryNotFoundException("Proxy directory not found");
             }
 
+            Directory.CreateDirectory(Path.Combine(proxyFolderPath, "Entities"));
             var availableProxyFiles =
-                ListProxyFileNames(Path.Combine(options.Path, "Entities"), language);
+                ListProxyFileNames(Path.Combine(proxyFolderPath, "Entities"), language);
             var cache = new EntityMetadataCache(organizationService, language, options,
                 availableProxyFiles.ToList());
             IEnumerable<EntityData> entityData;
@@ -122,13 +123,13 @@ namespace proxygenerator
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                if (!createdNewFiles && !File.Exists(Path.Combine($"{proxyFolderPath}", "Entities",
+                if (!createdNewFiles && !File.Exists(Path.Combine(proxyFolderPath, "Entities",
                     $"{entity.LogicalName}.{language}")))
                 {
                     createdNewFiles = true;
                 }
 
-                File.WriteAllText(Path.Combine($"{proxyFolderPath}", "Entities", $"{entity.LogicalName}.{language}"),
+                File.WriteAllText(Path.Combine(proxyFolderPath, "Entities", $"{entity.LogicalName}.{language}"),
                     generator.GenerateEntityCode());
                 optionSets.AddRange(generator.GenerateExternalOptionSets());
             }
@@ -139,7 +140,7 @@ namespace proxygenerator
             }
             catch
             {
-                throw new Exception("Unable to create enums directory at " + Path.Combine(options.Path, "OptionSets"));
+                throw new Exception("Unable to create enums directory at " + Path.Combine(proxyFolderPath, "OptionSets"));
             }
 
             optionSets = optionSets
@@ -148,13 +149,13 @@ namespace proxygenerator
             foreach (var (fileName, content) in optionSets)
             {
                 if (!createdNewFiles &&
-                    !File.Exists(Path.Combine($"{proxyFolderPath}", "Entities", $"{fileName}.{language}")))
+                    !File.Exists(Path.Combine(proxyFolderPath, "Entities", $"{fileName}.{language}")))
                 {
                     createdNewFiles = true;
                 }
 
                 File.WriteAllText(
-                    Path.Combine($"{proxyFolderPath}", "OptionSets", $"{fileName}.{language}"),
+                    Path.Combine(proxyFolderPath, "OptionSets", $"{fileName}.{language}"),
                     content);
             }
 
