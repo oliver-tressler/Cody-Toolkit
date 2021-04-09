@@ -57,7 +57,7 @@ const requestDiscoUrl = async () => {
 		prompt:
 			"Please enter the path to the discovery service. " +
 			"You can usually find it by going to " +
-			"Settings -> Customizations -> Developer Resources -> DiscoveryService",
+			"Settings ➔ Customizations ➔ Developer Resources ➔ DiscoveryService",
 	});
 	if (!discoUrl) throw new Error("Invalid Discovery Url");
 	return discoUrl;
