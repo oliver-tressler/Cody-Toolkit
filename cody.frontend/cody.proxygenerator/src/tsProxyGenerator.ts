@@ -55,7 +55,7 @@ async function withTsServerRestartIfRequired<T extends AxiosResponse<{ CreatedNe
 	let delegateResult: T | undefined = await delegate;
 	try {
 		if (
-			TypeScriptConfiguration.restartTsProxyServerWhenCreatingNewFiles &&
+			TypeScriptConfiguration.restartTsLanguageServerWhenCreatingNewFiles &&
 			delegateResult.data.CreatedNewFiles && // This is way cleaner than using a file system watcher
 			vscode.workspace.workspaceFolders?.some(
 				(wf) => isSubDirOrEqualDir(wf.uri.fsPath, TypeScriptConfiguration.proxyFolder) // only if one of the workspace folders is the proxy folder

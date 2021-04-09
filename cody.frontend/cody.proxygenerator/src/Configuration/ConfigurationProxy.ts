@@ -89,5 +89,5 @@ export class TypeScriptConfiguration extends Configuration {
 		getTransform: (val) => val === "true",
 		setTransform: (val) => val.toString(),
 	})
-	static restartTsProxyServerWhenCreatingNewFiles: boolean;
+	static restartTsLanguageServerWhenCreatingNewFiles: boolean;
 }
