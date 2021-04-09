@@ -38,16 +38,16 @@
 			}
 		],
 		"configuration": {
-			"title": "Cody Toolkit",
+			"title": "Cody Toolkit (Core)",
 			"properties": {
 				"cody.toolkit.core.backendServerLocation": {
 					"description": "Path to the backend server executable.",
 					"type": "string",
-					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*cody.backend.api.exe)?$",
+					"pattern": "^([a-zA-Z]:.*cody.backend.api.exe)?$",
 					"scope": "machine"
 				},
 				"cody.toolkit.core.backendServerPort": {
-					"description": "Port used for launching the backend server.",
+					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`.",
 					"type": "number",
 					"scope": "machine",
 					"default": 8080
