@@ -28,7 +28,7 @@
 	"main": "./dist/extension.js",
 	"contributes": {
 		"configuration": {
-			"title": "Cody Toolkit",
+			"title": "Cody Toolkit (Solution Management)",
 			"properties": {
 				"cody.toolkit.solutionmanagement.suggestDateBasedSolutionVersions": {
 					"markdownDescription": "Suggest date-based solution versions when creating solutions. Date based versions should not be used when working on managed solutions, since it will not be possible to patches. This setting defaults to `false` to avoid bad practices.",
