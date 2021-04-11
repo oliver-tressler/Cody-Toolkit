@@ -1,12 +1,13 @@
 import axios from "axios";
 import { ChildProcess, spawn } from "child_process";
+import * as path from "path";
 import { createInterface } from "readline";
 import { v4 } from "uuid";
 import * as vsc from "vscode";
 import * as api from "../Api/connectionApi";
 import { Configuration } from "../Configuration/ConfigurationProxy";
 import { InstanceConfiguration } from "../Configuration/MementoProxy";
-
+import { defaultBackendServerLocation } from "../setup";
 export type ConnectionState = {
 	activeInstance?: InstanceConfiguration & { authenticated: boolean };
 	activeOrganization?: api.OrganizationConfiguration;
@@ -54,61 +55,70 @@ export class ServerConnector {
 	 * Starts the backend as a child process.
 	 * @returns Returns itself for chaining
 	 */
-	async launchServer(): Promise<ServerConnector> {
+	async launchServer(allowRestart?: boolean): Promise<ServerConnector> {
 		const millisecondsBeforeTimeout = 20000;
 		// If server is already running, just return.
 		if (await this.isServerRunning()) return this;
 
-		const location = Configuration.backendServerLocationInfo.asBackwardSlash();
+		const location = path.normalize(Configuration.backendServerLocation || defaultBackendServerLocation);
 		// The first thing the server does once the Web API is available is return the string passed as the boot
 		// identifier flag. We can use that to get a ready signal.
 		const bootIdentifier = v4();
+		const restartIdentifier = v4();
 		const startPromise = new Promise<{ timedOut: false }>((resolve, reject) => {
 			const server = spawn(
-				location.name,
-				["-p", Configuration.backendServerPort.toString(), "-i", bootIdentifier],
+				path.parse(location).base,
+				["-p", Configuration.backendServerPort.toString(), "-i", bootIdentifier, "-r", restartIdentifier],
 				{
-					cwd: location.dir.replace(/['"]+/g, ""),
+					cwd: path.dirname(location).replace(/['"]+/g, ""),
 				}
 			);
 
-			// Handle exit codes. Usually, this should not happen while the extension is active.
-			server.addListener("error", (err) => {
-				reject(err);
-			});
-			server.addListener("close", (code, sig) => {
-				if (code !== 0) return;
-				vsc.window.showErrorMessage("The connection to the CRM Toolkit Backend was closed (" + sig + ").");
-				reject(new Error("The connection to the CRM Toolkit Backend was closed"));
-			});
-			server.addListener("exit", (code, sig) => {
-				if (code === 0) return;
-				vsc.window.showInformationMessage("The CRM Toolkit Backend was shut down (" + sig + ").");
-				reject(new Error("The connection to the CRM Toolkit Backend was closed"));
-			});
-			server.addListener("disconnect", () => {
-				vsc.window.showErrorMessage(
-					"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
-				);
-				reject(
-					new Error(
-						"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
-					)
-				);
-			});
 			// Read the stdout of the backend line by line. This allows routing the server output to VS Code Output
 			// Channels.
 			const lineReader = createInterface(server.stdout);
 			lineReader.on("line", (d) => {
 				if (typeof d !== "string") return;
 				// If server isn't started check the output for the boot identifier.
-				if (this.server == null && d.includes(bootIdentifier)) {
+				else if (this.server == null && d.includes(bootIdentifier)) {
 					this.server == server;
+					// Handle exit codes. Usually, this should not happen while the extension is active.
+					server.addListener("error", (err) => {
+						reject(err);
+					});
+					server.addListener("close", (code, sig) => {
+						if (code !== 0) return;
+						vsc.window.showErrorMessage(
+							"The connection to the CRM Toolkit Backend was closed (" + sig + ")."
+						);
+						reject(new Error("The connection to the CRM Toolkit Backend was closed"));
+					});
+					server.addListener("exit", (code, sig) => {
+						if (code === 0) return;
+						vsc.window.showInformationMessage("The CRM Toolkit Backend was shut down (" + sig + ").");
+						reject(new Error("The connection to the CRM Toolkit Backend was closed"));
+					});
+					server.addListener("disconnect", () => {
+						vsc.window.showErrorMessage(
+							"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
+						);
+						reject(
+							new Error(
+								"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
+							)
+						);
+					});
 					resolve({ timedOut: false });
-					return;
+				} else if (this.server == null && d.includes(restartIdentifier)) {
+					if (allowRestart === false) {
+						throw new Error("Unable to launch server.");
+					}
+					this.launchServer(false)
+						.then((val) => resolve({ timedOut: false }))
+						.catch((e) => reject(e));
 				}
 				// Allow outputting to consoles to separate logs from different modules.
-				if (d.startsWith("$channel{")) {
+				else if (d.startsWith("$channel{")) {
 					const closingBracketIdx = d.indexOf("}", 10);
 					if (closingBracketIdx < 0) return;
 					const channel = d.slice(9, closingBracketIdx);

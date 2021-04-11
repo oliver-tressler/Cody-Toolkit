@@ -1,5 +1,4 @@
 import * as vsc from "vscode";
-import { FileInfo } from "../Utils/FileInfo";
 
 /**
  * Wrapper around the VS Code Settings API. Basic property override by using experimental annotation API.
@@ -57,9 +56,6 @@ export class Configuration {
 	 * Absolute filepath to the backend server.
 	 */
 	static backendServerLocation: string;
-	static get backendServerLocationInfo(): FileInfo {
-		return new FileInfo(Configuration.backendServerLocation, Configuration.projectRootPath);
-	}
 	@config("cody.toolkit.core", vsc.ConfigurationTarget.Global)
 	/**
 	 * Port used by the backend service.

@@ -16,7 +16,7 @@ The Build and Publish Module simplifies working with script WebResources dramati
 
 The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs
 to be permitted use the specified port (By default, that port is 8080).
-Run the following commands before installing the extension.
+If you experience issues with launching the backend run the following command and restart VS Code.
 
 `netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to
 host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoami` in a console.
@@ -35,6 +35,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 -   Unable to build scripts outside of tsconfigs rootFolder.
 -   Suboptimal build process feedback. Will be fixed within the next updates.
 -   The file explorer context menu provides unfulfillable _Build_ and _Build & Publish_ tasks when they do not sit inside the workspaces tsconfigs rootDir.
+
 ## Release Notes
 
 ### 1.0.0

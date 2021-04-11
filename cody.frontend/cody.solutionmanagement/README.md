@@ -15,7 +15,7 @@ directly from within VS Code. Right now, Cody supports Assemblies, Steps and Web
 
 The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs
 to be permitted use the specified port (By default, that port is 8080).
-Run the following commands before installing the extension.
+If you experience issues with launching the backend run the following command and restart VS Code.
 
 `netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to
 host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoami` in a console.
