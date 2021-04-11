@@ -8,8 +8,4 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Utils</Import_RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ConsoleHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LinkQueryHelper.cs" />
-  </ItemGroup>
 </Project>
