@@ -47,7 +47,7 @@
 					"scope": "machine"
 				},
 				"cody.toolkit.core.backendServerPort": {
-					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`.",
+					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`. Changing the port requires a restart of VS Code to take effect.",
 					"type": "number",
 					"scope": "machine"
 				}

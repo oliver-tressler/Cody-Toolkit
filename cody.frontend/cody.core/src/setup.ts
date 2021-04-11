@@ -49,7 +49,7 @@ async function setupBackendServerPort() {
 	Configuration.backendServerPort = 8080;
 	// Ask for the port
 	const portOkResponse = await vscode.window.showInformationMessage(
-		"The port that will be used is " + Configuration.backendServerPort + ". Is that okay with you?",
+		"The port that will be used is " + (Configuration.backendServerPort || 8080) + ". Is that okay with you?",
 		"Yes, Let's Go",
 		"Configure"
 	);
@@ -61,7 +61,7 @@ async function setupBackendServerPort() {
 	}
 	// Configure port
 	const port = await vscode.window.showInputBox({
-		value: Configuration.backendServerPort.toString(),
+		value: (Configuration.backendServerPort || 8080).toString(),
 		ignoreFocusOut: true,
 		prompt: "Please enter the port that should be used to communicate with the Cody Toolkit Backend",
 		validateInput: (p) => {
@@ -81,17 +81,24 @@ export async function setup(context: vscode.ExtensionContext) {
 	// Ask the user if he wants to install cody
 	const shouldInstall = async () =>
 		(await vscode.window.showInformationMessage(
-			"Cody Toolkit requires that you specify the path to the backend server.",
+			"Cody Toolkit requires some configuration before it can run.",
 			"Configure"
 		)) === "Configure";
 
-	const locationOk = validBackendServerLocation(Configuration.backendServerLocation || defaultBackendServerLocation);
-	const portOk = validPort(Configuration.backendServerPort);
-	if (locationOk && portOk) {
+	const locationOk = () =>
+		validBackendServerLocation(Configuration.backendServerLocation || defaultBackendServerLocation);
+	const portOk = () => validPort(Configuration.backendServerPort);
+	if (locationOk() && portOk()) {
 		return context;
 	} else if (await shouldInstall()) {
-		!locationOk && (await setupBackendServerExecutable());
-		!portOk && (await setupBackendServerPort());
+		!locationOk() && (await setupBackendServerExecutable());
+		!portOk() && (await setupBackendServerPort());
+		// Wait for the configuration values to be set. Only happens during initial configuration.
+		await new Promise((resolve) => setTimeout(resolve, 250));
+		if (!locationOk() || !portOk()) {
+			// Just to be safe
+			throw new Error("Configuration Incomplete");
+		}
 		return context;
 	} else {
 		throw new Error("Configuration Incomplete");
