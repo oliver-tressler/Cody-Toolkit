@@ -41,16 +41,15 @@
 			"title": "Cody Toolkit (Core)",
 			"properties": {
 				"cody.toolkit.core.backendServerLocation": {
-					"description": "Path to the backend server executable.",
+					"markdownDescription": "Path to the backend server executable. Leave empty if you chose the default location (`%UserProfile%/AppData/Local/CodyToolkitBackend`) during the backend setup.",
 					"type": "string",
-					"pattern": "^([a-zA-Z]:.*cody.backend.api.exe)?$",
+					"pattern": "^([a-zA-Z]:.+cody.backend.api.exe)?$",
 					"scope": "machine"
 				},
 				"cody.toolkit.core.backendServerPort": {
 					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`.",
 					"type": "number",
-					"scope": "machine",
-					"default": 8080
+					"scope": "machine"
 				}
 			}
 		}

@@ -1,12 +1,13 @@
 import axios from "axios";
 import { ChildProcess, spawn } from "child_process";
+import * as path from "path";
 import { createInterface } from "readline";
 import { v4 } from "uuid";
 import * as vsc from "vscode";
 import * as api from "../Api/connectionApi";
 import { Configuration } from "../Configuration/ConfigurationProxy";
 import { InstanceConfiguration } from "../Configuration/MementoProxy";
-
+import { defaultBackendServerLocation } from "../setup";
 export type ConnectionState = {
 	activeInstance?: InstanceConfiguration & { authenticated: boolean };
 	activeOrganization?: api.OrganizationConfiguration;
@@ -59,16 +60,16 @@ export class ServerConnector {
 		// If server is already running, just return.
 		if (await this.isServerRunning()) return this;
 
-		const location = Configuration.backendServerLocationInfo.asBackwardSlash();
+		const location = path.normalize(Configuration.backendServerLocation || defaultBackendServerLocation);
 		// The first thing the server does once the Web API is available is return the string passed as the boot
 		// identifier flag. We can use that to get a ready signal.
 		const bootIdentifier = v4();
 		const startPromise = new Promise<{ timedOut: false }>((resolve, reject) => {
 			const server = spawn(
-				location.name,
+				path.parse(location).base,
 				["-p", Configuration.backendServerPort.toString(), "-i", bootIdentifier],
 				{
-					cwd: location.dir.replace(/['"]+/g, ""),
+					cwd: path.dirname(location).replace(/['"]+/g, ""),
 				}
 			);
 

@@ -71,7 +71,7 @@ export class InstanceConfigurationProxy extends MementoProxy {
 	getCredentialsFileKey(instanceId: string): string {
 		return this.getItemOrDefault("cody.core.cred." + instanceId, true, v4().replace(/-/g, ""));
 	}
-	
+
 	removeCredentialsFileKey(instanceId: string) {
 		this.setItem("cody.core.cred." + instanceId, true, undefined);
 	}
