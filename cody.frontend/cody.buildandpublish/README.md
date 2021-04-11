@@ -30,7 +30,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Known Issues
 
--   The extension right now can't be bundled because webpack refuses to bundle itself. A solution might be to fetch webpack and its dependencies when booting the extension the first time, but that complicates things. It is also not possible to require stuff from the users `node_modules` folder.
+-   VS Code does not allow extensions to use global npm packages. This extension installs typescript, webpack, ts-loader, tsconfig-paths-webpack-plugin and their dependencies via npm after activation.
 -   Can't override the webpack configuration. Allowing that is pretty complicated though and it allows unexperienced users to shoot themselves in the foot.
 -   Unable to build scripts outside of tsconfigs rootFolder.
 -   Suboptimal build process feedback. Will be fixed within the next updates.

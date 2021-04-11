@@ -123,8 +123,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	await vscode.window.withProgress(
 		{ location: vscode.ProgressLocation.Window, title: "Checking Build Tools", cancellable: false },
 		async (progress) => {
-			progress.report({ message: "Updating build tools" });
-			const out = execSync("npm i webpack ts-loader ", { cwd: path.join(__dirname, "..") });
+			progress.report({ message: "Updating Build Tools" });
+			const out = execSync("npm i webpack ts-loader tsconfig-paths-webpack-plugin typescript", {
+				cwd: path.join(__dirname, ".."),
+			});
 			console.log(out.toString("utf8"));
 		}
 	);
