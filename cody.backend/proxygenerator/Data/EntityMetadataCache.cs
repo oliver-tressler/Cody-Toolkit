@@ -10,7 +10,7 @@ using Microsoft.Xrm.Sdk.Query;
 using proxygenerator.Data.Builder;
 using proxygenerator.Data.Model;
 using proxygenerator.Properties;
-using utils;
+using proxygenerator.Utils;
 
 namespace proxygenerator.Data
 {

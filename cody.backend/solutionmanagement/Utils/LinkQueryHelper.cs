@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 
-namespace utils
+namespace solutionmanagement.Utils
 {
     public static class LinkQueryHelper
     {
