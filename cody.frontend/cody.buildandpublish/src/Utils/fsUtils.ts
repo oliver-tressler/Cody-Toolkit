@@ -1,6 +1,5 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { findConfigFile, parseJsonConfigFileContent, readConfigFile, sys, getDefaultCompilerOptions } from "typescript";
 
 /**
  * Check if a given dir is equal to or a subdirectory of another dir.
@@ -23,18 +22,19 @@ export function isSubDirOrEqualDir(parent: string, child: string) {
  * @returns Path to config file and parsed compilerOptions
  */
 function getTypescriptConfig(filePath: string) {
-	const tsConfigPath = findConfigFile(filePath, sys.fileExists, "tsconfig.json");
+	const ts = require("typescript");
+	const tsConfigPath = ts.findConfigFile(filePath, ts.sys.fileExists, "tsconfig.json");
 	if (tsConfigPath == null) {
 		// TODO: Ask user for tsconfig file
 		return undefined;
 	}
-	const configFile = readConfigFile(tsConfigPath, sys.readFile);
+	const configFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile);
 	if (configFile == null || configFile.error != null) {
 		// Unable to read config file
 		return undefined;
 	}
-	const compilerOptions = parseJsonConfigFileContent(configFile.config, sys, "./");
-	return [tsConfigPath, { ...getDefaultCompilerOptions(), ...compilerOptions }] as const;
+	const compilerOptions = ts.parseJsonConfigFileContent(configFile.config, ts.sys, "./");
+	return [tsConfigPath, { ...ts.getDefaultCompilerOptions(), ...compilerOptions }] as const;
 }
 
 /**
