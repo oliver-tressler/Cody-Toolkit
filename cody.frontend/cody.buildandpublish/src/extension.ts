@@ -120,8 +120,14 @@ function errorHandler(e: any) {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-	const out = execSync("npm i webpack ts-loader ", { cwd: path.join(__dirname, "..") });
-	console.log(out.toString("utf8"));
+	await vscode.window.withProgress(
+		{ location: vscode.ProgressLocation.Window, title: "Checking Build Tools", cancellable: false },
+		async (progress) => {
+			progress.report({ message: "Updating build tools" });
+			const out = execSync("npm i webpack ts-loader ", { cwd: path.join(__dirname, "..") });
+			console.log(out.toString("utf8"));
+		}
+	);
 	// Set build-eligible file extensions for when clauses
 	const supportedBuildExtensions = [".ts", ".js"];
 	vscode.commands.executeCommand("setContext", "cody:supportedBuildExtensions", supportedBuildExtensions);
