@@ -114,6 +114,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="ProxyGenerationOptions.cs" />
+    <Compile Include="Utils\ConsoleHelper.cs" />
     <Compile Include="Utils\MetadataUtils.cs" />
     <Compile Include="Utils\TextUtils.cs" />
   </ItemGroup>
@@ -138,5 +139,4 @@
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\Utils\Utils.projitems" Label="Shared" />
 </Project>
