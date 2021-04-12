@@ -8,7 +8,7 @@ function match(buildInfo: BuildInfo) {
 }
 
 function action(buildInfo: BuildInfo) {
-	return `${path.join(buildInfo.directories.outDir!, buildInfo.fileConfiguration.output.absoluteOutputFile!)}\${map}`;
+	return `${buildInfo.fileConfiguration.output.absoluteOutputFile!}\${map}`;
 }
 
 function responseRule(match: string, action: string, enabled: boolean) {
