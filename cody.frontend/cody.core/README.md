@@ -1,9 +1,6 @@
 # Cody Toolkit (Core)
 
-Cody Toolkit allows performing various tasks that are frequent when customizing Dynamics CRM directly in VS Code.
-The Toolkit itself is split into modules, which deal with a group of tasks (e.g. Solution Management) each. This module
-provides the ability to connect to Dynamics CRM 2016 On-Premise instances as well as some behind the scenes
-infrastructure required for other modules.
+Cody Toolkit allows performing various tasks that are frequent when customizing Dynamics CRM directly in VS Code. The Toolkit itself is split into modules, which deal with a group of tasks (e.g. Solution Management) each. This module provides the ability to connect to Dynamics CRM 2016 On-Premise instances as well as some behind the scenes infrastructure required for other modules.
 
 ## Features
 
@@ -35,10 +32,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 -   The backend server is not yet included in the extension to reduce bundle size.
 -   Organization Service expiration is currently not communicated to the user.
--   Since there always is just one backend instance, the output logs will be forwarded to the VS Code instance that
-    started the process. In future releases, the communication between the server and the extension will be switched to
-    gRPC over IPC, which will address this issue. A backend instance will not be shared between extensions then. If that
-    is explicitly required, it might be possible to provide the user with an option to use gRPC over TCP instead.
+-   Since there always is just one backend instance, the output logs will be forwarded to the VS Code instance that started the process. In future releases, the communication between the server and the extension will be switched to gRPC over IPC, which will address this issue. A backend instance will not be shared between extensions then. If that is explicitly required, it might be possible to provide the user with an option to use gRPC over TCP instead.
 
 ## Release Notes
 
