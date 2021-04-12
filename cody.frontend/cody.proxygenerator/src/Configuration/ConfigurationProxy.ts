@@ -77,17 +77,11 @@ export class TypeScriptConfiguration extends Configuration {
 	 * Folder that typescript proxy files should be written to.
 	 */
 	static proxyFolder: string;
-	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace, {
-		getTransform: (val) => val === "true",
-		setTransform: (val) => val.toString(),
-	})
+	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace)
 	/**
 	 * If active, global enums will be generated in addition to local enums.
 	 */
 	static globalEnums: boolean;
-	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace, {
-		getTransform: (val) => val === "true",
-		setTransform: (val) => val.toString(),
-	})
+	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace)
 	static restartTsLanguageServerWhenCreatingNewFiles: boolean;
 }

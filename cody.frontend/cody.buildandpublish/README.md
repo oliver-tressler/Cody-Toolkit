@@ -14,8 +14,7 @@ The Build and Publish Module simplifies working with script WebResources dramati
 
 -   A `tsconfig.json` file must exist in the root
 
-The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs
-to be permitted use the specified port (By default, that port is 8080).
+The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs to be permitted use the specified port (By default, that port is 8080).
 If you experience issues with launching the backend run the following command and restart VS Code.
 
 `netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to

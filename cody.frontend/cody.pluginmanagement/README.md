@@ -1,7 +1,6 @@
 # Cody Toolkit (Plugin Management)
 
-Cody Toolkit allows performing various tasks that are frequent when customizing Dynamics CRM directly in VS Code.
-Plugin Management enables you to manage your Assemblies, Plugins, Steps and Images from within VS Code.
+Cody Toolkit allows performing various tasks that are frequent when customizing Dynamics CRM directly in VS Code. Plugin Management enables you to manage your Assemblies, Plugins, Steps and Images from within VS Code.
 
 ## Features
 
@@ -14,12 +13,9 @@ Plugin Management enables you to manage your Assemblies, Plugins, Steps and Imag
 
 ## Requirements
 
-The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs
-to be permitted use the specified port (By default, that port is 8080).
-If you experience issues with launching the backend run the following command and restart VS Code.
+The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs to be permitted use the specified port (By default, that port is 8080). If you experience issues with launching the backend run the following command and restart VS Code.
 
-`netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to
-host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoami` in a console.
+`netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoami` in a console.
 
 -   Cody Toolkit (Core)
 
