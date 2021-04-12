@@ -13,7 +13,7 @@
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Plugin Management)",
 	"description": "Browse and edit Dynamics CRM 2016 On-Premise Assemblies, Plugins, Steps and Images from within VS Code",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"engines": {
 		"vscode": "^1.54.0"
 	},

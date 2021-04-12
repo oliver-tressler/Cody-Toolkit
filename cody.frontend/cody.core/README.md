@@ -25,7 +25,7 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Extension Settings
 
--   `cody.toolkit.core.backendServerLocation`: Location to the executable of the backend server (forward slash notation)
+-   `cody.toolkit.core.backendServerLocation`: Path to the backend server executable. Leave empty if you chose the default location (`%UserProfile%/AppData/Local/CodyToolkitBackend`) during the backend setup.
 -   `cody.toolkit.core.backendServerPort`: Port to use when communicating with backend server
 
 ## Known Issues

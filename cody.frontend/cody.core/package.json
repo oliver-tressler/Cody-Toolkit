@@ -13,7 +13,7 @@
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Core)",
 	"description": "Connect to your Dynamics CRM 2016 On-Premise Instances directly from VS Code. Required for other Cody Toolkit extensions.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"engines": {
 		"vscode": "^1.53.0"
 	},
