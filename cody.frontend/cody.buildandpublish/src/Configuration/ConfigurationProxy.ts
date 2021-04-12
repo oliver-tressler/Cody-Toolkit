@@ -56,10 +56,7 @@ export class Configuration {
 	 * Port used by the backend service.
 	 */
 	static backendServerPort: number;
-	@config("cody.toolkit.buildAndPublish", vsc.ConfigurationTarget.Workspace, {
-		getTransform: (val: string) => val == "true",
-		setTransform: (val: boolean) => (val ? "true" : "false"),
-	})
+	@config("cody.toolkit.buildAndPublish", vsc.ConfigurationTarget.Workspace)
 	/**
 	 * If this is enabled, Fiddler rules will be generated and can be directly imported into Fiddlers' Autoresponder.
 	 * This way, you can debug your local code directly inside the CRM.
