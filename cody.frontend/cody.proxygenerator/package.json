@@ -75,7 +75,7 @@
 					"scope": "window"
 				},
 				"cody.toolkit.proxyGenerator.ts.restartTsLanguageServerWhenCreatingNewFiles": {
-					"markdownDescription": "If `tsconfig.json` includes path configurations, the Typescript Language Server sometimes fails at recognizing imports when new files are added. By enabling this, all TypeScript Proxy Generation actions will check if new files have been generated and restart the server automatically.",
+					"markdownDescription": "If `tsconfig.json` includes path configurations, the Typescript Language Server sometimes struggles with recognizing imports when new files are added. By enabling this, all TypeScript Proxy Generation actions will check if new files have been generated and restart the server automatically. **This only works if a typescript file is opened in the active editor.**",
 					"type": "boolean",
 					"scope": "window",
 					"default": false
