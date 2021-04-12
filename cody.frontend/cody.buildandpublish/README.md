@@ -14,9 +14,8 @@ The Build and Publish Module simplifies working with script WebResources dramati
 
 -   A `tsconfig.json` file must exist in the root
 
-The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs
-to be permitted use the specified port (By default, that port is 8080).
-Run the following commands before installing the extension.
+The extension attempts to connect to a backend service running locally. In order to do that, the backend process needs to be permitted use the specified port (By default, that port is 8080).
+If you experience issues with launching the backend run the following command and restart VS Code.
 
 `netsh http add urlacl url=http://+:%PORT%/ user=%MACHINE%\%USER%` where `%PORT%` is the port you want to use to
 host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoami` in a console.
@@ -30,11 +29,12 @@ host the backend service. `%MACHINE%` and `%USER%` can be found by running `whoa
 
 ## Known Issues
 
--   The extension right now can't be bundled because webpack refuses to bundle itself. A solution might be to fetch webpack and its dependencies when booting the extension the first time, but that complicates things. It is also not possible to require stuff from the users `node_modules` folder.
+-   VS Code does not allow extensions to use global npm packages. This extension installs typescript, webpack, ts-loader, tsconfig-paths-webpack-plugin and their dependencies via npm after activation.
 -   Can't override the webpack configuration. Allowing that is pretty complicated though and it allows unexperienced users to shoot themselves in the foot.
 -   Unable to build scripts outside of tsconfigs rootFolder.
 -   Suboptimal build process feedback. Will be fixed within the next updates.
 -   The file explorer context menu provides unfulfillable _Build_ and _Build & Publish_ tasks when they do not sit inside the workspaces tsconfigs rootDir.
+
 ## Release Notes
 
 ### 1.0.0

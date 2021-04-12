@@ -2,8 +2,7 @@
 
 All notable changes to the "cody-buildandpublish" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## [v1.0.1]
 
-## [Unreleased]
-
-- Initial release
+-   Fixed an issue where fiddler rule files were not generated correctly.
+-   Removed bundled build-tools and typescript. These dependencies will be installed after installation.

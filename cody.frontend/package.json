@@ -1,0 +1,19 @@
+{
+	"name": "cody.frontend",
+	"version": "1.0.0",
+	"description": "Build runner for frontend vsix files",
+	"main": "index.js",
+	"scripts": {
+		"core": "cd cody.core && vsce package --out ..",
+		"buildandpublish": "cd cody.buildandpublish && vsce package --out ..",
+		"pluginmanagement": "cd cody.pluginmanagement && vsce package --out ..",
+		"proxygenerator": "cd cody.proxygenerator && vsce package --out ..",
+		"solutionmanagement": "cd cody.solutionmanagement && vsce package --out ..",
+		"buildall": "concurrently \"npm run core\" \"npm run buildandpublish\" \"npm run pluginmanagement\" \"npm run proxygenerator\" \"npm run solutionmanagement\""
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"concurrently": "^6.0.1"
+	}
+}

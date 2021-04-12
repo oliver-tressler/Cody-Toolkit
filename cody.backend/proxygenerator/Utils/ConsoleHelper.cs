@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace utils
+namespace proxygenerator.Utils
 {
     public static class ConsoleHelper
     {

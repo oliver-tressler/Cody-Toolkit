@@ -6,6 +6,7 @@ import { getPublishInfo, publish } from "./publish";
 import axios, { AxiosError } from "axios";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
 import { getDirs, isSubDirOrEqualDir } from "./Utils/fsUtils";
+import { execSync } from "child_process";
 
 const acceptedExtensions = [".ts", ".js", ".html", ".css"];
 function acceptedExtension(filePath: string) {
@@ -118,7 +119,17 @@ function errorHandler(e: any) {
 	throw e;
 }
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+	await vscode.window.withProgress(
+		{ location: vscode.ProgressLocation.Window, title: "Checking Build Tools", cancellable: false },
+		async (progress) => {
+			progress.report({ message: "Updating Build Tools" });
+			const out = execSync("npm i webpack ts-loader tsconfig-paths-webpack-plugin typescript", {
+				cwd: path.join(__dirname, ".."),
+			});
+			console.log(out.toString("utf8"));
+		}
+	);
 	// Set build-eligible file extensions for when clauses
 	const supportedBuildExtensions = [".ts", ".js"];
 	vscode.commands.executeCommand("setContext", "cody:supportedBuildExtensions", supportedBuildExtensions);

@@ -13,7 +13,7 @@
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Core)",
 	"description": "Connect to your Dynamics CRM 2016 On-Premise Instances directly from VS Code. Required for other Cody Toolkit extensions.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"engines": {
 		"vscode": "^1.53.0"
 	},
@@ -38,19 +38,18 @@
 			}
 		],
 		"configuration": {
-			"title": "Cody Toolkit",
+			"title": "Cody Toolkit (Core)",
 			"properties": {
 				"cody.toolkit.core.backendServerLocation": {
-					"description": "Path to the backend server executable.",
+					"markdownDescription": "Path to the backend server executable. Leave empty if you chose the default location (`%UserProfile%/AppData/Local/CodyToolkitBackend`) during the backend setup.",
 					"type": "string",
-					"pattern": "^([a-zA-Z]:/([^\\?/\n]+/)*cody.backend.api.exe)?$",
+					"pattern": "^([a-zA-Z]:.+cody.backend.api.exe)?$",
 					"scope": "machine"
 				},
 				"cody.toolkit.core.backendServerPort": {
-					"description": "Port used for launching the backend server.",
+					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`. Changing the port requires a restart of VS Code to take effect.",
 					"type": "number",
-					"scope": "machine",
-					"default": 8080
+					"scope": "machine"
 				}
 			}
 		}
@@ -64,14 +63,12 @@
 	"devDependencies": {
 		"@types/node": "^10.17.54",
 		"@types/vscode": "^1.53.0",
-		"ts-loader": "^8.0.17",
-		"tslint": "^5.12.1",
-		"typescript": "^3.9.9",
-		"webpack": "^5.24.2",
 		"webpack-cli": "^4.5.0"
 	},
 	"dependencies": {
-		"@types/uuid": "^8.3.0",
+		"ts-loader": "^8.0.17",
+		"typescript": "^3.9.9",
+		"webpack": "^5.24.2",
 		"axios": "^0.21.1",
 		"uuid": "^8.3.2"
 	}

@@ -6,6 +6,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
 using solutionmanagement.Model;
+using solutionmanagement.Utils;
 using utils;
 using utils.proxies;
 using WebResourceInfo = solutionmanagement.Model.WebResourceInfo;

@@ -58,13 +58,11 @@ export class EditorProvider {
 				.replace("{{imageicon}}", icon.toString());
 
 			panel.webview.html = content;
-			setTimeout(() => {
-				if (mode === "add") {
-					editor.renderCreate(webviewInterface, item);
-				} else {
-					editor.renderUpdate(webviewInterface, item);
-				}
-			}, 1000);
+			if (mode === "add") {
+				editor.renderCreate(webviewInterface, item);
+			} else {
+				editor.renderUpdate(webviewInterface, item);
+			}
 
 			return { panelId, panel, webviewInterface };
 		} catch (e) {

@@ -1,7 +1,5 @@
 import * as path from "path";
-import { default as TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import * as vscode from "vscode";
-import * as webpack from "webpack";
 import { Configuration } from "./Configuration/ConfigurationProxy";
 import { BuildAndPublishFileConfigurationProxy } from "./Configuration/MementoProxy";
 import { generateFiddlerRule } from "./generateFiddlerRules";
@@ -58,6 +56,8 @@ async function requestBundleTargetFolder(filePath: string, srcFolder: string) {
  * Fails if errors are encountered.
  */
 export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
+	const webpack = require("webpack");
+	const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
 	return new Promise((resolve, reject) => {
 		webpack({
 			mode: buildInfo.taskDefinition.publish ? "production" : "development",
@@ -69,7 +69,15 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				rules: [
 					{
 						test: [/\.ts$/],
-						use: [{ loader: "ts-loader", options: { transpileOnly: !buildInfo.taskDefinition.publish, onlyCompileBundledFiles: true } }],
+						use: [
+							{
+								loader: "ts-loader",
+								options: {
+									transpileOnly: !buildInfo.taskDefinition.publish,
+									onlyCompileBundledFiles: true,
+								},
+							},
+						],
 						exclude: "/node_modules/",
 					},
 				],
@@ -100,9 +108,12 @@ export function build(buildInfo: BuildInfo): Promise<BuildInfo> {
 				path: path.dirname(buildInfo.fileConfiguration.output.absoluteOutputFile),
 				pathinfo: true,
 			},
-		}).run((err, stats) => {
+		}).run((err: any, stats: any) => {
 			if (err || stats?.hasErrors()) {
-				const errors = [...(stats?.compilation.errors.map((statErr) => statErr.message) ?? []), err?.message];
+				const errors = [
+					...(stats?.compilation.errors.map((statErr: any) => statErr.message) ?? []),
+					err?.message,
+				];
 				errors.forEach(console.error); // TODO: Route to output channel
 				reject(new Error("Some errors appeared during packing. Check the output log for details."));
 			}

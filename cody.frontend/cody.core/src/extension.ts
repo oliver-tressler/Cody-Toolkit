@@ -10,13 +10,36 @@ import {
 	InstanceConfigurationProxy,
 	ManualInstanceConfiguration,
 } from "./Configuration/MementoProxy";
-import { install } from "./install";
+import { setup } from "./setup";
 import { ConnectionState, ServerConnector } from "./Utils/ServerConnector";
+import axios, { AxiosError } from "axios";
 
 type SwitchInstanceQuickPickItem =
 	| { instance: InstanceConfiguration; type: "instance" }
 	| { organization: OrganizationConfiguration; type: "organization" }
 	| { type: "newInstance"; useCredentialsFile: boolean };
+
+/**
+ * Basic pass through error handler that tries to provide Server and Extension exception messages to the user
+ * @param e Exception
+ */
+function errorHandler(e: any) {
+	let errText: string | undefined = undefined;
+	if (axios.isAxiosError(e)) {
+		const axiErr: AxiosError<{ Message: string; ExceptionMessage?: string }> = e;
+		if (axiErr.response?.data.ExceptionMessage || axiErr.response?.data.Message) {
+			errText = axiErr.response.data.ExceptionMessage ?? axiErr.response.data.Message;
+		}
+	}
+	if (!errText && "message" in e && typeof e.message === "string") {
+		errText = e.message;
+	}
+	if (errText) {
+		console.error(e);
+		vscode.window.showErrorMessage(errText);
+	}
+	throw e;
+}
 
 // Utility methods that ask the user for mandatory info.
 // If no value is provided, they just fail.
@@ -57,7 +80,7 @@ const requestDiscoUrl = async () => {
 		prompt:
 			"Please enter the path to the discovery service. " +
 			"You can usually find it by going to " +
-			"Settings -> Customizations -> Developer Resources -> DiscoveryService",
+			"Settings ➔ Customizations ➔ Developer Resources ➔ DiscoveryService",
 	});
 	if (!discoUrl) throw new Error("Invalid Discovery Url");
 	return discoUrl;
@@ -571,61 +594,46 @@ const registerSwitchInstanceCommand = (
 	});
 };
 
-export function launch({ subscriptions, workspaceState, globalState }: vscode.ExtensionContext) {
-	new ServerConnector()
-		.launchServer()
-		.then((connector) => {
-			const config = new InstanceConfigurationProxy(workspaceState, globalState);
-			// Preselect instance used the last time
-			connector.connectionState = {
-				activeInstance:
-					config.activeInstance != null
-						? {
-								...config.activeInstance,
-								authenticated: false,
-						  }
-						: undefined,
-				activeOrganization: undefined,
-				availableOrganizations: [],
-				connecting: false,
-			};
-			const [statusBarItem, refreshButtonText] = createStatusBarItem();
-			const removeInstanceCommand = registerRemoveInstanceCommand(connector, config, refreshButtonText);
-			const switchInstanceCommand = registerSwitchInstanceCommand(connector, config, refreshButtonText);
-			// Empty command. Just an activation trigger for other modules.
-			const activateModulesCommand = vscode.commands.registerCommand(
-				"cody.toolkit.core.activateModules",
-				() => {}
-			);
-			// Make connection state available to other modules.
-			const getConnectionStateCommand = vscode.commands.registerCommand(
-				"cody.toolkit.core.getConnectionState",
-				() => connector.connectionState
-			);
-			// Set initial button text.
-			refreshButtonText(connector.connectionState);
-			subscriptions.push(
-				statusBarItem,
-				switchInstanceCommand,
-				removeInstanceCommand,
-				activateModulesCommand,
-				getConnectionStateCommand
-			);
-		})
-		.catch((e) => {
-			if (e instanceof Error) {
-				vscode.window.showErrorMessage(e.message);
-			}
-			throw e;
-		});
+export async function launch({ subscriptions, workspaceState, globalState }: vscode.ExtensionContext) {
+	await new ServerConnector().launchServer().then((connector) => {
+		const config = new InstanceConfigurationProxy(workspaceState, globalState);
+		// Preselect instance used the last time
+		connector.connectionState = {
+			activeInstance:
+				config.activeInstance != null
+					? {
+							...config.activeInstance,
+							authenticated: false,
+					  }
+					: undefined,
+			activeOrganization: undefined,
+			availableOrganizations: [],
+			connecting: false,
+		};
+		const [statusBarItem, refreshButtonText] = createStatusBarItem();
+		const removeInstanceCommand = registerRemoveInstanceCommand(connector, config, refreshButtonText);
+		const switchInstanceCommand = registerSwitchInstanceCommand(connector, config, refreshButtonText);
+		// Empty command. Just an activation trigger for other modules.
+		const activateModulesCommand = vscode.commands.registerCommand("cody.toolkit.core.activateModules", () => {});
+		// Make connection state available to other modules.
+		const getConnectionStateCommand = vscode.commands.registerCommand(
+			"cody.toolkit.core.getConnectionState",
+			() => connector.connectionState
+		);
+		// Set initial button text.
+		refreshButtonText(connector.connectionState);
+		subscriptions.push(
+			statusBarItem,
+			switchInstanceCommand,
+			removeInstanceCommand,
+			activateModulesCommand,
+			getConnectionStateCommand
+		);
+	});
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	if (!!!Configuration.backendServerLocation) {
-		install(context, launch);
-	} else {
-		launch(context);
-	}
+	setup(context).then(launch).catch(errorHandler);
 }
 
 export function deactivate() {}
