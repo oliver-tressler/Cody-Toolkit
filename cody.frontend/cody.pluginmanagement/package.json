@@ -199,7 +199,8 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "webpack --mode production -c ./src/static/webpack.config.step.js && webpack --mode production -c ./src/static/webpack.config.image.js && webpack --mode production -c ./src/static/webpack.config.assembly.js && webpack --mode production",
+		"vscode:prepublish": "webpack --mode production -c ./src/static/webpack.config.step.js && webpack --mode production -c ./src/static/webpack.config.image.js && webpack --mode production -c ./src/static/webpack.config.assembly.js && webpack --mode production && robocopy \".\\src\\static\\HTML\" \".\\dist\\static\\HTML\" && robocopy \".\\src\\static\\CSS\" \".\\dist\\static\\CSS\"",
+		"copy": "robocopy \".\\src\\static\\HTML\" \".\\dist\\static\\HTML\" && robocopy \".\\src\\static\\CSS\" \".\\dist\\static\\CSS\"",
 		"webpack": "webpack --mode development & webpack -c ./src/static/webpack.config.step.js & webpack -c ./src/static/webpack.config.image.js & webpack -c ./src/static/webpack.config.assembly.js",
 		"webpack-dev": "webpack --mode development --watch",
 		"test-compile": "tsc -p ./"
