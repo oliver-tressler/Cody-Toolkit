@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -8,24 +9,28 @@ namespace proxygenerator.Utils
     {
         public static string Indentation(int indentationLevel)
         {
-            return new StringBuilder().Append('\t', indentationLevel).ToString();
+            return indentationLevel == 0 ? string.Empty : new StringBuilder().Append('\t', indentationLevel).ToString();
+        }
+
+        public static string PrefixLines(this string text, string prefix)
+        {
+            var lines = text.Split(new[] {Environment.NewLine}, StringSplitOptions.None);
+            return string.Join(string.Empty, lines.Select((s, idx) => prefix + s + Environment.NewLine));
         }
 
         public static string SmartLineBreakInserter(string prefix, string content, int maxLength)
         {
             if (string.IsNullOrWhiteSpace(content)) return string.Empty;
-
             if (content.Contains("\n") || content.Contains(Environment.NewLine))
             {
-                return string.Join(string.Empty, content.Split(new[]
+                return string.Join(Environment.NewLine, content.Split(new[]
                     {
                         Environment.NewLine, "\n"
                     }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => SmartLineBreakInserter(prefix, line, maxLength)));
             }
 
-            var output = new StringBuilder();
-
+            var lines = new List<string>();
             var words = content.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
             var wordIndex = 0;
             while (wordIndex < words.Length)
@@ -39,10 +44,10 @@ namespace proxygenerator.Utils
                     ++lineIndex;
                 } while (currentLine.Length < maxLength - 1 && wordIndex < words.Length);
 
-                output.AppendLine(currentLine.ToString());
+                lines.Add(currentLine.ToString());
             }
 
-            return output.ToString();
+            return string.Join(Environment.NewLine, lines);
         }
     }
 }

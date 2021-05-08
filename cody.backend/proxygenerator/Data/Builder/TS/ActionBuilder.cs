@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xaml;
 using System.Xml;
@@ -8,6 +9,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using proxygenerator.Data.Model;
+using proxygenerator.Generators;
 
 namespace proxygenerator.Data.Builder.TS
 {
@@ -25,8 +27,16 @@ namespace proxygenerator.Data.Builder.TS
                 throw new Exception("Unable to parse action arguments");
             }
 
+            
+            actionData.IsTargetAction = inputArguments.Any(arg => arg.IsTargetArgument);
             actionData.InputArguments = inputArguments;
             actionData.OutputArguments = outputArguments;
+            actionData.Comment = new Comment(string.Empty);
+            if (actionData.IsTargetAction)
+            {
+                actionData.Comment.CommentParameters.Add(new CommentParameter("param",
+                    "target: " + actionData.PrimaryEntity));
+            }
             return actionData;
         }
 
@@ -35,16 +45,22 @@ namespace proxygenerator.Data.Builder.TS
             var name = action["message.name"] is AliasedValue alias ? alias.Value as string : null;
             var displayName = action["name"] as string;
             var uniqueName = action["uniquename"] as string;
+            var className = string.Join(string.Empty,
+                Regex.Split(displayName ?? name ?? uniqueName ?? string.Empty, "\\W+").Where(s =>!string.IsNullOrWhiteSpace(s))
+                    .Select(s => Scriban.Functions.StringFunctions.Capitalize(Regex.Replace(s, "\\W", ""))));
+            
             var xaml = action["xaml"] as string;
             var primaryEntityLogicalName = action["primaryentity"] is string entity && entity != "none" ? entity : null;
+            var comment = new Comment(string.Empty);
             
             return new ActionData()
             {
                 Name = name,
                 DisplayName = displayName,
                 UniqueName = uniqueName,
+                ClassName = className,
                 PrimaryEntity = primaryEntityLogicalName,
-                Xaml = xaml
+                Xaml = xaml,
             };
         }
 
@@ -96,8 +112,13 @@ namespace proxygenerator.Data.Builder.TS
                         EntityType = entityType,
                         Required = required,
                         Description = description != null && description != "New Argument" ? description : null,
-                        IsTargetArgument = target
+                        IsTargetArgument = target,
+                        Comment = new Comment(description?.Replace("New Argument", ""))
                     };
+                    if (!string.IsNullOrWhiteSpace(entityType))
+                    {
+                        argument.Comment.CommentParameters.Add(new CommentParameter("logicalName", entityType));
+                    }
                     switch (direction)
                     {
                         case "InArgument":

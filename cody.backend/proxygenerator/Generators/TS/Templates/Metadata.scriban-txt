@@ -1,0 +1,40 @@
+// #region Metadata
+
+/**
+ * Object Typecode of the {{ model.logical_name }} entity
+ */
+static ObjectTypeCode: number = {{ model.object_type_code }};
+/**
+ * Logical Name of the {{ model.logical_name }} entity
+ */
+static LogicalName: string = "{{ model.logical_name }}";
+/**
+ * Plural Logical Name of the {{ model.logical_name }} entity
+ */
+static EntitySetName: string = "{{ model.entity_set_name }}";
+/**
+ * Schema Name of the {{ model.logical_name }} entity
+ */
+static SchemaName: string = "{{ model.schema_name }}";
+/**
+ * Display Name of the {{ model.logical_name }} entity
+ */
+static DisplayName: string = "{{ model.display_name }}";
+/**
+ * Plural Display Name of the {{ model.logical_name }} entity
+ */
+static PluralDisplayName: string = "{{ model.plural_display_name }}";
+/**
+ * Primary Key Attribute of the {{ model.logical_name }} entity
+ */
+static PrimaryIdAttribute: Attribute = {{ model.class_name }}.Attributes.{{ model.primary_id_attribute }};
+/**
+ * Primary Name Attribute of the {{ model.logical_name }} entity
+ */
+static PrimaryNameAttribute: Attribute = {{ model.class_name }}.Attributes.{{ model.primary_name_attribute }};
+/**
+ * Metadata ID of the {{ model.logical_name }} entity
+ */
+static MetadataId: Guid = Guid.parse("{{ model.metadata_id }}");
+
+// #endregion

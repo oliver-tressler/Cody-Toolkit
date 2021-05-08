@@ -1,0 +1,3 @@
+async Get{{ model.collection_entity_plural_code_name }}_{{ model.related_attribute_code_name }}(attributes?: (string|Attribute)[], filter?: string, orderBy?: string): Promise<ODataEntityResult[]>{
+    return await OData.retrieveMultiple("{{ model.related_entity_set_name }}", attributes, `_{{ model.related_attribute_logical_name }}_value eq ${this.id}${filter?.trim() ? " and " + filter.trim() : ""}`, orderBy);
+}

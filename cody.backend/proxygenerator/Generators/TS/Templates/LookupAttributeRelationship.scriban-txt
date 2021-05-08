@@ -1,0 +1,1 @@
+{ referencedEntityLogicalName: "{{ model.referenced_entity_logical_name }}", referencedEntitySetName: "{{ model.referenced_entity_set_name }}", referencedAttributeLogicalName: "{{ model.referenced_attribute_logical_name }}", referencedAttributeDisplayName: "{{ model.referenced_attribute_display_name }}" }

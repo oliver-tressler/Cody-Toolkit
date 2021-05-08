@@ -1,0 +1,7 @@
+/* eslint-disable */
+
+// #region Imports
+{{~ for $imp in model ~}}
+import { {{ $imp.types | array.join ", " }} } from "{{$imp.file}}";
+{{~ end ~}}
+// #endregion

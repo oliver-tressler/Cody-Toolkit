@@ -31,22 +31,42 @@
 		"commands": [
 			{
 				"command": "cody.toolkit.proxyGenerator.ts.generateEntityProxies",
-				"title": "Generate TS Entity Proxies",
+				"title": "Generate TypeScript Entity Proxies",
 				"category": "Cody Proxy Generator"
 			},
 			{
 				"command": "cody.toolkit.proxyGenerator.ts.generateActionProxies",
-				"title": "Generate TS Action Proxies",
+				"title": "Generate TypeScript Action Proxies",
 				"category": "Cody Proxy Generator"
 			},
 			{
 				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllEntityProxies",
-				"title": "Regenerate all TS Entity Proxies",
+				"title": "Regenerate all TypeScript Entity Proxies",
 				"category": "Cody Proxy Generator"
 			},
 			{
 				"command": "cody.toolkit.proxyGenerator.ts.regenerateAllActionProxies",
-				"title": "Regenerate all TS Action Proxies",
+				"title": "Regenerate all TypeScript Action Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.cs.generateEntityProxies",
+				"title": "Generate C# Entity Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.cs.generateActionProxies",
+				"title": "Generate C# Action Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.cs.regenerateAllEntityProxies",
+				"title": "Regenerate all C# Entity Proxies",
+				"category": "Cody Proxy Generator"
+			},
+			{
+				"command": "cody.toolkit.proxyGenerator.cs.regenerateAllActionProxies",
+				"title": "Regenerate all C# Action Proxies",
 				"category": "Cody Proxy Generator"
 			}
 		],
@@ -79,6 +99,34 @@
 					"type": "boolean",
 					"scope": "window",
 					"default": false
+				},
+				"cody.toolkit.proxyGenerator.cs.proxyFolder": {
+					"description": "Path to the folder containing the Typescript Proxies",
+					"type": "string",
+					"scope": "window",
+					"title": "TS Proxy Folder"
+				},
+				"cody.toolkit.proxyGenerator.cs.namespace": {
+					"description": "Choose the namespace that generated proxy classes will have",
+					"type": "string",
+					"scope": "window",
+					"title": "TS Proxy Folder",
+					"default": "Crm.Proxies.ProxyClasses"
+				},
+				"cody.toolkit.proxyGenerator.cs.globalEnums": {
+					"markdownDescription": "If Global Enum generation is active, separate enum files will be generated and placed in a shared `OptionSets` folder within your proxy folder. This will make those enums unaccessible through the class.",
+					"type": "boolean",
+					"scope": "window"
+				},
+				"cody.toolkit.proxyGenerator.cs.proxyLayout": {
+					"markdownDescription": "Choose the way proxies should be generated.",
+					"type": "string",
+					"enum": [
+						"XrmToolkit",
+						"CrmSvcUtil"
+					],
+					"scope": "window",
+					"default": "XrmToolkit"
 				}
 			}
 		}

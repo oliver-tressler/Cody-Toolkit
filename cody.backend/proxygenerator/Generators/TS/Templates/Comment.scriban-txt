@@ -1,0 +1,8 @@
+﻿/**
+{{~ if model.description ~}}
+{{model.description}}
+{{~ end ~}}
+{{~ for $param in model.parameters~}}
+ * @{{ $param.name }} {{ $param.description }}
+{{~ end ~}}
+ */

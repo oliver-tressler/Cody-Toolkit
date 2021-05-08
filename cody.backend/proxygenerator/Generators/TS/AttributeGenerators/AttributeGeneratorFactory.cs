@@ -11,12 +11,12 @@ namespace proxygenerator.Generators.TS.AttributeGenerators
             switch (attribute)
             {
                 case DateTimeAttributeData dateTimeAttributeData:
-                    return new DateTimeAttributeGenerator(dateTimeAttributeData);
+                    return new Concrete.DateTimeAttributeGenerator(dateTimeAttributeData);
                 case LookupAttributeData lookupAttributeData:
-                    return new LookupAttributeGenerator(lookupAttributeData);
+                    return new Concrete.LookupAttributeGenerator(lookupAttributeData);
             }
 
-            return new DefaultAttributeGenerator(attribute);
+            return new Concrete.DefaultAttributeGenerator(attribute);
         }
     }
 }

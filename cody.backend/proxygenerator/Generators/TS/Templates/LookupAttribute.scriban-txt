@@ -1,0 +1,1 @@
+{{ model.logical_name }}: new LookupAttribute([{{- children -}}], "{{model.logical_name}}", Attribute.AttributeType.{{model.type}}, "{{ model.schema_name }}", "{{ model.logical_name }}"),

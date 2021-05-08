@@ -1,0 +1,1 @@
+"{{ model.name }}": Process.ProcessDataType.{{ model.data_type }},

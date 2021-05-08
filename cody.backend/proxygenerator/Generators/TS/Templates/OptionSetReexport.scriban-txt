@@ -1,0 +1,1 @@
+export import {{ model.exposed_name }} = {{ model.internal_name }};

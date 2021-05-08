@@ -1,0 +1,16 @@
+constructor(context?: ODataEntityResult | Xrm.Page){
+    super(
+        {
+            logicalName: {{ model.entity_class_name }}.LogicalName,
+            entitySetName: {{ model.entity_class_name }}.EntitySetName,
+            objectTypeCode: {{ model.entity_class_name }}.ObjectTypeCode,
+            schemaName: {{ model.entity_class_name }}.SchemaName,
+            displayName: {{ model.entity_class_name }}.DisplayName,
+            pluralDisplayName: {{ model.entity_class_name }}.PluralDisplayName,
+            primaryIdAttribute: {{ model.entity_class_name }}.PrimaryIdAttribute,
+            primaryNameAttribute: {{ model.entity_class_name }}.PrimaryNameAttribute,
+            metadataId: {{ model.entity_class_name }}.MetadataId,
+        },
+        context
+    )
+}

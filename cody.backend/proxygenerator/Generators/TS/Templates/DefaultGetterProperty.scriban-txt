@@ -1,0 +1,1 @@
+get {{ model.property_name }}(): {{ model.type_class }} { return this.getAttributeValue<{{ model.type_class }}>({{ model.entity_class_name }}.Attributes.{{ model.logical_name }}); }

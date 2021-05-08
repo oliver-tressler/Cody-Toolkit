@@ -30,7 +30,7 @@ namespace proxygenerator.Data.Builder.CS.Collections
                 RelationEntityAttribute = entity.LogicalName == metadata.Entity1LogicalName
                     ? metadata.Entity1IntersectAttribute
                     : metadata.Entity2IntersectAttribute,
-                RelationShipName = metadata.SchemaName,
+                RelationshipName = metadata.SchemaName,
                 RelationEntityLogicalName = metadata.IntersectEntityName,
                 RelationRelatedEntityAttribute = entity.LogicalName == metadata.Entity2LogicalName
                     ? metadata.Entity2IntersectAttribute

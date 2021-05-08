@@ -1,0 +1,5 @@
+﻿static Attributes = {
+{{ children }}}
+static AllAttributes = Object.keys({{ model.entity_class_name }}.Attributes).map((attr) => 
+    {{ model.entity_class_name }}.Attributes[attr as keyof typeof {{ model.entity_class_name }}.Attributes].oDataRequestName
+);

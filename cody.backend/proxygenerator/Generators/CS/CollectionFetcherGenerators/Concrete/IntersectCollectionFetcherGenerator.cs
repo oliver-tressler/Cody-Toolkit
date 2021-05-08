@@ -31,10 +31,10 @@ namespace proxygenerator.Generators.CS.CollectionFetcherGenerators.Concrete
             code.AppendLine(
                 $"{i}public List<{_fetcher.RelatedEntityClassName}> Get{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, ColumnSet Columns) {{ {body} }}");
 
-            code.AppendLine($"{i}public void Relate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params Entity[] Items) {{ Service.RelateEntities(this, \"{_fetcher.RelationShipName}\", Items); }}");
-            code.AppendLine($"{i}public void Relate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params EntityReference[] Items) {{ Service.RelateEntities(this, \"{_fetcher.RelationShipName}\", Items); }}");
-            code.AppendLine($"{i}public void UnRelate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params Entity[] Items) {{ Service.UnRelateEntities(this, \"{_fetcher.RelationShipName}\", Items); }}");
-            code.AppendLine($"{i}public void UnRelate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params EntityReference[] Items) {{ Service.UnRelateEntities(this, \"{_fetcher.RelationShipName}\", Items); }}");
+            code.AppendLine($"{i}public void Relate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params Entity[] Items) {{ Service.RelateEntities(this, \"{_fetcher.RelationshipName}\", Items); }}");
+            code.AppendLine($"{i}public void Relate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params EntityReference[] Items) {{ Service.RelateEntities(this, \"{_fetcher.RelationshipName}\", Items); }}");
+            code.AppendLine($"{i}public void UnRelate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params Entity[] Items) {{ Service.UnRelateEntities(this, \"{_fetcher.RelationshipName}\", Items); }}");
+            code.AppendLine($"{i}public void UnRelate{_fetcher.RelatedEntityCollectionCodeName} (IOrganizationService Service, params EntityReference[] Items) {{ Service.UnRelateEntities(this, \"{_fetcher.RelationshipName}\", Items); }}");
             return code.ToString();
         }
     }

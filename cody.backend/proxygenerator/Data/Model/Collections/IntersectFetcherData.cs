@@ -14,7 +14,7 @@ namespace proxygenerator.Data.Model.Collections
         public string EntityCollectionCodeName { get; set; }
         public string EntityAttribute { get; set; }
 
-        public string RelationShipName { get; set; }
+        public string RelationshipName { get; set; }
         public string RelationEntityLogicalName { get; set; }
         public string RelationEntityAttribute { get; set; }
         public string RelationRelatedEntityAttribute { get; set; }

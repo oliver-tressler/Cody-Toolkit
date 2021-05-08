@@ -24,7 +24,7 @@ namespace proxygenerator.Generators.TS.CollectionFetcherGenerators.Concrete
             code.AppendLine(
                 $"{i1}async GetAssociated_{_fetcher.RelatedEntityCollectionCodeName}(attributes?: (string|Attribute)[]): Promise<ODataEntityResult[]>{{");
             code.AppendLine(
-                $"{i2}return await OData.retrieveIntersect(\"{_fetcher.EntitySetName}\", this.id, \"{_fetcher.RelationShipName}\", attributes);");
+                $"{i2}return await OData.retrieveIntersect(\"{_fetcher.EntitySetName}\", this.id, \"{_fetcher.RelationshipName}\", attributes);");
             code.Append($"{i1}}}");
             return code.ToString();
         }

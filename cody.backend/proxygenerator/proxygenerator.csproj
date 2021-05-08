@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
-    <LangVersion>default</LangVersion>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,8 +42,41 @@
   <ItemGroup>
     <Compile Include="Data\Builder\TS\ActionBuilder.cs" />
     <Compile Include="Data\Model\ActionData.cs" />
+    <Compile Include="Generators\Contract\CodeGenerator.cs" />
     <Compile Include="Generators\Contract\IActionGenerator.cs" />
     <Compile Include="Generators\TS\ActionGenerator\ActionGenerator.cs" />
+    <Compile Include="Generators\TS\Action\ActionConstructorGenerator.cs" />
+    <Compile Include="Generators\TS\Action\ArgumentMetadataGenerator.cs" />
+    <Compile Include="Generators\TS\Action\MessageTypePropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Action\MetadataGenerator.cs" />
+    <Compile Include="Generators\TS\Action\ProxyGenerator.cs" />
+    <Compile Include="Generators\TS\Action\RequestTypeGenerator.cs" />
+    <Compile Include="Generators\TS\Action\ResponseTypeGenerator.cs" />
+    <Compile Include="Generators\TS\CommentGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Attributes\AttributeContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Attributes\DateTimeAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Attributes\DefaultAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Attributes\LookupAttributeGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\EntityClassGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Collections\CollectionFetcherContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Collections\CollectionFetcherGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Collections\IntersectFetcherContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Collections\IntersectFetcherGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\ConstructorGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\MetadataGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\OptionSets\ExternalOptionSetGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\OptionSets\InternalOptionSetsContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\OptionSets\OptionSetReexportContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\OptionSets\OptionSetReexportGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\DefaultFormattedGetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\DefaultGetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\DefaultSetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\OptionSetFormattedGetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\OptionSetGetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\OptionSetSetterPropertyGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\Properties\PropertiesContainerGenerator.cs" />
+    <Compile Include="Generators\TS\Entity\ProxyGenerator.cs" />
+    <Compile Include="Generators\TS\ImportsGenerator.cs" />
     <Compile Include="ProxyBootstrap.cs" />
     <Compile Include="Data\Builder\CS\Attributes\AttributeBuilder.cs" />
     <Compile Include="Data\Builder\CS\Attributes\PropertyBuilder.cs" />
@@ -93,20 +126,8 @@
     <Compile Include="Generators\CS\PropertyGenerators\Concrete\OptionSetPropertyGenerator.cs" />
     <Compile Include="Generators\CS\PropertyGenerators\Concrete\StringPropertyGenerator.cs" />
     <Compile Include="Generators\CS\PropertyGenerators\Contract\BasePropertyGenerator.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\AttributeGeneratorFactory.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\Concrete\DateTimeAttributeGenerator.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\Concrete\DefaultAttributeGenerator.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\Concrete\LookupAttributeGenerator.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\Contract\BaseAttributeGenerator.cs" />
-    <Compile Include="Generators\TS\AttributeGenerators\Contract\IAttributeGenerator.cs" />
-    <Compile Include="Generators\TS\CollectionFetcherGenerators\Concrete\DefaultCollectionFetcherGenerator.cs" />
-    <Compile Include="Generators\TS\CollectionFetcherGenerators\Concrete\IntersectCollectionFetcherGenerator.cs" />
     <Compile Include="Generators\Comment.cs" />
-    <Compile Include="Generators\TS\EntityGenerator\EntityGenerator.cs" />
     <Compile Include="Generators\CommentParameter.cs" />
-    <Compile Include="Generators\TS\PropertyGenerators\Concrete\DefaultPropertyGenerator.cs" />
-    <Compile Include="Generators\TS\PropertyGenerators\Concrete\OptionSetPropertyGenerator.cs" />
-    <Compile Include="Generators\TS\PropertyGenerators\Contract\BasePropertyGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -116,11 +137,20 @@
     <Compile Include="ProxyGenerationOptions.cs" />
     <Compile Include="Utils\ConsoleHelper.cs" />
     <Compile Include="Utils\MetadataUtils.cs" />
+    <Compile Include="Utils\TemplateLoader.cs" />
     <Compile Include="Utils\TextUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="entity_template.scriban-txt" />
     <None Include="app.config" />
+    <EmbeddedResource Include="Generators\TS\Templates\ActionInputParameterPreparationContainer.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\DefaultFormattedGetterProperty.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\DefaultSetterProperty.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\Imports.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\Comment.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\EntityClass.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\Attributes.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\DefaultAttribute.scriban-txt" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -134,9 +164,67 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.IdentityModel" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Scriban" Version="2.1.0" />
+    <PackageReference Include="Scriban" Version="3.4.2" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\DateTimeAttribute.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\LookupAttribute.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\DefaultGetterProperty.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\Metadata.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\CollectionFetcher.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\IntersectFetcher.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\CollectionFetcherContainer.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\PropertiesContainer.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\IntersectFetcherContainer.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\LookupAttributeRelationship.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\InternalOptionSetsContainer.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\InternalOptionSet.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\OptionSetValue.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\OptionSetReexport.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\OptionSetReexportContainer.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\ActionClass.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\ActionRequest.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\ActionResponse.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\ActionMetadata.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\ActionArgumentMetadata.scriban-txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Generators\TS\Templates\ActionConstructor.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\Constructor.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\ActionInputParameterPreparation.scriban-txt" />
+    <EmbeddedResource Include="Generators\TS\Templates\ActionMessageArgument.scriban-txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,0 +1,5 @@
+protected prepareRequestParameters(inputArguments: {{ model.request_class }}) {
+    return [
+        ...super.prepareRequestParameters(inputArguments),
+{{ children }}    ]
+}

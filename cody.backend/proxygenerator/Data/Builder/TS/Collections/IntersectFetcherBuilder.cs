@@ -17,7 +17,7 @@ namespace proxygenerator.Data.Builder.TS.Collections
             data.Generate = true;
             data.EntityLogicalName = entity.LogicalName;
             data.RelatedEntityLogicalName = relatedEntity.LogicalName;
-            data.RelationShipName = metadata.IntersectEntityName;
+            data.RelationshipName = metadata.IntersectEntityName;
             data.MetadataId = metadata.MetadataId ?? Guid.Empty;
             data.EntitySetName = entity.EntitySetName;
             data.RelatedEntityCollectionCodeName = Capitalizewords(Regex.Replace(

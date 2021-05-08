@@ -1,0 +1,3 @@
+﻿export class {{ model.class_name }} extends BaseEntityProxy {
+{{ children }}
+}

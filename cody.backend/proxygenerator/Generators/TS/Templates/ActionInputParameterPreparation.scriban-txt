@@ -1,0 +1,1 @@
+    ...this.prepareEntity{{ if model.is_collection }}Collection{{ end }}RequestParameter("{{ model.argument_name }}", inputArguments.{{ model.argument_name }}{{ if !model.is_collection }}, "{{ model.entity_logical_name }}"{{ end }}),

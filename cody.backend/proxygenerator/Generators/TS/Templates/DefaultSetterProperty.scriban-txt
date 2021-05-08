@@ -1,0 +1,1 @@
+set {{ model.property_name }}(value: {{ model.type_class }}) { this.setAttributeValue({{ model.entity_class_name }}.Attributes.{{ model.logical_name }}, value); }

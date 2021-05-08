@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 export type GenerateProxyCommandProvider = {
-	languageAbbreviation: "ts";
+	languageAbbreviation: "ts" | "cs";
 	commands: {
 		[key: string]: (context: vscode.ExtensionContext) => Promise<void>;
 	};

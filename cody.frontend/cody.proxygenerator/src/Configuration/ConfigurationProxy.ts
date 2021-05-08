@@ -85,3 +85,26 @@ export class TypeScriptConfiguration extends Configuration {
 	@config("cody.toolkit.proxyGenerator.ts", vscode.ConfigurationTarget.Workspace)
 	static restartTsLanguageServerWhenCreatingNewFiles: boolean;
 }
+
+export class CSharpConfiguration extends Configuration {
+	@config("cody.toolkit.proxyGenerator.cs", vscode.ConfigurationTarget.Workspace)
+	/**
+	 * Folder that typescript proxy files should be written to.
+	 */
+	static proxyFolder: string;
+	@config("cody.toolkit.proxyGenerator.cs", vscode.ConfigurationTarget.Workspace)
+	/**
+	 * If active, global enums will be generated in addition to local enums.
+	 */
+	static globalEnums: boolean;
+	@config("cody.toolkit.proxyGenerator.cs", vscode.ConfigurationTarget.Workspace)
+	/**
+	 * Determines the layout of the proxy files.
+	 */
+	static proxyLayout: "XrmToolkit" | "CrmSvcUtil";
+	@config("cody.toolkit.proxyGenerator.cs", vscode.ConfigurationTarget.Workspace)
+	/**
+	 * The namespace that proxy files are supposed to have
+	 */
+	static namespace: string;
+}

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Xrm.Sdk;
+using proxygenerator.Generators;
 
 namespace proxygenerator.Data.Model
 {
@@ -14,8 +15,11 @@ namespace proxygenerator.Data.Model
         public string Name { get; set; }
         public string DisplayName { get; set; }
         public string UniqueName { get; set; }
+        public string ClassName { get; set; }
         public string PrimaryEntity { get; set; }
         public string Xaml { get; set; }
+        public bool IsTargetAction { get; set; }
+        public Comment Comment { get; set; }
         
         public List<ActionArgument> InputArguments { get; set; }
         public List<ActionArgument> OutputArguments { get; set; }
@@ -23,6 +27,7 @@ namespace proxygenerator.Data.Model
 
     public class ActionArgument
     {
+        public Comment Comment { get; set; }
         public string Name { get; set; }
         public string ArgumentType { get; set; }
         public string EntityType { get; set; }

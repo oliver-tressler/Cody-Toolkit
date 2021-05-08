@@ -1,0 +1,6 @@
+{{~ if model.isVoid ~}}
+type {{ model.class_name }}Response = void;
+{{~ else ~}}
+export type {{ model.class_name }}Response = {
+{{ children }}}
+{{~ end ~}}

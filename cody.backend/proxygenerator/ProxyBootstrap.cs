@@ -9,7 +9,10 @@ using proxygenerator.Data;
 using proxygenerator.Data.Builder.TS;
 using proxygenerator.Data.Model;
 using proxygenerator.Generators.Contract;
+using proxygenerator.Generators.TS;
 using proxygenerator.Generators.TS.ActionGenerator;
+using proxygenerator.Generators.TS.Entity;
+using proxygenerator.Generators.TS.Entity.OptionSets;
 
 namespace proxygenerator
 {
@@ -41,7 +44,7 @@ namespace proxygenerator
             {
                 throw new DirectoryNotFoundException("Proxy directory not found");
             }
-            Directory.CreateDirectory(Path.Combine(proxyFolderPath, "Entities"));
+            Directory.CreateDirectory(Path.Combine(proxyFolderPath, "Actions"));
             var proxiesToGenerate = new List<string>();
             // Regenerate all action proxies
             if (options.ActionNames.Length == 0)
@@ -66,7 +69,7 @@ namespace proxygenerator
                 .Select(action => new ActionBuilder().ConstructAction(action));
             foreach (var action in actions)
             {
-                var fileContent = new ActionGenerator(action).GenerateActionCode();
+                var fileContent = new Generators.TS.Action.ProxyGenerator(action).Generate();
                 if (!createdNewFiles && !File.Exists(
                     Path.Combine(proxyFolderPath, "Actions", $"{action.Name}.{language}")))
                 {
@@ -116,10 +119,10 @@ namespace proxygenerator
 
             foreach (var entity in entityData)
             {
-                IEntityGenerator generator = language switch
+                CodeGenerator generator = language switch
                 {
-                    "ts" => new Generators.TS.EntityGenerator.EntityGenerator(entity),
-                    "cs" => new Generators.CS.EntityGenerator.EntityGenerator(entity, options.ProxyNamespace),
+                    "ts" => new ProxyGenerator(entity),
+                    // "cs" => new Generators.CS.EntityGenerator.EntityGenerator(entity, options.ProxyNamespace),
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
@@ -130,8 +133,8 @@ namespace proxygenerator
                 }
 
                 File.WriteAllText(Path.Combine(proxyFolderPath, "Entities", $"{entity.LogicalName}.{language}"),
-                    generator.GenerateEntityCode());
-                optionSets.AddRange(generator.GenerateExternalOptionSets());
+                    generator.Generate());
+                optionSets.AddRange(entity.ExternalOptionSets.Select(eos => (eos.FileName, new CommentGenerator(eos.Comment).Generate() + new ExternalOptionSetGenerator(eos).Generate())));
             }
 
             try

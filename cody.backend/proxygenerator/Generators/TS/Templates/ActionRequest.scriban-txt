@@ -1,0 +1,6 @@
+{{~ if model.isVoid ~}}
+type {{ model.class_name }}Request = void;
+{{~ else ~}}
+export type {{ model.class_name }}Request = {
+{{ children }}}
+{{~ end ~}}

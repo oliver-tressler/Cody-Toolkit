@@ -1,0 +1,1 @@
+﻿{{ model.logical_name }}: new DateTimeAttribute(DateTimeBehaviour.{{ model.behavior }}, "{{model.logical_name}}", Attribute.AttributeType.DateTime, "{{ model.schema_name }}", "{{ model.logical_name }}", "{{ model.display_name }}"),

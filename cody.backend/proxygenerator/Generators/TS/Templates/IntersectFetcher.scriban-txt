@@ -1,0 +1,3 @@
+async GetAssociated_{{ model.related_entity_collection_code_name }}(attributes?: (string|Attribute)[]): Promise<ODataEntityResult[]>{
+    return await OData.retrieveIntersect("{{ model.entity_set_name }}", this.id, "{{ model.relationship_name }}", attributes);
+}

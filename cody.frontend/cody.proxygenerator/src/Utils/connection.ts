@@ -11,3 +11,18 @@ export type ConnectionState = {
 export function getConnectionState() {
 	return vscode.commands.executeCommand<ConnectionState>("cody.toolkit.core.getConnectionState");
 }
+
+/**
+ * Make sure that the user is logged in to an organization.
+ */
+export async function assertConnection() {
+	const state = await getConnectionState();
+	if (state?.activeOrganization?.UniqueName == null) {
+		throw new Error("Unauthorized");
+	}
+	return state as AuthorizedConnectionState;
+}
+
+export type AuthorizedConnectionState = ConnectionState & {
+	activeOrganization: { UniqueName: string };
+};

@@ -1,0 +1,2 @@
+export class {{ model.class_name }}Action extends Base{{ if model.target_action }}Target{{end}}ActionProxy<{{ model.request_class }}, {{ model.response_class }}> {
+{{ children }}}

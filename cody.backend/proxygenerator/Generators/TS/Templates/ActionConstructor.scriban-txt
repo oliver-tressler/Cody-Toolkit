@@ -1,0 +1,3 @@
+constructor({{if model.target_action }}target: EntityReference{{ end }}){
+    super({ actionName: "{{ model.name }}", argumentMetadata, {{ if model.target_action }}logicalName: "{{ model.primary_entity }}"}, target{{ else }} } {{ end }});
+}
