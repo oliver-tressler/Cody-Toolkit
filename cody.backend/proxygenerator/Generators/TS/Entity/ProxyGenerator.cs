@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using proxygenerator.Data.Model;
 using proxygenerator.Data.Model.Attributes;
@@ -15,6 +16,7 @@ namespace proxygenerator.Generators.TS.Entity
         public ProxyGenerator(EntityData entity)
         {
             IndentChildren = false;
+            ChildrenSeparator = Environment.NewLine;
             Children = new List<CodeGenerator>
             {
                 new ImportsGenerator(entity),

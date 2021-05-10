@@ -13,7 +13,7 @@ namespace proxygenerator.Generators.TS.Entity.Properties
                 : attributeData.OptionSet.InternalEnumName;
             Model = new
             {
-                propertyName = attributeData.Getter.PropertyName,
+                propertyName = attributeData.FormattedGetter.PropertyName,
                 typeClass = enumCodeName,
                 entityClassName = entity.ClassName,
                 logicalName = attributeData.LogicalName,

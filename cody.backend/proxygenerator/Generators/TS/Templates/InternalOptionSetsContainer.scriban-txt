@@ -1,7 +1,6 @@
 // #region InternalOptionSets
 
 export namespace {{ model.entity_class_name }} {
-{{ children }}
-}
+{{ children }}}
 
 // #endregion

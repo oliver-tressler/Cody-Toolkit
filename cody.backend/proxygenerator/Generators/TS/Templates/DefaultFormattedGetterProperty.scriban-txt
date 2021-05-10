@@ -1,1 +1,1 @@
-get {{ model.property_name }}_Formatted() { return this.getFormattedAttributeValue({{ model.entity_class_name }}.Attributes.{{ model.logical_name }}); }
+get {{ model.property_name }}() { return this.getFormattedAttributeValue({{ model.entity_class_name }}.Attributes.{{ model.logical_name }}); }
