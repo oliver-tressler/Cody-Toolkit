@@ -10,7 +10,7 @@ namespace proxygenerator.Generators.TS.Action
             Model = new
             {
                 argumentName = argument.Name,
-                required = argument.Required,
+                optional = !argument.Required,
                 codeType = argument.DeduceCodeType()
             };
         }
