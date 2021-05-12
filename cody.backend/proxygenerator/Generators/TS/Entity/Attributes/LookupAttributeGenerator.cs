@@ -14,6 +14,7 @@ namespace proxygenerator.Generators.TS.Entity.Attributes
                 schemaName = attributeData.SchemaName,
                 displayName = attributeData.DisplayName,
                 type = attributeData.AttributeType,
+                odataName = attributeData.ODataRequestName
             };
             Children = attributeData.RelationData.Select(rd => new LookupAttributeRelationshipGenerator(rd)).ToList<CodeGenerator>();
             ShouldGenerate = attributeData.Generate;

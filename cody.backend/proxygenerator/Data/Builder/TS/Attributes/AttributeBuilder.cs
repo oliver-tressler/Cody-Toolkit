@@ -81,6 +81,7 @@ namespace proxygenerator.Data.Builder.TS.Attributes
         {
             var attributeData = new LookupAttributeData();
             BuildBaseAttribute(metadata, ref attributeData);
+            attributeData.ODataRequestName = $"_{attributeData.ODataRequestName}_value";
             attributeData.RelationData = relationships.Select(info =>
             {
                 var relatedAttribute = info.relatedEntity.Attributes.FirstOrDefault(a => a.LogicalName == info.relationship.ReferencedAttribute) ?? 
