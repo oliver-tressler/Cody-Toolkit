@@ -114,7 +114,7 @@
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="8.2.0.2" />
     <PackageReference Include="Microsoft.IdentityModel" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\crmconnector\crmconnector.csproj">
