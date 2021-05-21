@@ -65,10 +65,14 @@ export class ServerConnector {
 		// identifier flag. We can use that to get a ready signal.
 		const bootIdentifier = v4();
 		const restartIdentifier = v4();
+		const params = ["-p", Configuration.backendServerPort.toString(), "-i", bootIdentifier, "-r", restartIdentifier];
+		if (Configuration.disableSSLCertificateCheck) {
+			params.push("--nocertificatecheck", "true")
+		}
 		const startPromise = new Promise<{ timedOut: false }>((resolve, reject) => {
 			const server = spawn(
 				path.parse(location).base,
-				["-p", Configuration.backendServerPort.toString(), "-i", bootIdentifier, "-r", restartIdentifier],
+				params,
 				{
 					cwd: path.dirname(location).replace(/['"]+/g, ""),
 				}

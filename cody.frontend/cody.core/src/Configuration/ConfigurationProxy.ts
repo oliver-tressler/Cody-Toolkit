@@ -63,6 +63,11 @@ export class Configuration {
 	static backendServerPort: number;
 	@config("cody.toolkit.core", vsc.ConfigurationTarget.Workspace)
 	/**
+	 * Disables the SSL Certificate check. Not recommended.
+	 */
+	 static disableSSLCertificateCheck: boolean;
+	 @config("cody.toolkit.core", vsc.ConfigurationTarget.Workspace)
+	/**
 	 * CWD to enable relative paths.
 	 */
 	static projectRootPath: string;
