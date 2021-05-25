@@ -1,9 +1,8 @@
 import * as api from "./Api/connectionApi";
-import { OrganizationConfiguration } from "./Api/connectionApi";
 import { InstanceConfiguration, InstanceConfigurationProxy } from "./Configuration/MementoProxy";
 import {
-	requestInfoForCredentialsFileInstance,
-	requestInfoForUsernameAndPasswordInstance,
+    requestInfoForCredentialsFileInstance,
+    requestInfoForUsernameAndPasswordInstance
 } from "./Utils/userInteraction";
 
 /**
@@ -14,36 +13,39 @@ import {
  * @param password Required if not using a credentials file
  */
 export async function registerInstance(
-	port: number,
-	config: InstanceConfigurationProxy,
-	useCredentialsFile?: boolean
+    config: InstanceConfigurationProxy,
+    useCredentialsFile?: boolean
 ): Promise<{
-	instance: InstanceConfiguration;
-	availableOrganizations: OrganizationConfiguration[];
-	password?: string;
+    instance: InstanceConfiguration;
+    password?: string;
 }> {
-	if (useCredentialsFile === true) {
-		return await registerNewCredentialsFileInstance(port, config);
-	} else {
-		return await registerNewUsernameAndPasswordInstance(port, config);
-	}
+    if (useCredentialsFile === true) {
+        return await registerNewCredentialsFileInstance(config);
+    } else {
+        return await registerNewUsernameAndPasswordInstance(config);
+    }
 }
 
-async function registerNewUsernameAndPasswordInstance(port: number, config: InstanceConfigurationProxy) {
-	const [instance, password] = await requestInfoForUsernameAndPasswordInstance(port);
-	config.addInstance(instance);
-	const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(port, instance, password);
-	// Return password so that it can be reused across one authentication process.
-	return { instance, availableOrganizations: availableOrganizationsResponse.data, password };
+async function registerNewUsernameAndPasswordInstance(config: InstanceConfigurationProxy) {
+    const [instance, password] = await requestInfoForUsernameAndPasswordInstance();
+    const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(instance, password);
+    if (isValidConfigurationResponse.data !== true) throw new Error("Connection to instance discovery service failed.");
+    config.addInstance(instance);
+    // Return password so that it can be reused across one authentication process.
+    return { instance, availableOrganizations: password };
 }
 
-async function registerNewCredentialsFileInstance(port: number, config: InstanceConfigurationProxy) {
-	const instance = await requestInfoForCredentialsFileInstance(port, config);
+async function registerNewCredentialsFileInstance(config: InstanceConfigurationProxy) {
+    const [instance, key] = await requestInfoForCredentialsFileInstance(config);
+    const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(
+        instance,
+        config.getCredentialsFileKey(instance.instanceId)
+    );
+	// Add and remove so that the credentials file is not saved for invalid instances
 	config.addInstance(instance);
-	const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(
-		port,
-		instance,
-		config.getCredentialsFileKey(instance.instanceId)
-	);
-	return { instance, availableOrganizations: availableOrganizationsResponse.data };
+    if (isValidConfigurationResponse.data !== true) {
+		config.removeInstance(instance.instanceId);
+        throw new Error("Connection to instance discovery service failed.");
+    }
+    return { instance };
 }

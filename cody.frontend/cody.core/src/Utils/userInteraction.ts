@@ -1,42 +1,14 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import * as api from "../Api/connectionApi";
 import {
 	CredentialsFileInstanceConfiguration,
 	InstanceConfiguration,
 	InstanceConfigurationProxy,
-	ManualInstanceConfiguration,
+	ManualInstanceConfiguration
 } from "../Configuration/MementoProxy";
-import * as api from "../Api/connectionApi";
-import { organizationToQuickPick, instanceToQuickPick, SwitchInstanceQuickPickItem } from "./quickPickConverters";
-import { ConnectionState, ServerConnector } from "./ServerConnector";
-import { Configuration } from "../Configuration/ConfigurationProxy";
-
-/**
- * Creates an item to display connection state (Instance - Organization)
- * @returns the created status bar item and a method for updating its text based on the current connection state.
- */
-export function createStatusBarItem() {
-	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-	type RefreshButtonState = {
-		connecting: boolean;
-		activeInstance?: InstanceConfiguration;
-		activeOrganization?: api.OrganizationConfiguration;
-	};
-	const refreshButtonText = ({ connecting, activeInstance, activeOrganization }: RefreshButtonState) => {
-		statusBarItem.text = connecting
-			? "$(sync~spin) Connecting ..."
-			: activeInstance == null
-			? "$(debug-disconnect) No Instance - Offline"
-			: activeOrganization == null
-			? `$(debug-disconnect) ${activeInstance.instanceId} - Offline`
-			: `$(key) ${activeInstance.instanceId} - ${activeOrganization.FriendlyName}`;
-	};
-	statusBarItem.tooltip = "Change Instance or Organization";
-	statusBarItem.command = "cody.toolkit.core.connect.switchInstance";
-	statusBarItem.text = "$(sync~spin) Starting Backend";
-	statusBarItem.show();
-	return [statusBarItem, refreshButtonText] as const;
-}
+import { ConnectionState, OrganizationConfiguration } from "../connectionState";
+import { instanceToQuickPick, organizationToQuickPick, SwitchInstanceQuickPickItem } from "./quickPickConverters";
 
 /**
  * Utility method to create selector for connection options.
@@ -49,7 +21,7 @@ export function showQuickPickForInstanceSwitching({
 	includeCreateNewOptions,
 }: {
 	connectionState: ConnectionState;
-	organizations?: api.OrganizationConfiguration[];
+	organizations?: OrganizationConfiguration[];
 	instances?: InstanceConfiguration[];
 	includeCreateNewOptions?: boolean;
 }) {
@@ -146,22 +118,11 @@ export async function chooseInstance(instances: InstanceConfiguration[], connect
  * If the authentication details are not valid, this will throw an error.
  * @returns Instance configuration. Also returns password for reuse across a single authentication process.
  */
-export async function requestInfoForUsernameAndPasswordInstance(port: number) {
+export async function requestInfoForUsernameAndPasswordInstance() {
 	const instanceId = await requestInstanceId();
 	const userName = await requestUserName(instanceId);
 	const password = await requestPassword(instanceId);
 	const discoveryServiceUrl = await requestDiscoUrl();
-	const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(
-		port,
-		{
-			userName,
-			useCredentialsFile: false,
-			instanceId,
-			discoveryServiceUrl,
-		},
-		password
-	);
-	if (isValidConfigurationResponse.data !== true) throw new Error("Connection to instance discovery service failed.");
 	const instance: ManualInstanceConfiguration = {
 		instanceId,
 		discoveryServiceUrl,
@@ -184,7 +145,7 @@ export async function createCredentialsFile(instanceId: string, config: Instance
 	});
 	if (file?.length !== 1) throw new Error("No credentials file location provided");
 	const credentialsFilePath = path.join(file[0].fsPath, instanceId + ".codycon");
-	await api.createCredentialsFile(Configuration.backendServerPort, {
+	await api.createCredentialsFile({
 		DiscoveryServiceUrl: discoveryServiceUrl,
 		CredentialsFilePath: credentialsFilePath,
 		UserName: userName,
@@ -198,23 +159,13 @@ export async function createCredentialsFile(instanceId: string, config: Instance
  * Requests a set of authentication details for connecting to a Dynamics CRM Instance using a credential file.
  * If the authentication details are not valid, this will throw an error.
  */
-export async function requestInfoForCredentialsFileInstance(port: number, config: InstanceConfigurationProxy) {
+export async function requestInfoForCredentialsFileInstance(config: InstanceConfigurationProxy) {
 	const instanceId = await requestInstanceId();
 	const credentialsFile = await createCredentialsFile(instanceId, config);
-	const isValidConfigurationResponse = await api.isValidDiscoveryServiceConfiguration(
-		port,
-		{
-			credentialsFilePath: credentialsFile,
-			instanceId,
-			useCredentialsFile: true,
-		},
-		config.getCredentialsFileKey(instanceId)
-	);
-	if (isValidConfigurationResponse.data !== true) throw new Error("Connection to instance discovery service failed.");
 	const instance: CredentialsFileInstanceConfiguration = {
 		credentialsFilePath: credentialsFile,
 		instanceId: instanceId,
 		useCredentialsFile: true,
 	};
-	return instance;
+	return [instance, config.getCredentialsFileKey(instanceId)] as const;
 }

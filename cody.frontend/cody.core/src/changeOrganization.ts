@@ -1,58 +1,52 @@
-import * as api from "./Api/connectionApi";
-import { OrganizationConfiguration } from "./Api/connectionApi";
 import { InstanceConfigurationProxy } from "./Configuration/MementoProxy";
-import { ConnectionState } from "./Utils/ServerConnector";
-import { requestPassword } from "./Utils/userInteraction";
+import { ConnectionManager, OrganizationConfiguration } from "./connectionState";
+import { getPasswordOrKeyFromInstance } from "./getPasswordOrKeyFromInstance";
 
 /**
  * Connect to one of the available organizations for the current instance.
  * @param port
  * @param connectionState
  * @param chosenOrganization
- * @param password Required if the instance is not using a credentials file
+ * @param passwordOrKey Required if the instance is not using a credentials file
  */
 
 export async function connectToOrganization(
-	port: number,
-	connectionState: ConnectionState,
-	config: InstanceConfigurationProxy,
-	chosenOrganization?: OrganizationConfiguration,
-	password?: string
+    connectionManager: ConnectionManager,
+    config: InstanceConfigurationProxy,
+    chosenOrganization: OrganizationConfiguration | undefined,
+    passwordOrKey?: string
 ) {
-	if (connectionState.activeInstance == null)
-		throw new Error("Unable to change organization without active instance");
-	if (chosenOrganization == null) return { password, connectionState };
-	const connectionAliveResponse = await api.connectionAlive(port, chosenOrganization.UniqueName);
-	if (connectionAliveResponse) {
-		return;
-	}
-	const { Success: connectionSuccessfullyEstablished, Expires } = await api.establishConnection(
-		port,
-		connectionState.activeInstance,
-		chosenOrganization,
-		connectionState.activeInstance.useCredentialsFile
-			? config.getCredentialsFileKey(connectionState.activeInstance.instanceId)
-			: await (async () => {
-					if (password != null) return password;
-					if (connectionState.activeInstance == null) throw new Error("Chose org without active instance");
-					password = await requestPassword(connectionState.activeInstance.instanceId);
-					return password;
-			  })()
-	);
-	if (connectionSuccessfullyEstablished === true) {
-		connectionState.activeOrganization = chosenOrganization;
-	} else throw new Error("Connection not established");
-	return { password, connectionState };
+    if (connectionManager.connectionState.activeInstance == null) {
+        throw new Error("Can't connect to an organization if there is no connected instance.");
+    }
+    passwordOrKey = passwordOrKey ?? await getPasswordOrKeyFromInstance(config, connectionManager.connectionState.activeInstance);
+
+    const connectionState = connectionManager.connectionState;
+    if (chosenOrganization == null) return { password: passwordOrKey, connectionState };
+    try {
+        await connectionManager.authenticateOrganization(chosenOrganization, passwordOrKey);
+    } catch (e) {
+        throw new Error("Unable to establish connection to organization " + chosenOrganization.UniqueName);
+    }
+    return passwordOrKey;
 }
 
 export async function switchToOrganization(
-	port: number,
-	connectionState: ConnectionState,
-	config: InstanceConfigurationProxy,
-	chosenOrganization?: OrganizationConfiguration,
-	password?: string
+    connectionManager: ConnectionManager,
+    config: InstanceConfigurationProxy,
+    chosenOrganization: OrganizationConfiguration | undefined,
+    passwordOrKey?: string
 ) {
-	if (chosenOrganization != null) await connectToOrganization(port, connectionState, config, chosenOrganization);
-	connectionState.activeOrganization = chosenOrganization;
-	return { password, connectionState };
+    if (connectionManager.connectionState.activeInstance == null) {
+        throw new Error("Can't connect to an organization if there is no connected instance.");
+    }
+    passwordOrKey = passwordOrKey ?? await getPasswordOrKeyFromInstance(config, connectionManager.connectionState.activeInstance);
+    try {
+        connectionManager.changeActiveOrganization(chosenOrganization, passwordOrKey);
+    } catch (e) {
+        if (chosenOrganization != null)
+            throw new Error("Unable to establish connection to organization " + chosenOrganization.UniqueName);
+        throw new Error("Unable to disconnect organization");
+    }
+    return passwordOrKey;
 }

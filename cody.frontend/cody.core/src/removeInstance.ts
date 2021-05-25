@@ -1,22 +1,22 @@
 import * as fs from "fs";
 import {
-	CredentialsFileInstanceConfiguration,
-	InstanceConfiguration,
-	InstanceConfigurationProxy,
+    CredentialsFileInstanceConfiguration,
+    InstanceConfiguration,
+    InstanceConfigurationProxy,
 } from "./Configuration/MementoProxy";
-import { ConnectionState } from "./Utils/ServerConnector";
+import { ConnectionManager } from "./connectionState";
 import { chooseInstance } from "./Utils/userInteraction";
 
 async function deleteCredentialsFile(
-	config: InstanceConfigurationProxy,
-	instance: CredentialsFileInstanceConfiguration
+    config: InstanceConfigurationProxy,
+    instance: CredentialsFileInstanceConfiguration
 ) {
-	try {
-		fs.unlinkSync(instance.credentialsFilePath);
-		config.removeCredentialsFileKey(instance.instanceId);
-	} catch {
-		console.warn(`Credentials file for instance ${instance.instanceId} not found.`);
-	}
+    try {
+        fs.unlinkSync(instance.credentialsFilePath);
+        config.removeCredentialsFileKey(instance.instanceId);
+    } catch {
+        console.warn(`Credentials file for instance ${instance.instanceId} not found.`);
+    }
 }
 
 /**
@@ -26,32 +26,28 @@ async function deleteCredentialsFile(
  * @param instance The instance to delete
  */
 export async function removeInstance(
-	connectionState: ConnectionState,
-	config: InstanceConfigurationProxy,
-	instance: InstanceConfiguration
+    connectionManager: ConnectionManager,
+    config: InstanceConfigurationProxy,
+    instance: InstanceConfiguration
 ) {
-	if (instance == null || config.instances == null || config.instances.length == 0) return { connectionState };
-	const chosenInstanceWasActiveInstance = instance.instanceId == connectionState.activeInstance?.instanceId;
-	config.removeInstance(instance.instanceId);
-	if (chosenInstanceWasActiveInstance) {
-		connectionState.activeInstance = undefined;
-		connectionState.activeOrganization = undefined;
-		connectionState.availableOrganizations = [];
-		config.activeInstance = undefined;
-	}
-	if (instance.useCredentialsFile) {
-		await deleteCredentialsFile(config, instance);
-	}
-	return { connectionState };
+    if (instance == null || config.instances == null || config.instances.length == 0) {
+        return { connectionState: connectionManager.connectionState };
+    }
+    config.removeInstance(instance.instanceId);
+    const chosenInstanceWasActiveInstance =
+        instance.instanceId == connectionManager.connectionState.activeInstance?.instanceId;
+    if (chosenInstanceWasActiveInstance) {
+        connectionManager.changeActiveInstance(undefined);
+    }
+    if (instance.useCredentialsFile) {
+        await deleteCredentialsFile(config, instance);
+    }
+    return { connectionState: connectionManager.connectionState };
 }
 
-export async function removeInstanceCommand(
-	connectionState: ConnectionState,
-	config: InstanceConfigurationProxy,
-	refreshButtonText: (connectionState: ConnectionState) => void
-) {
-	const chosenInstance = await chooseInstance(config.instances, connectionState);
-	if (chosenInstance == null) return;
-	({ connectionState: connectionState } = await removeInstance(connectionState, config, chosenInstance.instance));
-	refreshButtonText(connectionState);
+export async function removeInstanceCommand(connectionManager: ConnectionManager, config: InstanceConfigurationProxy) {
+    const connectionState = connectionManager.connectionState;
+    const chosenInstance = await chooseInstance(config.instances, connectionState);
+    if (chosenInstance == null) return;
+    await removeInstance(connectionManager, config, chosenInstance.instance);
 }

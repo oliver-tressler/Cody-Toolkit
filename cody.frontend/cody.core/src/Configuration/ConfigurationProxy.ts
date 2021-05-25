@@ -65,10 +65,5 @@ export class Configuration {
 	/**
 	 * Disables the SSL Certificate check. Not recommended.
 	 */
-	 static disableSSLCertificateCheck: boolean;
-	 @config("cody.toolkit.core", vsc.ConfigurationTarget.Workspace)
-	/**
-	 * CWD to enable relative paths.
-	 */
-	static projectRootPath: string;
+	static disableSSLCertificateCheck: boolean;
 }

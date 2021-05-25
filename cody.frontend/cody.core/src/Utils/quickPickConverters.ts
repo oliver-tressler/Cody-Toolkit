@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
-import { OrganizationConfiguration } from "../Api/connectionApi";
 import { InstanceConfiguration } from "../Configuration/MementoProxy";
-import { ConnectionState } from "./ServerConnector";
+import { OrganizationConfiguration, ConnectionState } from "../connectionState";
 
 export type SwitchInstanceQuickPickItem =
 	| { instance: InstanceConfiguration; type: "instance" }
