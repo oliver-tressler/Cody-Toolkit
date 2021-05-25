@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.ServiceModel;
@@ -25,8 +26,10 @@ namespace cody.backend.api
                 HelpText = "Writes the restart identifier to standard out to notify listeners that the server is ready.")]
             public string RestartIdentifier { get; set; }
 
-            [Option('p', "port", Default = 8080, HelpText = "Specifies on which port to listen for API requests")]
+            [Option('p', "port", Default = 8080, HelpText = "Specifies on which port to listen for API requests.")]
             public int Port { get; set; }
+            [Option("nocertificatecheck", Default = false, HelpText = "Disables SSL Certificate check. Not recommended.")]
+            public bool DoNotCheckSSLCertificates { get; set; }
         }
 
         public static void Main(string[] args)
@@ -35,6 +38,11 @@ namespace cody.backend.api
                 (sender, eventArgs) => Assembly.ReflectionOnlyLoad(eventArgs.Name);
             Parser.Default.ParseArguments<Options>(args).WithParsed(options =>
             {
+                if (options.DoNotCheckSSLCertificates)
+                {
+                    ServicePointManager.ServerCertificateValidationCallback += 
+                        (sender, cert, chain, sslPolicyErrors) => true;
+                }
                 try
                 {
                     LaunchHost(options);

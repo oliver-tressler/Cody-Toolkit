@@ -13,7 +13,7 @@
 	"license": "GPLv3",
 	"displayName": "Cody Toolkit (Core)",
 	"description": "Connect to your Dynamics CRM 2016 On-Premise Instances directly from VS Code. Required for other Cody Toolkit extensions.",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"engines": {
 		"vscode": "^1.53.0"
 	},
@@ -50,6 +50,12 @@
 					"markdownDescription": "Port used for launching the backend server. Make sure to reserve that port using `netsh`. Changing the port requires a restart of VS Code to take effect.",
 					"type": "number",
 					"scope": "machine"
+				},
+				"cody.toolkit.core.disableSSLCertificateCheck": {
+					"markdownDescription": "Select this option if you want to disable the SSL Certificate check for CRM connections. This is not recommended and should only be used if no other option is available.",
+					"type": "boolean",
+					"scope": "window",
+					"default": false
 				}
 			}
 		}
@@ -66,10 +72,11 @@
 		"webpack-cli": "^4.5.0"
 	},
 	"dependencies": {
+		"@types/uuid": "^8.3.0",
+		"axios": "^0.21.1",
 		"ts-loader": "^8.0.17",
 		"typescript": "^3.9.9",
-		"webpack": "^5.24.2",
-		"axios": "^0.21.1",
-		"uuid": "^8.3.2"
+		"uuid": "^8.3.2",
+		"webpack": "^5.24.2"
 	}
 }
