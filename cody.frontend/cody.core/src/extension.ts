@@ -1,68 +1,15 @@
 import * as vscode from "vscode";
 import { connectToOrganization, switchToOrganization } from "./changeOrganization";
-import { InstanceConfiguration, InstanceConfigurationProxy } from "./Configuration/MementoProxy";
+import { InstanceConfigurationProxy } from "./Configuration/MementoProxy";
 import { ConnectionManager, OrganizationConfiguration, TaskbarConnectionStateViewer } from "./connectionState";
 import { getPasswordOrKeyFromInstance } from "./getPasswordOrKeyFromInstance";
-import { registerInstance } from "./registerNewInstance";
 import { removeInstanceCommand as removeInstance } from "./removeInstance";
 import { setup } from "./setup";
+import { switchToInstance } from "./switchToInstance";
+import { switchToNewInstance } from "./switchToNewInstance";
 import { errorHandler } from "./Utils/errorHandling";
 import { ServerConnector } from "./Utils/ServerConnector";
 import { showQuickPickForInstanceSwitching } from "./Utils/userInteraction";
-
-/**
- * Change the currently active instance and optionally select an organization
- * @param connector
- * @param connectionState
- * @param config
- * @param chosenInstance
- * @param passwordOrKey Password is required if the instance does not use a credentials file
- */
-async function switchToInstance(
-    connectionManager: ConnectionManager,
-    config: InstanceConfigurationProxy,
-    chosenInstance: InstanceConfiguration,
-    passwordOrKey?: string
-) {
-    passwordOrKey = passwordOrKey ?? (await getPasswordOrKeyFromInstance(config, chosenInstance));
-    await connectionManager.changeActiveInstance(chosenInstance, passwordOrKey);
-    const chosenOrg = await showQuickPickForInstanceSwitching({
-        connectionState: connectionManager.connectionState,
-        organizations: connectionManager.connectionState.availableOrganizations,
-    });
-    if (chosenOrg == null || chosenOrg.type !== "organization") return passwordOrKey;
-    return await switchToOrganization(connectionManager, config, chosenOrg.organization, passwordOrKey);
-}
-
-/**
- * Create a new instance, then make it the currently active instance to it and optionally connecto to one of its
- * organizations.
- * @param port
- * @param connectionState
- * @param config
- * @param withCredentialsFile If true, the new configuration will use a credential file.
- * @param passwordOrKey Password is required if the instance does not use a credentials file.
- */
-async function switchToNewInstance(
-    connectionManager: ConnectionManager,
-    config: InstanceConfigurationProxy,
-    withCredentialsFile?: boolean,
-    passwordOrKey?: string
-) {
-    const { instance, password: pw } = await registerInstance(config, withCredentialsFile);
-    if (pw != null) passwordOrKey = pw;
-    if (instance == null) return passwordOrKey; // Nothing was created
-    passwordOrKey = passwordOrKey ?? (await getPasswordOrKeyFromInstance(config, instance));
-    // A newly registered non null instance is already authenticated
-    await connectionManager.changeActiveInstance(instance, passwordOrKey);
-    const chosenOrg = await showQuickPickForInstanceSwitching({
-        connectionState: connectionManager.connectionState,
-        organizations: connectionManager.connectionState.availableOrganizations,
-    });
-    if (chosenOrg == null || chosenOrg.type !== "organization" /* Type Guard */) return passwordOrKey;
-    connectionManager.changeActiveOrganization(chosenOrg.organization, passwordOrKey);
-    return passwordOrKey;
-}
 
 const registerSwitchInstanceCommand = (connectionManager: ConnectionManager, config: InstanceConfigurationProxy) => {
     return vscode.commands.registerCommand("cody.toolkit.core.connect.switchInstance", async () => {
@@ -116,9 +63,51 @@ const registerSwitchInstanceCommand = (connectionManager: ConnectionManager, con
                 return;
             }
             throw e;
-        } finally {
         }
     });
+};
+
+const registerConnectToOrganizationCommand = (
+    connectionManager: ConnectionManager,
+    config: InstanceConfigurationProxy
+) => {
+    return vscode.commands.registerCommand(
+        "cody.toolkit.core.connect.connectToOrganization",
+        async (organizationUniqueName?: string) => {
+            try {
+                if (
+                    connectionManager.connectionState.activeInstance?.authenticated !== true ||
+                    connectionManager.connectionState.availableOrganizations.length == 0
+                ) {
+                    return { success: false };
+                }
+
+                let organizationToAuthenticate: OrganizationConfiguration;
+                if (organizationUniqueName == null) {
+                    const chosenOrganization = await showQuickPickForInstanceSwitching({
+                        connectionState: connectionManager.connectionState,
+                        organizations: connectionManager.connectionState.availableOrganizations.filter(
+                            (org) => org.UniqueName !== connectionManager.connectionState.activeOrganization?.UniqueName
+                        ),
+                    });
+                    if (chosenOrganization == null || chosenOrganization.type !== "organization") {
+                        return { success: false };
+                    }
+                    organizationToAuthenticate = chosenOrganization.organization;
+                } else {
+                    const organization = connectionManager.connectionState.availableOrganizations.find(
+                        (organization) => organization.UniqueName == organizationUniqueName
+                    );
+                    if (organization == null) return { success: false };
+                    organizationToAuthenticate = organization;
+                }
+                await connectToOrganization(connectionManager, config, organizationToAuthenticate);
+                return { success: true };
+            } catch {
+                return { success: false };
+            }
+        }
+    );
 };
 
 export async function launch({ subscriptions, workspaceState, globalState }: vscode.ExtensionContext) {
@@ -133,12 +122,8 @@ export async function launch({ subscriptions, workspaceState, globalState }: vsc
             "cody.toolkit.core.connect.removeInstance",
             async () => removeInstance(connectionManager, config)
         );
-        const connectToOrganizationCommand = vscode.commands.registerCommand(
-            "cody.toolkit.core.connect.connectToOrganization",
-            async (organization?: OrganizationConfiguration) =>
-                connectToOrganization(connectionManager, config, organization)
-        );
         const switchInstanceCommand = registerSwitchInstanceCommand(connectionManager, config);
+        const connectToOrganizationCommand = registerConnectToOrganizationCommand(connectionManager, config);
         // Empty command. Just an activation trigger for other modules.
         const activateModulesCommand = vscode.commands.registerCommand("cody.toolkit.core.activateModules", () => {});
         // Make connection state available to other modules.
