@@ -1,10 +1,8 @@
+import cloneDeep from "lodash/cloneDeep";
 import * as vscode from "vscode";
 import * as api from "./Api/connectionApi";
 import { InstanceConfiguration, InstanceConfigurationProxy } from "./Configuration/MementoProxy";
-import cloneDeep from "lodash/cloneDeep";
-import { Configuration } from "./Configuration/ConfigurationProxy";
-import { requestPassword } from "./Utils/userInteraction";
-import { errorHandler } from "./Utils/errorHandling";
+
 export type OrganizationConfiguration = {
     UniqueName: string;
     FriendlyName: string;
@@ -21,7 +19,8 @@ export type ConnectionState = {
 
 export interface IConnectionStateObserver {
     id: string;
-    onConnectionStateChange(currentState: ConnectionState, pendingChange: Promise<ConnectionState>): void;
+    onConnectionStateChangeBegin(currentState: ConnectionState): void;
+    onConnectionStateChangeFinished(newState: ConnectionState): void;
     dispose(): void;
 }
 
@@ -59,67 +58,71 @@ export class ConnectionManager implements IConnectionStatePublisher, vscode.Disp
     async changeActiveInstance(instanceConfiguration: undefined): Promise<void>;
     async changeActiveInstance(instanceConfiguration: InstanceConfiguration, passwordOrKey: string): Promise<void>;
     async changeActiveInstance(instanceConfiguration: InstanceConfiguration | undefined, passwordOrKey?: string) {
-        if (
-            this._connectionState.activeInstance?.instanceId == instanceConfiguration?.instanceId &&
-            this._connectionState.activeInstance?.authenticated === true
-        ) {
-            return;
-        }
+        return await this.withConnectionStateChange(async () => {
+            if (
+                this._connectionState.activeInstance?.instanceId == instanceConfiguration?.instanceId &&
+                this._connectionState.activeInstance?.authenticated === true
+            ) {
+                return;
+            }
 
-        this._connectionState.availableOrganizations = [];
-        if (instanceConfiguration == null) {
-            this._connectionState.activeInstance = undefined;
-            this.config.activeInstance = undefined;
-            return;
-        }
-        if (passwordOrKey == null) {
-            throw new Error("Password or key required to change active instance");
-        }
-        const isValidConfigurationResult = await api.isValidDiscoveryServiceConfiguration(
-            instanceConfiguration,
-            passwordOrKey
-        );
+            this._connectionState.availableOrganizations = [];
+            if (instanceConfiguration == null) {
+                this._connectionState.activeInstance = undefined;
+                this.config.activeInstance = undefined;
+                return;
+            }
+            if (passwordOrKey == null) {
+                throw new Error("Password or key required to change active instance");
+            }
+            const isValidConfigurationResult = await api.isValidDiscoveryServiceConfiguration(
+                instanceConfiguration,
+                passwordOrKey
+            );
 
-        if (isValidConfigurationResult.data !== true) {
-            throw new Error("Unable to authenticate against the instance");
-        }
+            if (isValidConfigurationResult.data !== true) {
+                throw new Error("Unable to authenticate against the instance");
+            }
 
-        const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(
-            instanceConfiguration,
-            passwordOrKey
-        );
+            const availableOrganizationsResponse = await api.fetchOrganizationsForInstance(
+                instanceConfiguration,
+                passwordOrKey
+            );
 
-        if (availableOrganizationsResponse.data == null || availableOrganizationsResponse.data.length == 0) {
-            throw new Error("Unable to retrieve available organizations for instance.");
-        }
+            if (availableOrganizationsResponse.data == null || availableOrganizationsResponse.data.length == 0) {
+                throw new Error("Unable to retrieve available organizations for instance.");
+            }
 
-        this._connectionState = {
-            availableOrganizations: availableOrganizationsResponse.data,
-            activeInstance: {
-                ...instanceConfiguration,
-                authenticated: true,
-            },
-            activeOrganization: undefined,
-        };
-        this.config.activeInstance = instanceConfiguration;
+            this._connectionState = {
+                availableOrganizations: availableOrganizationsResponse.data,
+                activeInstance: {
+                    ...instanceConfiguration,
+                    authenticated: true,
+                },
+                activeOrganization: undefined,
+            };
+            this.config.activeInstance = instanceConfiguration;
+        });
     }
 
     async changeActiveOrganization(
         organizationConfiguration: OrganizationConfiguration | undefined,
         passwordOrKey: string
     ) {
-        if (organizationConfiguration == null) {
-            this._connectionState.activeOrganization = undefined;
+        return await this.withConnectionStateChange(async () => {
+            if (organizationConfiguration == null) {
+                this._connectionState.activeOrganization = undefined;
+                return this.connectionState;
+            }
+            const validationResult = this.isValidOrganization(organizationConfiguration);
+            if (validationResult.valid == false) throw new Error(validationResult.reason);
+            const connectionAlreadyEstablished = await api.connectionAlive(organizationConfiguration!.UniqueName);
+            if (!connectionAlreadyEstablished) {
+                await this.authenticateOrganization(organizationConfiguration, passwordOrKey);
+            }
+            this._connectionState.activeOrganization = organizationConfiguration;
             return this.connectionState;
-        }
-        const validationResult = this.isValidOrganization(organizationConfiguration);
-        if (validationResult.valid == false) throw new Error(validationResult.reason);
-        const connectionAlreadyEstablished = await api.connectionAlive(organizationConfiguration!.UniqueName);
-        if (!connectionAlreadyEstablished) {
-            await this.authenticateOrganization(organizationConfiguration, passwordOrKey);
-        }
-        this._connectionState.activeOrganization = organizationConfiguration;
-        return this.connectionState;
+        });
     }
 
     async authenticateOrganization(
@@ -145,7 +148,7 @@ export class ConnectionManager implements IConnectionStatePublisher, vscode.Disp
 
     registerObserver(observer: IConnectionStateObserver): void {
         this.observers[observer.id] = observer;
-        observer.onConnectionStateChange(this._connectionState, Promise.resolve(this._connectionState));
+        observer.onConnectionStateChangeFinished(this._connectionState);
     }
 
     unregisterObserver(id: string): void {
@@ -176,6 +179,24 @@ export class ConnectionManager implements IConnectionStatePublisher, vscode.Disp
         }
         return { valid: true };
     }
+
+    async withConnectionStateChange<T>(action: () => Promise<T>): Promise<T> {
+        for (const observerId in this.observers) {
+            const observer = this.observers[observerId];
+            if (observer == null) continue;
+            observer.onConnectionStateChangeBegin(this.connectionState);
+        }
+
+        const result = await action();
+
+        for (const observerId in this.observers) {
+            const observer = this.observers[observerId];
+            if (observer == null) continue;
+            observer.onConnectionStateChangeFinished(this.connectionState);
+        }
+
+        return result;
+    }
 }
 
 export class TaskbarConnectionStateViewer implements IConnectionStateObserver {
@@ -183,11 +204,12 @@ export class TaskbarConnectionStateViewer implements IConnectionStateObserver {
     constructor(public id: string) {
         this.statusBarItem = this.createStatusBarItem();
     }
-    onConnectionStateChange(currentState: ConnectionState, pendingChange: Promise<ConnectionState>): void {
+    onConnectionStateChangeBegin(currentState: ConnectionState): void {
         this.updateStatusBarItem(currentState, true);
-        pendingChange
-            .then((state) => this.updateStatusBarItem(state, false))
-            .catch((e) => this.updateStatusBarItem(currentState, false));
+    }
+
+    onConnectionStateChangeFinished(newState: ConnectionState): void {
+        this.updateStatusBarItem(newState, false);
     }
 
     createStatusBarItem() {
