@@ -1,46 +1,36 @@
 import axios from "axios";
 import { ChildProcess, spawn } from "child_process";
 import * as path from "path";
-import { createInterface } from "readline";
+import { createInterface, Interface } from "readline";
 import { v4 } from "uuid";
-import * as vsc from "vscode";
-import * as api from "../Api/connectionApi";
 import { Configuration } from "../Configuration/ConfigurationProxy";
-import { InstanceConfiguration } from "../Configuration/MementoProxy";
 import { defaultBackendServerLocation } from "../setup";
-export type ConnectionState = {
-	activeInstance?: InstanceConfiguration & { authenticated: boolean };
-	activeOrganization?: api.OrganizationConfiguration;
-	availableOrganizations: api.OrganizationConfiguration[];
-	connecting: boolean;
-};
 
-export class ServerConnector {
-	/**
-	 * A direct connection to the backend process.
-	 */
-	public server?: ChildProcess;
-	/**
-	 * Every module of the Dynamics CRM Toolkit has its own output channel.
-	 */
-	public outputChannels: { [channelId: string]: vsc.OutputChannel };
-	public connectionState: ConnectionState;
-	constructor() {
-		this.outputChannels = {};
-		this.connectionState = {
-			availableOrganizations: [],
-			connecting: false,
-			activeInstance: undefined,
-			activeOrganization: undefined,
-		};
-	}
+export interface IServerMessageObserver {
+	id: string;
+	onServerMessage(data: string): void;
+}
+
+export interface IServerMessagePublisher {
+	registerObserver(observer: IServerMessageObserver): void;
+	unregisterObserver(id: string): void;
+}
+
+export class ServerConnector implements IServerMessagePublisher{
+	private server?: ChildProcess;
+	public observers: {[observerId: string]: IServerMessageObserver};
+	
 	public get port(): number {
 		return Configuration.backendServerPort;
 	}
 
+	constructor() {
+		this.observers = {};
+	}
+
 	public async isServerRunning(): Promise<boolean> {
 		try {
-			// Early exit if the backend process is still connected.
+			// Early exit if the backend process is not connected.
 			if (this.server?.connected === false) return false;
 			// Returns Ok 200 if the Web API is available. (Theoretically redundant)
 			await axios.get("http://localhost:" + Configuration.backendServerPort + "/api/alive/alive");
@@ -85,50 +75,18 @@ export class ServerConnector {
 				if (typeof d !== "string") return;
 				// If server isn't started check the output for the boot identifier.
 				else if (this.server == null && d.includes(bootIdentifier)) {
-					this.server == server;
-					// Handle exit codes. Usually, this should not happen while the extension is active.
-					server.addListener("error", (err) => {
-						reject(err);
-					});
-					server.addListener("close", (code, sig) => {
-						if (code !== 0) return;
-						vsc.window.showErrorMessage(
-							"The connection to the CRM Toolkit Backend was closed (" + sig + ")."
-						);
-						reject(new Error("The connection to the CRM Toolkit Backend was closed"));
-					});
-					server.addListener("exit", (code, sig) => {
-						if (code === 0) return;
-						vsc.window.showInformationMessage("The CRM Toolkit Backend was shut down (" + sig + ").");
-						reject(new Error("The connection to the CRM Toolkit Backend was closed"));
-					});
-					server.addListener("disconnect", () => {
-						vsc.window.showErrorMessage(
-							"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
-						);
-						reject(
-							new Error(
-								"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
-							)
-						);
-					});
-					resolve({ timedOut: false });
+					this.server = server;
+					this.handleServerBootResponses(server)
+						.then(() => resolve({ timedOut: false }))
+						.catch(reject);
 				} else if (this.server == null && d.includes(restartIdentifier)) {
-					if (allowRestart === false) {
-						throw new Error("Unable to launch server.");
-					}
-					this.launchServer(false)
-						.then((val) => resolve({ timedOut: false }))
-						.catch((e) => reject(e));
+					this.handleReboot(allowRestart)
+						.then(() => resolve({ timedOut: false }))
+						.catch(reject);
 				}
-				// Allow outputting to consoles to separate logs from different modules.
-				else if (d.startsWith("$channel{")) {
-					const closingBracketIdx = d.indexOf("}", 10);
-					if (closingBracketIdx < 0) return;
-					const channel = d.slice(9, closingBracketIdx);
-					if (this.outputChannels[channel] == null)
-						this.outputChannels[channel] = vsc.window.createOutputChannel(channel);
-					this.outputChannels[channel].appendLine(d.slice(closingBracketIdx + 1));
+				// Feed the rest to subscribers.
+				else {
+					this.handleData(d);
 				}
 			});
 		});
@@ -141,4 +99,56 @@ export class ServerConnector {
 		if (result.timedOut) throw new Error("Unable to reach server");
 		return this;
 	}
+
+	/**
+	 * Handle exit codes. Usually, this should not happen while the extension is active.
+	 */
+	private async handleServerBootResponses(server: ChildProcess) {
+		return new Promise((resolve, reject) => {
+			server.addListener("error", (err) => {
+				reject(err);
+			});
+			server.addListener("close", (code, sig) => {
+				if (code !== 0) return;
+				reject(new Error("The connection to the CRM Toolkit Backend was closed (" + sig + ")"));
+			});
+			server.addListener("exit", (code, sig) => {
+				if (code === 0) return;
+				reject(new Error("The CRM Toolkit Backend was shut down (" + sig + ")"));
+			});
+			server.addListener("disconnect", () => {
+				reject(
+					new Error(
+						"The CRM Toolkit Backend process disconnected. The backend will not be shut down when VS Code is closed."
+					)
+				);
+			});
+			resolve(undefined);
+		});
+	}
+
+	private async handleReboot(allowRestart?: boolean) {
+		if (allowRestart === false) {
+			throw new Error("Unable to launch server.");
+		}
+		await this.launchServer(false);
+	}
+
+	private handleData(msg: string) {
+		try {
+			Object.values(this.observers).forEach(subscriber => subscriber.onServerMessage(msg));
+		} catch (e) {
+			console.error("Error while processing server message", e)
+		}
+	}
+
+	public registerObserver(observer: IServerMessageObserver){
+		this.observers[observer.id] = observer;
+	}
+
+	public unregisterObserver(observerId: string){
+		delete this.observers[observerId];
+	}
 }
+
+export const server = new ServerConnector();
