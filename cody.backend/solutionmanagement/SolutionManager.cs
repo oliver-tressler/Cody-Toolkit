@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -64,6 +65,25 @@ namespace solutionmanagement
                 ComponentId = stepId
             };
             service.Execute(req);
+        }
+
+        public void ExportSolution(IOrganizationService service, string solutionUniqueName, string destinationPath)
+        {
+            var req = new ExportSolutionRequest
+            {
+                Managed = false,
+                SolutionName = solutionUniqueName,
+            };
+            var response = service.Execute(req) as ExportSolutionResponse;
+            if (response == null) throw new Exception("Unable to export solution");
+            if (string.IsNullOrWhiteSpace(destinationPath))
+            {
+                var userDocumentsFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                destinationPath = Path.Combine(userDocumentsFolder, "CodyToolkit", "ExportedSolutions");
+                Directory.CreateDirectory(destinationPath);
+            }
+
+            File.WriteAllBytes(Path.Combine(destinationPath, solutionUniqueName + ".zip"), response.ExportSolutionFile);
         }
 
         public IEnumerable<PublisherInfo> GetPublishers(OrganizationServiceContext serviceContext)
@@ -221,6 +241,20 @@ namespace solutionmanagement
             }
 
             return pluginInfo;
+        }
+
+        public void ImportSolution(IOrganizationService service, string solutionFilePath)
+        {
+            var req = new ImportSolutionRequest
+            {
+                CustomizationFile = File.ReadAllBytes(solutionFilePath),
+                PublishWorkflows = true,
+                ConvertToManaged = false,
+                OverwriteUnmanagedCustomizations = true,
+                SkipProductUpdateDependencies = true
+            };
+            service.Execute(req);
+            service.Execute(new PublishAllXmlRequest());
         }
     }
 }

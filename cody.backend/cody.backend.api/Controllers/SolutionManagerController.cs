@@ -60,6 +60,26 @@ namespace cody.backend.api.Controllers
         }
 
         [HttpPost]
+        [Route("api/SolutionManager/{organization}/solutions/export")]
+        public IHttpActionResult ExportSolution([FromUri] string organization,
+            [FromBody] ExportSolutionRequestParameters parameters)
+        {
+            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
+            new SolutionManager().ExportSolution(conn, parameters.UniqueName, parameters.DestinationFolder);
+            return Ok();
+        }
+        
+        [HttpPost]
+        [Route("api/SolutionManager/{organization}/solutions/import")]
+        public IHttpActionResult ImportSolution([FromUri] string organization,
+            [FromBody] ImportSolutionRequestParameters parameters)
+        {
+            var conn = ConnectionCache.Instance.Value.GetOrganizationService(organization);
+            new SolutionManager().ImportSolution(conn, parameters.SolutionFilePath);
+            return Ok();
+        }
+
+        [HttpPost]
         [Route("api/SolutionManager/{organization}/assembly/{assemblyId}/addToSolution/{solutionName}")]
         public IHttpActionResult AddAssemblyToSolution([FromUri] string organization, [FromUri] string assemblyId,
             [FromUri] string solutionName)
@@ -88,5 +108,16 @@ namespace cody.backend.api.Controllers
             new SolutionManager().AddWebResourceToSolution(conn, solutionName, Guid.Parse(webresourceId));
             return Ok();
         }
+    }
+
+    public class ExportSolutionRequestParameters
+    {
+        public string UniqueName { get; set; }
+        public string DestinationFolder { get; set; }
+    }
+    
+    public class ImportSolutionRequestParameters
+    {
+        public string SolutionFilePath { get; set; }
     }
 }

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { addAssemblyToSolution } from "./addAssemblyOrStepsToSolution";
 import { addWebResourceToSolution } from "./addWebResourceToSolution";
 import { createNewSolution } from "./createSolution";
+import { exportSolution } from "./exportSolution";
 
 export function activate(context: vscode.ExtensionContext) {
 	const addAssemblyToSolutionCommand = vscode.commands.registerCommand(
@@ -18,6 +19,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// This allows caching the last used publisher.
 		() => createNewSolution(context)
 	);
+	const exportSolutionCommand = vscode.commands.registerCommand(
+		"cody.toolkit.solutionmanagement.exportsolution",
+		() => exportSolution()
+	)
 	context.subscriptions.push(addAssemblyToSolutionCommand, addWebResourceToSolutionCommand, createSolutionCommand);
 }
 

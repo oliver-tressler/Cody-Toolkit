@@ -71,4 +71,9 @@ export class Configuration {
 	 * A regular expression that matches branchnames that should not be used for solution suggestions
 	 */
 	static ignoreTheseBranchNamesForSolutionNameSuggestions: string;
+	@config("cody.toolkit.solutionmanagement", vsc.ConfigurationTarget.Workspace)
+	/**
+	 * Control where to store the exported solutions. If left empty, this will store solutions in your Documents directory.
+	 */
+	static exportedSolutionPath: string;
 }

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { AxiosResponse } from "axios";
 import { Configuration } from "../Configuration/ConfigurationProxy";
 export type PublisherInfo = {
 	Id: string;
@@ -102,4 +103,12 @@ export function createSolution(
 		Description: description,
 		Publisher: publisher,
 	});
+}
+
+export function exportSolution(organization: string, solutionName: string, destinationFolder?: string){
+	return axios.post<void>(`${baseUrl()}${organization}/solutions/export`, {
+		UniqueName: solutionName,
+		Managed: false,
+		DestinationFolder: destinationFolder,
+	})
 }

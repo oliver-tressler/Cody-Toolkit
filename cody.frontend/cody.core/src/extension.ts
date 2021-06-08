@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { connectToOrganization, switchToOrganization } from "./changeOrganization";
 import { InstanceConfigurationProxy } from "./Configuration/MementoProxy";
 import { ConnectionManager, OrganizationConfiguration, TaskbarConnectionStateViewer } from "./connectionState";
-import { getPasswordOrKeyFromInstance } from "./getPasswordOrKeyFromInstance";
 import { removeInstanceCommand as removeInstance } from "./removeInstance";
 import { setup } from "./setup";
 import { switchToInstance } from "./switchToInstance";

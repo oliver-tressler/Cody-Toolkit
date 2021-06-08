@@ -47,6 +47,12 @@
 					"type": "string",
 					"scope": "window",
 					"default": "^(main|master|dev|develop|development)$"
+				},
+				"cody.toolkit.solutionmanagement.exportedSolutionDirectory": {
+					"markdownDescription": "Control where to store the exported solutions by providing an absolute path to a folder. If left empty, this will store solutions in a designated folder within your Documents directory.",
+					"type": "string",
+					"scope": "window",
+					"default": "^(main|master|dev|develop|development)$"
 				}
 			}
 		},
@@ -64,6 +70,11 @@
 			{
 				"command": "cody.toolkit.solutionmanagement.createnewsolution",
 				"title": "Create Solution",
+				"category": "Cody Solution Management"
+			},
+			{
+				"command": "cody.toolkit.solutionmanagement.exportsolution",
+				"title": "Export A Solution",
 				"category": "Cody Solution Management"
 			}
 		]
